@@ -5,7 +5,13 @@ import { Menu, X, Phone, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { DEMO_COUPLE } from '@/lib/mock-data'
 
-const mainNavItems = [
+type NavItem = {
+  href: string
+  label: string
+  isBackLink?: boolean
+}
+
+const mainNavItems: NavItem[] = [
   { href: '/', label: 'Home' },
   { href: '/itinerary', label: 'Itinerary' },
   { href: '/accommodation', label: 'Accommodation' },
@@ -13,7 +19,7 @@ const mainNavItems = [
   { href: '/faq', label: 'FAQ' },
 ]
 
-const adminNavItems = [
+const adminNavItems: NavItem[] = [
   { href: '/admin', label: 'Dashboard' },
   { href: '/admin?view=rsvp', label: 'RSVPs' },
   { href: '/admin?view=vendors', label: 'Vendors' },
