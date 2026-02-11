@@ -13,6 +13,7 @@ export const VENDOR_TYPES = [
   'Hair',
   'Makeup',
   'Planner',
+  'Officiant',
   'Transportation',
   'Rentals',
   'Stationery',
