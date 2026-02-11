@@ -74,7 +74,7 @@ export default function VendorsTab() {
       // Filter by type if needed
       let filteredVendors = allVendors || []
       if (typeFilter.length > 0) {
-        filteredVendors = filteredVendors.filter(v => typeFilter.includes(v.vendor_type))
+        filteredVendors = filteredVendors.filter((v: Vendor) => typeFilter.includes(v.vendor_type))
       }
 
       // Sort vendors: Venue always first, then alphabetically by type
@@ -102,7 +102,7 @@ export default function VendorsTab() {
 
       // Calculate payment reminders
       const reminders: any[] = []
-      vendors?.forEach(vendor => {
+      vendors?.forEach((vendor: Vendor) => {
         vendor.payments?.forEach((payment: any) => {
           if (!payment.paid && payment.due_date) {
             const dueDate = new Date(payment.due_date)

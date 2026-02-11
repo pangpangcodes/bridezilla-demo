@@ -50,21 +50,21 @@ export default function RSVPTab() {
       // Filter based on attending status
       let filteredRsvps = allRsvps || []
       if (attendingFilter === 'true') {
-        filteredRsvps = filteredRsvps.filter(r => r.attending)
+        filteredRsvps = filteredRsvps.filter((r: RSVP) => r.attending)
       } else if (attendingFilter === 'false') {
-        filteredRsvps = filteredRsvps.filter(r => !r.attending)
+        filteredRsvps = filteredRsvps.filter((r: RSVP) => !r.attending)
       }
 
       // Calculate stats
       const stats = {
         total: allRsvps?.length || 0,
-        attending: allRsvps?.filter(r => r.attending).length || 0,
-        notAttending: allRsvps?.filter(r => !r.attending).length || 0,
-        totalGuests: allRsvps?.reduce((sum, r) => sum + (r.number_of_guests || 1), 0) || 0
+        attending: allRsvps?.filter((r: RSVP) => r.attending).length || 0,
+        notAttending: allRsvps?.filter((r: RSVP) => !r.attending).length || 0,
+        totalGuests: allRsvps?.reduce((sum: number, r: RSVP) => sum + (r.guests?.length || 1), 0) || 0
       }
 
       // Format RSVPs to match expected structure
-      const formattedRsvps = filteredRsvps.map(rsvp => ({
+      const formattedRsvps = filteredRsvps.map((rsvp: RSVP) => ({
         ...rsvp,
         guests: rsvp.guests || [] // Use actual guest data from mock
       }))
