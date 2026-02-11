@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react'
 import { Vendor } from '@/types/vendor'
+import { useThemeStyles } from '@/hooks/useThemeStyles'
 
 interface Clarification {
   question: string
@@ -18,6 +19,7 @@ interface CompleteDetailsModalProps {
 }
 
 export default function CompleteDetailsModal({ vendors, onClose, onComplete }: CompleteDetailsModalProps) {
+  const theme = useThemeStyles()
   const [currentVendorIndex, setCurrentVendorIndex] = useState(0)
   const [clarifications, setClarifications] = useState<Clarification[]>([])
   const [answers, setAnswers] = useState<Record<string, string>>({})
@@ -25,6 +27,14 @@ export default function CompleteDetailsModal({ vendors, onClose, onComplete }: C
   const [error, setError] = useState('')
 
   const currentVendor = vendors[currentVendorIndex]
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [])
 
   // Generate clarifications for current vendor on mount/vendor change
   useEffect(() => {
@@ -211,26 +221,23 @@ export default function CompleteDetailsModal({ vendors, onClose, onComplete }: C
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4" style={{ WebkitBackdropFilter: 'blur(12px)', backdropFilter: 'blur(12px)' }}>
+      <div className={`${theme.cardBackground} rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col`}>
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Complete Vendor Details</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Vendor {currentVendorIndex + 1} of {vendors.length}
-            </p>
-          </div>
+        <div className={`${theme.cardBackground} border-b border-stone-200 px-8 py-6 flex justify-between items-center flex-shrink-0`}>
+          <h3 className={`font-display text-2xl md:text-3xl ${theme.textPrimary}`}>
+            Complete Vendor Details
+          </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className={`${theme.textMuted} hover:${theme.textSecondary} transition-colors`}
           >
-            <X className="w-6 h-6" />
+            <X size={20} />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
+        {/* Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto px-8 py-8">
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -286,7 +293,7 @@ export default function CompleteDetailsModal({ vendors, onClose, onComplete }: C
               <button
                 onClick={handleNext}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-bridezilla-pink text-white rounded-full font-semibold hover:scale-105 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                className={`flex-1 px-4 py-2 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-full font-semibold hover:scale-105 transition-all disabled:opacity-50 flex items-center justify-center gap-2`}
               >
                 {loading ? (
                   'Saving...'

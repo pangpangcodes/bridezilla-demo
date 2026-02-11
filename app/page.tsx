@@ -1,18 +1,15 @@
-import Navigation from '@/components/Navigation'
-import Hero from '@/components/Hero'
-import Itinerary from '@/components/Itinerary'
-import RSVP from '@/components/RSVP'
-import Accommodation from '@/components/Accommodation'
-import Travel from '@/components/Travel'
-import FAQ from '@/components/FAQ'
-import Footer from '@/components/Footer'
+import LandingNavbar from '@/components/landing/LandingNavbar'
+import LandingHero from '@/components/landing/LandingHero'
+import LandingFooter from '@/components/landing/LandingFooter'
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-green-50 via-green-100/50 to-green-50 relative">
-      <Navigation />
-      <Hero />
-    </main>
+    <div className="min-h-screen flex flex-col selection:bg-[#8D99AE] selection:text-white" style={{ background: '#FAF9F6' }}>
+      <LandingNavbar />
+      <main className="flex-grow flex flex-col justify-center">
+        <LandingHero />
+      </main>
+      <LandingFooter />
+    </div>
   )
 }
-

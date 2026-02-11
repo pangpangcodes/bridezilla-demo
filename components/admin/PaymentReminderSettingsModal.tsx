@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Settings } from 'lucide-react'
+import { useThemeStyles } from '@/hooks/useThemeStyles'
+import { supabase } from '@/lib/supabase'
 
 interface ReminderTypes {
   overdue: boolean
@@ -24,6 +27,7 @@ interface Props {
 }
 
 export default function PaymentReminderSettingsModal({ isOpen, onClose, onSave }: Props) {
+  const theme = useThemeStyles()
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [settings, setSettings] = useState<PaymentReminderSettings | null>(null)
@@ -37,6 +41,16 @@ export default function PaymentReminderSettingsModal({ isOpen, onClose, onSave }
   })
   const [emailError, setEmailError] = useState('')
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = 'unset'
+      }
+    }
+  }, [isOpen])
 
   useEffect(() => {
     if (isOpen) {
@@ -148,40 +162,35 @@ export default function PaymentReminderSettingsModal({ isOpen, onClose, onSave }
   }
 
   if (!isOpen) return null
+  if (typeof window === 'undefined') return null
 
-  return (
-    <>
-      {/* Backdrop */}
+  return createPortal(
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4" onClick={onClose} style={{ WebkitBackdropFilter: 'blur(12px)', backdropFilter: 'blur(12px)' }}>
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-[90]"
-        onClick={onClose}
-      />
+        className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[95vh] border border-stone-200 overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="bg-white border-b border-stone-200 px-8 py-6 flex justify-between items-center flex-shrink-0">
+          <h3 className={`font-display text-2xl md:text-3xl ${theme.textPrimary}`}>
+            Payment Reminder Settings
+          </h3>
+          <button
+            onClick={onClose}
+            className={`${theme.textMuted} hover:${theme.textSecondary} transition-colors`}
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-bridezilla-pink bg-bridezilla-light-pink">
-            <div className="flex items-center gap-3">
-              <Settings className="w-6 h-6 text-bridezilla-pink" />
-              <h2 className="font-heading text-2xl uppercase tracking-wide text-gray-900">Payment Reminder Settings</h2>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-1 text-bridezilla-pink hover:text-bridezilla-pink/80 transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="p-6 space-y-6">
-            {loading ? (
-              <div className="text-center py-8 text-gray-500">Loading settings...</div>
-            ) : (
-              <>
-                {/* Enable/Disable Toggle */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+        {/* Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto px-8 py-8 space-y-6">
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">Loading settings...</div>
+          ) : (
+            <>
+              {/* Enable/Disable Toggle */}
+              <div className="flex items-center justify-between p-4 bg-stone-50 rounded-xl border border-stone-200">
                   <div>
                     <label className="text-sm font-semibold text-gray-900">
                       Enable Payment Reminders
@@ -193,7 +202,7 @@ export default function PaymentReminderSettingsModal({ isOpen, onClose, onSave }
                   <button
                     onClick={() => setEnabled(!enabled)}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      enabled ? 'bg-bridezilla-pink' : 'bg-gray-300'
+                      enabled ? theme.primaryButton : 'bg-gray-300'
                     }`}
                   >
                     <span
@@ -204,32 +213,32 @@ export default function PaymentReminderSettingsModal({ isOpen, onClose, onSave }
                   </button>
                 </div>
 
-                {/* Email Recipient */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Email Recipient
-                  </label>
-                  <input
-                    type="email"
-                    value={emailRecipient}
-                    onChange={handleEmailChange}
-                    placeholder="your.email@example.com"
-                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                      emailError
-                        ? 'border-red-300 focus:ring-red-500'
-                        : 'border-gray-300 focus:ring-bridezilla-pink'
-                    }`}
-                  />
-                  {emailError && (
-                    <p className="text-xs text-red-600 mt-1">{emailError}</p>
-                  )}
-                </div>
+              {/* Email Recipient */}
+              <div>
+                <label className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
+                  Email Recipient
+                </label>
+                <input
+                  type="email"
+                  value={emailRecipient}
+                  onChange={handleEmailChange}
+                  placeholder="your.email@example.com"
+                  className={`w-full px-4 py-3 border rounded-xl text-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all ${
+                    emailError
+                      ? 'border-red-300'
+                      : 'border-stone-200'
+                  }`}
+                />
+                {emailError && (
+                  <p className="text-xs text-red-600 mt-1">{emailError}</p>
+                )}
+              </div>
 
-                {/* Reminder Types */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">
-                    Send reminders for:
-                  </label>
+              {/* Reminder Types */}
+              <div>
+                <label className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
+                  Send reminders for:
+                </label>
                   <div className="space-y-3">
                     <label className={`flex items-center gap-3 ${enabled ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'} group`}>
                       <input
@@ -282,46 +291,31 @@ export default function PaymentReminderSettingsModal({ isOpen, onClose, onSave }
                         30 days before due date
                       </span>
                     </label>
-                  </div>
                 </div>
-              </>
-            )}
-          </div>
+              </div>
+            </>
+          )}
+        </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
-            <button
-              onClick={onClose}
-              disabled={saving}
-              className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 hover:scale-105 transition-all disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving || loading || !!emailError}
-              className="px-4 py-2 text-sm font-semibold text-white bg-bridezilla-pink rounded-full hover:scale-105 transition-all disabled:opacity-50"
-            >
-              {saving ? 'Saving...' : 'Save Settings'}
-            </button>
-          </div>
+        {/* Footer - Sticky CTA Buttons */}
+        <div className="flex items-center justify-end gap-3 px-8 py-6 border-t border-stone-200 bg-white flex-shrink-0">
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className={`px-6 py-2.5 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors disabled:opacity-50`}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving || loading || !!emailError}
+            className={`px-6 py-2.5 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors disabled:opacity-50`}
+          >
+            {saving ? 'Saving...' : 'Save Settings'}
+          </button>
         </div>
       </div>
-
-      {/* Toast Notification */}
-      {toast && (
-        <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-bottom">
-          <div
-            className={`px-6 py-3 rounded-lg shadow-lg ${
-              toast.type === 'success'
-                ? 'bg-green-600 text-white'
-                : 'bg-red-600 text-white'
-            }`}
-          >
-            {toast.message}
-          </div>
-        </div>
-      )}
-    </>
+    </div>,
+    document.body
   )
 }

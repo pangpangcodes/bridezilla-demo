@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, DollarSign, AlertCircle, Calendar, BarChart3 } from 'lucide-react'
+import { Users, DollarSign, AlertCircle, Calendar, BarChart3, CheckCircle, Clock } from 'lucide-react'
 import { formatCurrency, calculateVendorStats } from '@/lib/vendorUtils'
 import { supabase } from '@/lib/supabase'
+import { useThemeStyles } from '@/hooks/useThemeStyles'
 
 interface DashboardData {
   rsvpStats: {
@@ -31,14 +32,46 @@ interface DashboardData {
 }
 
 export default function DashboardTab() {
+  const theme = useThemeStyles()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<DashboardData | null>(null)
-  const [showActionBanner, setShowActionBanner] = useState(true)
+  const [countedDays, setCountedDays] = useState(0)
+  const [hasAnimated, setHasAnimated] = useState(false)
 
   useEffect(() => {
     fetchDashboardData()
   }, [])
+
+  // Animate countdown number
+  useEffect(() => {
+    if (!hasAnimated && data && !loading) {
+      const weddingDate = new Date('2026-09-20')
+      const today = new Date()
+      const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+      if (daysUntilWedding > 0) {
+        setHasAnimated(true)
+        const duration = 1500 // 1.5 seconds
+        const steps = 60
+        const increment = daysUntilWedding / steps
+        const stepDuration = duration / steps
+
+        let currentStep = 0
+        const timer = setInterval(() => {
+          currentStep++
+          if (currentStep >= steps) {
+            setCountedDays(daysUntilWedding)
+            clearInterval(timer)
+          } else {
+            setCountedDays(Math.floor(increment * currentStep))
+          }
+        }, stepDuration)
+
+        return () => clearInterval(timer)
+      }
+    }
+  }, [data, loading, hasAnimated])
 
   const fetchDashboardData = async () => {
     setLoading(true)
@@ -46,15 +79,15 @@ export default function DashboardTab() {
 
     try {
       // Fetch data directly from demo supabase
-      const { data: rsvps } = await supabase.from('rsvps').select('*')
-      const { data: vendors } = await supabase.from('vendors').select('*')
+      const { data: rsvps, error: rsvpsError } = await supabase.from('rsvps').select('*')
+      const { data: vendors, error: vendorsError } = await supabase.from('vendors').select('*')
 
       // Calculate RSVP stats
       const rsvpStats = {
         total: rsvps?.length || 0,
-        attending: rsvps?.filter(r => r.attending).length || 0,
-        notAttending: rsvps?.filter(r => !r.attending).length || 0,
-        totalGuests: rsvps?.reduce((sum, r) => sum + (r.number_of_guests || 1), 0) || 0
+        attending: rsvps?.filter((r: any) => r.attending).length || 0,
+        notAttending: rsvps?.filter((r: any) => !r.attending).length || 0,
+        totalGuests: rsvps?.reduce((sum: number, r: any) => sum + (r.number_of_guests || 1), 0) || 0
       }
 
       // Calculate vendor stats
@@ -62,7 +95,7 @@ export default function DashboardTab() {
 
       // Calculate payment reminders (upcoming payments)
       const paymentReminders: any[] = []
-      vendors?.forEach(vendor => {
+      vendors?.forEach((vendor: any) => {
         vendor.payments?.forEach((payment: any) => {
           if (!payment.paid && payment.due_date) {
             // Parse date components explicitly to avoid timezone conversion
@@ -110,7 +143,7 @@ export default function DashboardTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Loading dashboard...</div>
+        <div className={theme.textSecondary}>Loading dashboard...</div>
       </div>
     )
   }
@@ -135,184 +168,193 @@ export default function DashboardTab() {
     r.reminder_type === '7_days' || (r.days_until_due > 0 && r.days_until_due <= 7)
   )
 
-  // Action items
-  const actionItems = []
-  if (overduePayments.length > 0) {
-    actionItems.push({
-      severity: 'error',
-      message: `${overduePayments.length} overdue payment${overduePayments.length > 1 ? 's' : ''}`
-    })
-  }
-  if (dueTodayPayments.length > 0) {
-    actionItems.push({
-      severity: 'warning',
-      message: `${dueTodayPayments.length} payment${dueTodayPayments.length > 1 ? 's' : ''} due today`
-    })
-  }
+  // Action items count
+  const actionItemsCount = overduePayments.length + upcomingPayments.length
+
+  // Calculate days until wedding (Sept 20, 2026)
+  const weddingDate = new Date('2026-09-20')
+  const today = new Date()
+  const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+  // Calculate pending RSVPs
+  const pendingRsvps = data.rsvpStats.total - data.rsvpStats.attending - data.rsvpStats.notAttending
 
   return (
     <>
-      {/* Upcoming Payments Timeline */}
-      {data.paymentReminders.length > 0 && (
-        <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6 border-2 border-bridezilla-pink/20 hover:border-bridezilla-pink transition-colors">
+      {/* Welcome Banner */}
+      <div className={`${theme.cardBackground} rounded-2xl shadow-md p-4 md:p-6 mb-4 md:mb-6 border ${theme.border} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="animate-in fade-in slide-in-from-left-4 duration-700">
+            <h2 className={`font-display text-2xl md:text-3xl ${theme.textPrimary} mb-1`}>
+              Welcome back, Bella & Edward
+            </h2>
+            <p className={theme.textSecondary}>
+              Only <span className={`font-semibold ${theme.textPrimary}`}>{daysUntilWedding}</span> days until your wedding in Seville on <strong>September 20, 2026</strong>.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 animate-in fade-in zoom-in-50 duration-700 delay-300">
+            <div className={`text-center px-6 py-3 bg-stone-50 rounded-xl border ${theme.border} shadow-md hover:shadow-lg transition-all duration-300`}>
+              <div className={`text-3xl font-semibold ${theme.textPrimary} tabular-nums`}>
+                {countedDays || daysUntilWedding}
+              </div>
+              <div className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mt-1`}>Days</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Grid - 4 Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        {/* Budget Spent */}
+        <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+          <div className="flex items-start justify-between mb-4">
+            <div className="p-2 rounded-lg bg-stone-50">
+              <DollarSign className={`w-5 h-5 ${theme.textSecondary}`} />
+            </div>
+          </div>
+          <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Budget Spent</p>
+          <p className={`text-3xl font-semibold ${theme.textPrimary}`}>{budgetSpentPercent}%</p>
+          <p className={`text-sm ${theme.textSecondary} mt-2`}>
+            {formatCurrency(data.vendorStats.totalPaid)} / {formatCurrency(data.vendorStats.totalCost)} USD
+          </p>
+        </div>
+
+        {/* RSVP Confirmed */}
+        <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+          <div className="flex items-start justify-between mb-4">
+            <div className={`p-2 rounded-lg ${theme.success.bg}`}>
+              <Users className={`w-5 h-5 ${theme.success.text}`} />
+            </div>
+          </div>
+          <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Confirmed Guests</p>
+          <p className={`text-3xl font-semibold ${theme.textPrimary}`}>{data.rsvpStats.totalGuests}</p>
+          <p className={`text-sm ${theme.textSecondary} mt-2`}>
+            {data.rsvpStats.attending} attending • {data.rsvpStats.notAttending} not attending
+          </p>
+        </div>
+
+        {/* Vendors Booked */}
+        <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+          <div className="flex items-start justify-between mb-4">
+            <div className="p-2 rounded-lg bg-stone-50">
+              <BarChart3 className={`w-5 h-5 ${theme.textSecondary}`} />
+            </div>
+          </div>
+          <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Vendors Booked</p>
+          <p className={`text-3xl font-semibold ${theme.textPrimary}`}>{data.vendorStats.totalVendors}</p>
+          <p className={`text-sm ${theme.textSecondary} mt-2 truncate`}>
+            Total Cost: {formatCurrency(data.vendorStats.totalCost)} USD
+          </p>
+        </div>
+
+        {/* Action Items */}
+        <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+          <div className="flex items-start justify-between mb-4">
+            <div className="p-2 rounded-lg bg-stone-50">
+              <AlertCircle className={`w-5 h-5 ${theme.textSecondary}`} />
+            </div>
+          </div>
+          <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Action Items</p>
+          <p className={`text-3xl font-semibold ${theme.textPrimary}`}>{actionItemsCount}</p>
+          <p className={`text-sm ${theme.textSecondary} mt-2`}>
+            {overduePayments.length} overdue • {upcomingPayments.length} upcoming
+          </p>
+        </div>
+      </div>
+
+      {/* Two Column Layout - Upcoming Payments & Pending Tasks */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        {/* Upcoming Payments */}
+        {data.paymentReminders.length > 0 && (
+          <div className={`${theme.cardBackground} rounded-2xl shadow-md p-4 md:p-6 border ${theme.border} transition-colors`}>
+            <div className="flex items-center gap-2 mb-3 md:mb-4">
+              <Calendar className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" style={{ color: theme.primaryColor }} />
+              <h3 className={`font-display text-xl md:text-2xl ${theme.textPrimary}`}>
+                Upcoming Payments
+              </h3>
+            </div>
+
+            <div className="space-y-2 md:space-y-3">
+              {data.paymentReminders.slice(0, 5).map((reminder, i) => {
+                const bgColor =
+                  reminder.reminder_type === 'overdue' ? 'bg-red-50 border-red-200' :
+                  reminder.reminder_type === 'due_today' ? 'bg-orange-50 border-orange-200' :
+                  'bg-yellow-50 border-yellow-200'
+
+                const textColor =
+                  reminder.reminder_type === 'overdue' ? 'text-red-900' :
+                  reminder.reminder_type === 'due_today' ? 'text-orange-900' :
+                  'text-yellow-900'
+
+                const badgeColor =
+                  reminder.reminder_type === 'overdue' ? 'bg-red-100 text-red-700' :
+                  reminder.reminder_type === 'due_today' ? 'bg-orange-100 text-orange-700' :
+                  'bg-amber-50 text-amber-700'
+
+                const statusText =
+                  reminder.reminder_type === 'overdue' ? `Overdue ${Math.abs(reminder.days_until_due)}d` :
+                  reminder.reminder_type === 'due_today' ? 'Due today' :
+                  `Due in ${reminder.days_until_due}d`
+
+                return (
+                  <div key={i} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 p-3 rounded-lg border ${bgColor}`}>
+                    <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                      <div className="flex-shrink-0">
+                        <div className={`text-xs font-semibold px-2 py-1 rounded ${badgeColor}`}>
+                          {(() => {
+                            const [year, month, day] = reminder.due_date.split('-')
+                            const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+                            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                          })()}
+                        </div>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-sm font-medium ${textColor} truncate`}>
+                          {reminder.vendor_name || reminder.vendor_type}
+                        </p>
+                        <p className={`text-xs ${theme.textSecondary} truncate`}>
+                          {reminder.payment_description}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-shrink-0 pl-10 sm:pl-0">
+                      <span className={`text-sm font-semibold ${textColor}`}>
+                        {formatCurrency(reminder.amount, reminder.currency)} {reminder.currency}
+                      </span>
+                      <span className={`text-xs font-semibold px-2 py-1 rounded ${badgeColor}`}>
+                        {statusText}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {data.paymentReminders.length > 5 && (
+              <a
+                href="/admin?view=vendors"
+                className="mt-4 inline-flex items-center text-sm font-semibold transition-colors"
+                style={{ color: theme.primaryColor }}
+              >
+                View All Payments →
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* Pending Tasks */}
+        <div className={`${theme.cardBackground} rounded-2xl shadow-md p-4 md:p-6 border ${theme.border} transition-colors`}>
           <div className="flex items-center gap-2 mb-3 md:mb-4">
-            <Calendar className="w-4 h-4 md:w-5 md:h-5 text-bridezilla-pink flex-shrink-0" />
-            <h3 className="font-heading text-xl md:text-2xl uppercase tracking-wide text-gray-900">
-              Upcoming Payments
+            <CheckCircle className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" style={{ color: theme.primaryColor }} />
+            <h3 className={`font-display text-xl md:text-2xl ${theme.textPrimary}`}>
+              Pending Tasks
             </h3>
           </div>
 
-          <div className="space-y-2 md:space-y-3">
-            {data.paymentReminders.slice(0, 5).map((reminder, i) => {
-              const bgColor =
-                reminder.reminder_type === 'overdue' ? 'bg-red-50 border-red-200' :
-                reminder.reminder_type === 'due_today' ? 'bg-orange-50 border-orange-200' :
-                'bg-yellow-50 border-yellow-200'
-
-              const textColor =
-                reminder.reminder_type === 'overdue' ? 'text-red-900' :
-                reminder.reminder_type === 'due_today' ? 'text-orange-900' :
-                'text-yellow-900'
-
-              const badgeColor =
-                reminder.reminder_type === 'overdue' ? 'bg-red-100 text-red-700' :
-                reminder.reminder_type === 'due_today' ? 'bg-orange-100 text-orange-700' :
-                'bg-yellow-100 text-yellow-700'
-
-              const statusText =
-                reminder.reminder_type === 'overdue' ? `OVERDUE ${Math.abs(reminder.days_until_due)}d` :
-                reminder.reminder_type === 'due_today' ? 'DUE TODAY' :
-                `Due in ${reminder.days_until_due}d`
-
-              return (
-                <div key={i} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 p-3 rounded-lg border ${bgColor}`}>
-                  <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-                    <div className="flex-shrink-0">
-                      <div className={`text-xs font-semibold px-2 py-1 rounded ${badgeColor}`}>
-                        {(() => {
-                          const [year, month, day] = reminder.due_date.split('-')
-                          const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
-                          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                        })()}
-                      </div>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className={`text-sm font-medium ${textColor} truncate`}>
-                        {reminder.vendor_name || reminder.vendor_type}
-                      </p>
-                      <p className="text-xs text-gray-600 truncate">
-                        {reminder.payment_description}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-shrink-0 pl-10 sm:pl-0">
-                    <span className={`text-sm font-semibold ${textColor}`}>
-                      {formatCurrency(reminder.amount, reminder.currency)} {reminder.currency}
-                    </span>
-                    <span className={`text-xs font-semibold px-2 py-1 rounded ${badgeColor}`}>
-                      {statusText}
-                    </span>
-                  </div>
-                </div>
-              )
-            })}
+          <div className={`text-center py-6 ${theme.textMuted} text-sm`}>
+            All caught up! No pending tasks.
           </div>
-
-          {data.paymentReminders.length > 5 && (
-            <a
-              href="/admin?view=vendors"
-              className="mt-4 inline-flex items-center text-sm font-semibold text-bridezilla-pink hover:text-bridezilla-pink/80 transition-colors"
-            >
-              View All Payments →
-            </a>
-          )}
         </div>
-      )}
-
-      {/* Summary Cards Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
-        {/* RSVP Summary Card */}
-        <a
-          href="/admin?view=rsvp"
-          className="bg-white rounded-xl shadow-lg p-4 md:p-6 transition-all duration-200 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 cursor-pointer flex flex-col border-2 border-bridezilla-pink/20 hover:border-bridezilla-pink"
-        >
-          <div className="flex items-center justify-between mb-3 md:mb-4">
-            <h3 className="font-heading text-xl md:text-2xl uppercase tracking-wide text-gray-900">RSVP Summary</h3>
-            <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-bridezilla-pink flex-shrink-0" />
-          </div>
-
-          <div className="space-y-3 md:space-y-4 flex-1">
-            <div>
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="font-heading text-4xl md:text-5xl text-bridezilla-pink">
-                  {data.rsvpStats.total}
-                </span>
-                <span className="text-sm text-gray-600">Responses</span>
-              </div>
-              <p className="text-xs text-gray-500">
-                {data.rsvpStats.attending} attending • {data.rsvpStats.notAttending} not attending
-              </p>
-            </div>
-
-            <div className="pt-3 md:pt-4 border-t border-gray-200">
-              <span className="font-heading text-2xl md:text-3xl text-bridezilla-pink">
-                {data.rsvpStats.totalGuests}
-              </span>
-              <span className="text-sm text-gray-600 ml-2">Guests</span>
-              <p className="text-xs text-gray-500 mt-1">Total attending</p>
-            </div>
-          </div>
-
-          <div className="mt-4 md:mt-6 inline-flex items-center text-sm font-semibold text-bridezilla-pink group-hover:text-bridezilla-pink/80 transition-colors">
-            View Full RSVP Tracking →
-          </div>
-        </a>
-
-        {/* Vendor Summary Card */}
-        <a
-          href="/admin?view=vendors"
-          className="bg-white rounded-xl shadow-lg p-4 md:p-6 transition-all duration-200 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 cursor-pointer flex flex-col border-2 border-bridezilla-pink/20 hover:border-bridezilla-pink"
-        >
-          <div className="flex items-center justify-between mb-3 md:mb-4">
-            <h3 className="font-heading text-xl md:text-2xl uppercase tracking-wide text-gray-900">Vendor Summary</h3>
-            <DollarSign className="w-5 h-5 md:w-6 md:h-6 text-bridezilla-pink flex-shrink-0" />
-          </div>
-
-          <div className="space-y-3 md:space-y-4 flex-1">
-            <div>
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="font-heading text-4xl md:text-5xl text-bridezilla-pink">
-                  {budgetSpentPercent}%
-                </span>
-                <span className="text-sm text-gray-600">Budget Spent</span>
-              </div>
-              <p className="text-xs text-gray-500">
-                {formatCurrency(data.vendorStats.totalPaid)} / {formatCurrency(data.vendorStats.totalCost)} USD
-              </p>
-            </div>
-
-            <div className="pt-3 md:pt-4 border-t border-gray-200">
-              <span className="font-heading text-2xl md:text-3xl text-bridezilla-pink">
-                {formatCurrency(data.vendorStats.totalOutstanding)}
-              </span>
-              <span className="text-sm text-gray-600 ml-2">USD</span>
-              <p className="text-xs text-gray-500 mt-1">Outstanding</p>
-            </div>
-
-            <div className="pt-4 border-t border-gray-200">
-              <div className="text-sm">
-                <span className="text-gray-600">Payments: </span>
-                <span className="font-medium text-gray-900">
-                  {overduePayments.length} overdue, {upcomingPayments.length} upcoming
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 inline-flex items-center text-sm font-semibold text-bridezilla-pink group-hover:text-bridezilla-pink/80 transition-colors">
-            View Vendor Management →
-          </div>
-        </a>
       </div>
     </>
   )

@@ -6,14 +6,46 @@ const config: Config = {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  safelist: [
+    // Pop theme text colors for blue background
+    'text-white',
+    'text-white/90',
+    'text-white/70',
+    'text-white/60',
+    'hover:text-white',
+    // Pop theme navigation colors
+    'text-bridezilla-orange',
+  ],
   theme: {
     extend: {
       colors: {
         'bridezilla-blue': '#5B9BD5',
-        'bridezilla-pink': '#ED64A6',
-        'bridezilla-orange': '#FF8B3E',
+        'bridezilla-pink': '#ec4899',
+        'bridezilla-orange': '#f97316',
         'bridezilla-light-pink': '#FDE6F1',
         'bridezilla-light-blue': '#E3F2FD',
+        'everafter': {
+          cream: '#FAF9F6',
+          stone: {
+            50: '#fafaf9',
+            100: '#f5f5f4',
+            200: '#e7e5e4',
+            400: '#a8a29e',
+            500: '#78716c',
+            800: '#292524',
+            900: '#1c1917',
+          },
+          emerald: {
+            50: '#d1fae5',
+            600: '#059669',
+            700: '#047857',
+          },
+          amber: {
+            50: '#fef3c7',
+            600: '#d97706',
+            700: '#b45309',
+          },
+        },
         primary: {
           50: '#f0fdf4',
           100: '#dcfce7',

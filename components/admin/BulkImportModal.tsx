@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { X, Upload, AlertCircle, Loader2, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react'
+import { X, Upload, AlertCircle, Loader2, ChevronLeft, ChevronRight, CheckCircle, Sparkles } from 'lucide-react'
 import { ParsedVendorOperation } from '@/types/vendor'
 import VendorOperationCard from './VendorOperationCard'
+import { useThemeStyles } from '@/hooks/useThemeStyles'
 
 interface BulkImportModalProps {
   onClose: () => void
@@ -12,6 +13,7 @@ interface BulkImportModalProps {
 }
 
 export default function BulkImportModal({ onClose, onImport }: BulkImportModalProps) {
+  const theme = useThemeStyles()
   const [pastedData, setPastedData] = useState('')
   const [operations, setOperations] = useState<ParsedVendorOperation[]>([])
   const [currentOperationIndex, setCurrentOperationIndex] = useState(0)
@@ -27,6 +29,14 @@ export default function BulkImportModal({ onClose, onImport }: BulkImportModalPr
   const [clarificationAnswers, setClarificationAnswers] = useState<Record<string, string>>({})
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [])
 
   // Warn when leaving with unsaved operations
   useEffect(() => {
@@ -165,55 +175,61 @@ export default function BulkImportModal({ onClose, onImport }: BulkImportModalPr
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto relative">
-        <div className="bg-bridezilla-pink rounded-t-2xl p-6 relative">
-          <h3 className="font-heading text-3xl uppercase tracking-wide text-white flex items-center gap-3">
-            <Image src="/images/bridezilla-logo-circle.svg" alt="Bridezilla" width={40} height={40} className="object-contain" />
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4" onClick={onClose} style={{ WebkitBackdropFilter: 'blur(12px)', backdropFilter: 'blur(12px)' }}>
+      <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[95vh] border border-stone-200 overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="bg-white border-b border-stone-200 px-8 py-6 flex justify-between items-center flex-shrink-0">
+          <h3 className={`font-display text-2xl md:text-3xl ${theme.textPrimary}`}>
             Ask Bridezilla
           </h3>
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 text-white hover:text-white/80 transition-colors p-2 -m-2 bg-white/20 rounded-full hover:bg-white/30"
+            className={`${theme.textMuted} hover:${theme.textSecondary} transition-colors`}
             aria-label="Close"
           >
-            <X className="w-6 h-6" />
+            <X size={20} />
           </button>
         </div>
 
-        <div className="p-6">
-
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600">
-            Tell me what you want to do, or paste vendor information in any format.
-          </p>
-
+        {/* Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto px-8 py-8 space-y-4">
           <div>
+            <label className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
+              Paste vendor information
+            </label>
             <textarea
               value={pastedData}
               onChange={(e) => setPastedData(e.target.value)}
               rows={10}
               autoFocus
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm placeholder:text-gray-400 placeholder:whitespace-pre-wrap"
+              className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all resize-none placeholder:text-gray-400 placeholder:whitespace-pre-wrap"
               placeholder={"Examples:\n• Add pending payment of $500 for photographer\n• Paid deposit of 600 euros to venue today\n• Hired photographer for 1200 euros, deposit 600 due March 1\n• Signed contract with caterer yesterday\n• Update DJ email to john@example.com"}
             />
+            <p className={`text-xs ${theme.textSecondary} mt-2 tracking-wide`}>
+              You can paste multiple vendors at once. AI will extract names, contacts, pricing, and more.
+            </p>
           </div>
 
           {operations.length === 0 && (
-            <button
-              onClick={handleParse}
-              disabled={loading || !pastedData.trim()}
-              className="w-full px-6 py-3 bg-bridezilla-pink text-white rounded-full font-semibold hover:scale-105 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                'Continue'
-              )}
-            </button>
+            <div className="flex gap-3 pt-6">
+              <button
+                onClick={handleParse}
+                disabled={loading || !pastedData.trim()}
+                className={`flex-1 ${theme.primaryButton} ${theme.textOnPrimary} px-6 py-3 rounded-xl text-sm font-medium ${theme.primaryButtonHover} transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Analyzing with AI...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5" />
+                    Parse with AI
+                  </>
+                )}
+              </button>
+            </div>
           )}
 
           {error && (
@@ -539,18 +555,18 @@ export default function BulkImportModal({ onClose, onImport }: BulkImportModalPr
           )}
 
           {operations.length > 0 && (
-            <div className="flex gap-3 justify-end pt-4 border-t">
+            <div className="flex gap-3 justify-end pt-6 border-t border-stone-200">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-3 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 hover:scale-105 transition-all"
+                className={`px-6 py-2.5 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors`}
               >
                 Cancel
               </button>
               <button
                 onClick={handleExecute}
                 disabled={loading}
-                className="px-6 py-3 bg-bridezilla-pink text-white rounded-full font-semibold hover:scale-105 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+                className={`px-6 py-2.5 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
               >
                 {loading ? (
                   <>
@@ -563,7 +579,6 @@ export default function BulkImportModal({ onClose, onImport }: BulkImportModalPr
               </button>
             </div>
           )}
-        </div>
         </div>
       </div>
     </div>

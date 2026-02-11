@@ -50,6 +50,17 @@ export class DemoSupabaseClient {
     if (!localStorage.getItem(this.getStorageKey('rsvps'))) {
       this.setData('rsvps', MOCK_RSVPS)
     }
+
+    // Initialize planner tables if not present
+    if (!localStorage.getItem(this.getStorageKey('planner_couples'))) {
+      this.setData('planner_couples', [])
+    }
+    if (!localStorage.getItem(this.getStorageKey('shared_vendors'))) {
+      this.setData('shared_vendors', [])
+    }
+    if (!localStorage.getItem(this.getStorageKey('vendor_activity'))) {
+      this.setData('vendor_activity', [])
+    }
   }
 
   resetDemo() {
@@ -58,6 +69,9 @@ export class DemoSupabaseClient {
 
     localStorage.removeItem(this.getStorageKey('vendors'))
     localStorage.removeItem(this.getStorageKey('rsvps'))
+    localStorage.removeItem(this.getStorageKey('planner_couples'))
+    localStorage.removeItem(this.getStorageKey('shared_vendors'))
+    localStorage.removeItem(this.getStorageKey('vendor_activity'))
     this.initializeDemo()
   }
 
@@ -91,19 +105,59 @@ export class DemoSupabaseClient {
           })
         }
 
-        return Promise.resolve({ data, error: null })
+        // Create a proper Promise-based query builder
+        const promise = Promise.resolve({ data, error: null }) as Promise<{ data: any[] | any, error: any }>
+
+        const queryMethods = {
+          eq: (field: string, value: any) => {
+            return promise.then(({ data: currentData }) => {
+              const filtered = (Array.isArray(currentData) ? currentData : [currentData]).filter(item => item?.[field] === value)
+              return { data: filtered, error: null }
+            }) as any
+          },
+          order: (field: string, options?: { ascending?: boolean }) => {
+            return promise.then(({ data: currentData }) => {
+              const ascending = options?.ascending !== false
+              const sorted = [...(Array.isArray(currentData) ? currentData : [currentData])].sort((a, b) => {
+                if (a[field] < b[field]) return ascending ? -1 : 1
+                if (a[field] > b[field]) return ascending ? 1 : -1
+                return 0
+              })
+              return { data: sorted, error: null }
+            }) as any
+          },
+          single: () => {
+            return promise.then(({ data: currentData }) => ({
+              data: Array.isArray(currentData) ? currentData[0] || null : currentData,
+              error: null
+            }))
+          }
+        }
+
+        // Merge query methods with the promise
+        return Object.assign(promise, queryMethods)
       },
       insert: (newData: any) => {
         const data = this.getData(table)
+        const now = new Date().toISOString()
         const record = {
           ...newData,
           id: crypto.randomUUID(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          created_at: now,
+          updated_at: now,
+          last_activity: now, // For planner_couples table
         }
         data.push(record)
         this.setData(table, data)
-        return Promise.resolve({ data: record, error: null })
+
+        // Return chainable query builder
+        return {
+          select: (query: string = '*') => ({
+            single: () => Promise.resolve({ data: record, error: null }),
+            then: (resolve: any) => resolve({ data: [record], error: null })
+          }),
+          then: (resolve: any) => resolve({ data: record, error: null })
+        }
       },
       update: (updates: any) => ({
         eq: (field: string, value: any) => {
@@ -116,9 +170,22 @@ export class DemoSupabaseClient {
               updated_at: new Date().toISOString()
             }
             this.setData(table, data)
-            return Promise.resolve({ data: data[index], error: null })
+            const updatedRecord = data[index]
+            return {
+              select: (query: string = '*') => ({
+                single: () => Promise.resolve({ data: updatedRecord, error: null }),
+                then: (resolve: any) => resolve({ data: [updatedRecord], error: null })
+              }),
+              then: (resolve: any) => resolve({ data: updatedRecord, error: null })
+            }
           }
-          return Promise.resolve({ data: null, error: null })
+          return {
+            select: (query: string = '*') => ({
+              single: () => Promise.resolve({ data: null, error: null }),
+              then: (resolve: any) => resolve({ data: [], error: null })
+            }),
+            then: (resolve: any) => resolve({ data: null, error: null })
+          }
         }
       }),
       delete: () => ({

@@ -12,27 +12,34 @@ type NavItem = {
 }
 
 const mainNavItems: NavItem[] = [
-  { href: '/', label: 'Home' },
-  { href: '/itinerary', label: 'Itinerary' },
-  { href: '/accommodation', label: 'Accommodation' },
-  { href: '/travel', label: 'Travel' },
-  { href: '/faq', label: 'FAQ' },
+  { href: '/demo', label: 'Home' },
+  { href: '/demo/itinerary', label: 'Itinerary' },
+  { href: '/demo/accommodation', label: 'Accommodation' },
+  { href: '/demo/travel', label: 'Travel' },
+  { href: '/demo/faq', label: 'FAQ' },
 ]
 
 const adminNavItems: NavItem[] = [
-  { href: '/admin', label: 'Dashboard' },
-  { href: '/admin?view=rsvp', label: 'RSVPs' },
-  { href: '/admin?view=vendors', label: 'Vendors' },
-  { href: '/', label: 'Back to Website', isBackLink: true },
+  { href: '/couples', label: 'Dashboard' },
+  { href: '/couples?view=rsvp', label: 'RSVPs' },
+  { href: '/couples?view=vendors', label: 'Vendors' },
+  { href: '/couples?view=settings', label: 'Settings' },
+  { href: '/demo', label: 'Back to Website', isBackLink: true },
+]
+
+const plannerNavItems: NavItem[] = [
+  { href: '/planners?view=couples', label: 'Couples Calendar' },
+  { href: '/planners?view=vendors', label: 'Vendor Library' },
+  { href: '/planners?view=settings', label: 'Settings' },
 ]
 
 const menuItems = [
-  { href: '/rsvp', label: 'RSVP' },
-  { href: '/rsvp/lookup', label: 'View Your RSVP' },
+  { href: '/demo/rsvp', label: 'RSVP' },
+  { href: '/demo/rsvp/lookup', label: 'View Your RSVP' },
 ]
 
 const adminMenuItem = {
-  href: '/admin',
+  href: '/couples',
   label: `Admin (for ${DEMO_COUPLE.bride.charAt(0)}&${DEMO_COUPLE.groom.charAt(0)})`,
   isMuted: true
 }
@@ -42,6 +49,7 @@ export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
   const [isAdminPage, setIsAdminPage] = useState(false)
+  const [isPlannerPage, setIsPlannerPage] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -52,25 +60,28 @@ export default function Navigation() {
   }, [])
 
   useEffect(() => {
-    // Detect if current page is admin
-    setIsAdminPage(window.location.pathname === '/admin')
+    // Detect if current page is admin or planner
+    setIsAdminPage(window.location.pathname === '/couples')
+    setIsPlannerPage(window.location.pathname === '/planners')
 
     // Listen for route changes
     const handleRouteChange = () => {
-      setIsAdminPage(window.location.pathname === '/admin')
+      setIsAdminPage(window.location.pathname === '/couples')
+      setIsPlannerPage(window.location.pathname === '/planners')
     }
     window.addEventListener('popstate', handleRouteChange)
     return () => window.removeEventListener('popstate', handleRouteChange)
   }, [])
 
   // Determine which nav items to show based on route
-  const navItems = isAdminPage ? adminNavItems : mainNavItems
+  const navItems = isPlannerPage ? plannerNavItems : (isAdminPage ? adminNavItems : mainNavItems)
+  const isWorkspacePage = isAdminPage || isPlannerPage
 
   return (
     <>
       <nav
         className={`fixed top-0 left-0 right-0 z-50 ${
-          isScrolled || isMenuOpen || isAdminPage
+          isScrolled || isMenuOpen || isWorkspacePage
             ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-200'
             : 'bg-transparent'
         }`}
@@ -78,8 +89,10 @@ export default function Navigation() {
         <div className="container mx-auto px-4 relative">
           <div className="flex items-center justify-between h-14 md:h-16">
             <a
-              href="/"
-              className="text-4xl font-display font-bold text-gray-900 hover:text-bridezilla-pink transition-colors"
+              href="/demo"
+              className={`text-4xl font-display font-bold text-gray-900 transition-colors ${
+                isWorkspacePage ? 'hover:text-bridezilla-pink' : 'hover:text-primary-600'
+              }`}
             >
               B & E
             </a>
@@ -91,7 +104,7 @@ export default function Navigation() {
                   key={item.href}
                   href={item.href}
                   className={`font-medium transition-all flex items-center gap-2 ${
-                    isAdminPage
+                    isWorkspacePage
                       ? item.isBackLink
                         ? 'font-heading text-gray-700 hover:text-bridezilla-pink hover:translate-x-1'
                         : 'font-heading uppercase tracking-wide text-gray-700 hover:text-bridezilla-pink'
@@ -104,7 +117,7 @@ export default function Navigation() {
               ))}
 
               {/* Menu Button for Additional Items - Only show on main site */}
-              {!isAdminPage && (
+              {!isWorkspacePage && (
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="p-2 text-gray-700 hover:text-primary-600"
@@ -134,7 +147,7 @@ export default function Navigation() {
           </div>
 
           {/* Desktop Menu Dropdown - Only show on main site */}
-          {isMenuOpen && !isAdminPage && (
+          {isMenuOpen && !isWorkspacePage && (
             <div className="hidden md:block absolute right-4 top-full mt-1 w-48 bg-white/95 backdrop-blur-md rounded-lg shadow-md border border-gray-200 py-2">
               <div className="flex flex-col">
                 {menuItems.map((item) => (
@@ -184,7 +197,7 @@ export default function Navigation() {
                     href={item.href}
                     onClick={() => setIsMenuOpen(false)}
                     className={`font-medium transition-all py-2 flex items-center gap-2 ${
-                      isAdminPage
+                      isWorkspacePage
                         ? item.isBackLink
                           ? 'font-heading text-gray-700 hover:text-bridezilla-pink hover:translate-x-1'
                           : 'font-heading uppercase tracking-wide text-gray-700 hover:text-bridezilla-pink'
@@ -195,7 +208,7 @@ export default function Navigation() {
                     {item.isBackLink && <ArrowRight className="w-4 h-4" />}
                   </a>
                 ))}
-                {!isAdminPage && (
+                {!isWorkspacePage && (
                   <>
                     {menuItems.map((item) => (
                       <a

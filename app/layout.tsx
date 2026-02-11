@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { Fredoka, Nunito, Playfair_Display, Bebas_Neue, Inter } from 'next/font/google'
 import './globals.css'
-import { DemoBanner } from '@/components/DemoBanner'
+import { DevToolsLoader } from '@/components/DevToolsLoader'
+import { ValidationNotifications } from '@/components/ValidationNotifications'
+import { Providers } from '@/components/Providers'
 
 const fredoka = Fredoka({
   subsets: ['latin'],
@@ -19,6 +21,7 @@ const playfair = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-playfair',
   weight: ['400', '500', '600', '700', '800', '900'],
+  style: ['normal', 'italic'],
 })
 
 const bebasNeue = Bebas_Neue({
@@ -46,8 +49,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${fredoka.variable} ${nunito.variable} ${playfair.variable} ${bebasNeue.variable} ${inter.variable} font-sans antialiased`}>
-        {children}
-        <DemoBanner />
+        <Providers>
+          <DevToolsLoader />
+          <ValidationNotifications />
+          {children}
+        </Providers>
       </body>
     </html>
   )

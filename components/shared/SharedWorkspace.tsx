@@ -1,0 +1,312 @@
+'use client'
+
+import { useState, useEffect, useMemo } from 'react'
+import { AlertCircle, Calendar, MapPin, Sparkles, ChevronDown, Menu, Lock, MessageCircle, Heart } from 'lucide-react'
+import { format } from 'date-fns'
+import SharedVendorList from './SharedVendorList'
+import AnimatedHearts from '@/components/AnimatedHearts'
+import { supabase } from '@/lib/supabase-client'
+import { useThemeStyles } from '@/hooks/useThemeStyles'
+import type { PlannerCouple, SharedVendor } from '@/types/planner'
+
+interface SharedWorkspaceProps {
+  shareLinkId: string
+}
+
+export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
+  const theme = useThemeStyles()
+  const [couple, setCouple] = useState<PlannerCouple | null>(null)
+  const [vendors, setVendors] = useState<SharedVendor[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [activeCategory, setActiveCategory] = useState<string>('All')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'vendors' | 'guestlist' | 'budget'>('vendors')
+
+  // Calculate categories and stats (MUST be before conditional returns)
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(vendors.map(v => v.vendor_type)))
+    return ['All', ...cats.sort()]
+  }, [vendors])
+
+  const stats = useMemo(() => {
+    const bookedCount = vendors.filter(v => v.couple_status === 'booked').length
+    const uniqueCategories = new Set(vendors.map(v => v.vendor_type))
+    const categoriesWithBooking = new Set(
+      vendors.filter(v => v.couple_status === 'booked').map(v => v.vendor_type)
+    )
+    const toHireCount = uniqueCategories.size - categoriesWithBooking.size
+
+    return {
+      totalCategories: uniqueCategories.size,
+      bookedCount,
+      toHireCount
+    }
+  }, [vendors])
+
+  const filteredVendors = useMemo(() => {
+    if (activeCategory === 'All') return vendors
+    return vendors.filter(v => v.vendor_type === activeCategory)
+  }, [vendors, activeCategory])
+
+  useEffect(() => {
+    fetchWorkspaceData()
+  }, [shareLinkId])
+
+  const fetchWorkspaceData = async () => {
+    try {
+      setLoading(true)
+
+      // Fetch couple by share link ID
+      const { data: coupleData, error: coupleError } = await supabase
+        .from('planner_couples')
+        .select('*')
+        .eq('share_link_id', shareLinkId)
+        .eq('is_active', true)
+        .single()
+
+      if (coupleError || !coupleData) {
+        setError('This link is invalid or has expired.')
+        return
+      }
+
+      setCouple(coupleData)
+
+      // Fetch vendors for this couple with library vendor details
+      const { data: vendorsData, error: vendorsError } = await supabase
+        .from('shared_vendors')
+        .select('*, vendor_library:planner_vendor_library!vendor_library_id(*)')
+        .eq('planner_couple_id', coupleData.id)
+        .order('vendor_type', { ascending: true })
+        .order('vendor_name', { ascending: true })
+
+      if (!vendorsError) {
+        setVendors(vendorsData || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch workspace:', err)
+      setError('Failed to load vendor recommendations.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <main className={`${theme.pageBackground} relative min-h-screen`}>
+        <AnimatedHearts />
+        <div className="py-12 relative z-10">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <div className={`${theme.cardBackground} rounded-2xl p-12 text-center`}>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-stone-900 mx-auto mb-4"></div>
+                <p className={theme.textSecondary}>Loading your vendors...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  // Error state
+  if (error || !couple) {
+    return (
+      <main className={`${theme.pageBackground} relative min-h-screen`}>
+        <AnimatedHearts />
+        <div className="py-12 relative z-10">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-8">
+                <div className="flex items-start gap-4">
+                  <AlertCircle className="text-red-500 flex-shrink-0" size={24} />
+                  <div>
+                    <h3 className="text-xl font-semibold text-red-900 mb-2">Unable to Load</h3>
+                    <p className="text-red-700">{error || 'This link is invalid or has expired.'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  // Success state
+  return (
+    <div className={`min-h-screen ${theme.pageBackground}`}>
+      <AnimatedHearts />
+
+      {/* Hero Header */}
+      <header className={`relative ${theme.cardBackground} pt-8 pb-6`}>
+        <div className="max-w-3xl mx-auto px-4 relative z-10 text-center">
+          {/* Date and Location Metadata */}
+          <div className={`mb-3 text-xs ${theme.textMuted} font-medium uppercase tracking-widest flex items-center justify-center gap-2 flex-wrap`}>
+            {couple.wedding_date && (
+              <>
+                <Calendar size={12} /> {format(new Date(couple.wedding_date), 'MMM d, yyyy')}
+              </>
+            )}
+            {couple.wedding_location && couple.wedding_date && (
+              <span className="text-stone-300">•</span>
+            )}
+            {couple.wedding_location && (
+              <>
+                <MapPin size={12} /> {couple.wedding_location}
+              </>
+            )}
+          </div>
+
+          {/* Couple Names */}
+          <h1 className={`text-5xl font-display ${theme.textPrimary} mb-6`}>
+            {couple.couple_names}
+          </h1>
+
+          {/* Planner's Message Card */}
+          <div className={`relative ${theme.cardBackground} p-6 rounded-2xl shadow-sm ${theme.border} ${theme.borderWidth} mb-8`}>
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-4" style={{ color: theme.primaryColor }}>
+              <MessageCircle size={20} fill="white" />
+            </div>
+            <p className={`italic ${theme.textPrimary} leading-relaxed`}>
+              "I've curated these vendor recommendations based on your vision. Review each one and let me know your thoughts!"
+            </p>
+            <div className={`mt-3 text-[10px] font-bold ${theme.textMuted} uppercase tracking-widest`}>
+              Your Planner
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="flex justify-center gap-16 pb-6">
+            <div className="text-center">
+              <div className={`text-4xl font-semibold ${theme.textPrimary} mb-2`}>{stats.totalCategories}</div>
+              <div className={`text-[11px] font-semibold ${theme.textMuted} uppercase tracking-[0.15em]`}>Vendor Types</div>
+            </div>
+            <div className="w-px bg-stone-200 h-12 self-center"></div>
+            <div className="text-center">
+              <div className="text-4xl font-semibold mb-2" style={{ color: theme.primaryColor }}>{stats.bookedCount}</div>
+              <div className={`text-[11px] font-semibold ${theme.textMuted} uppercase tracking-[0.15em]`}>Booked & Confirmed</div>
+            </div>
+            <div className="w-px bg-stone-200 h-12 self-center"></div>
+            <div className="text-center">
+              <div className={`text-4xl font-semibold ${theme.textPrimary} mb-2`}>{stats.toHireCount}</div>
+              <div className={`text-[11px] font-semibold ${theme.textMuted} uppercase tracking-[0.15em]`}>To Hire</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Tab Navigation Section */}
+      <div className="sticky top-0 z-40 bg-white border-b border-stone-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
+          {/* Module Tabs */}
+          <div className="flex justify-center space-x-8">
+            <button
+              onClick={() => setActiveTab('vendors')}
+              className={`pb-4 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'vendors'
+                  ? `border-current ${theme.textPrimary}`
+                  : `border-transparent ${theme.textSecondary} hover:${theme.textPrimary}`
+              }`}
+            >
+              Vendor Team
+            </button>
+            <button
+              onClick={() => setActiveTab('guestlist')}
+              className={`pb-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                activeTab === 'guestlist'
+                  ? `border-current ${theme.textPrimary}`
+                  : `border-transparent ${theme.textMuted} hover:${theme.textSecondary}`
+              }`}
+            >
+              <Lock size={12} /> Guest List
+            </button>
+            <button
+              onClick={() => setActiveTab('budget')}
+              className={`pb-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                activeTab === 'budget'
+                  ? `border-current ${theme.textPrimary}`
+                  : `border-transparent ${theme.textMuted} hover:${theme.textSecondary}`
+              }`}
+            >
+              <Lock size={12} /> Budget
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-0 pt-8">
+        {/* Vendor Team Tab Content */}
+        {activeTab === 'vendors' && (
+          <>
+            {/* Category Filters */}
+            {vendors.length > 0 && (
+              <div className={`py-6 mb-8`}>
+                <div className="flex justify-center space-x-2 overflow-x-auto no-scrollbar pb-1">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveCategory(cat)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+                        activeCategory === cat
+                          ? `${theme.primaryButton} ${theme.textOnPrimary} ${theme.primaryButtonHover}`
+                          : `${theme.secondaryButton} ${theme.textSecondary} ${theme.secondaryButtonHover}`
+                      }`}
+                    >
+                      {cat} ({cat === 'All' ? vendors.length : vendors.filter(v => v.vendor_type === cat).length})
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Vendor List */}
+            {filteredVendors.length === 0 ? (
+              <div className={`${theme.cardBackground} rounded-2xl p-12 text-center`}>
+                <p className={theme.textSecondary}>No vendor recommendations in this category yet.</p>
+              </div>
+            ) : (
+              <SharedVendorList
+                vendors={filteredVendors}
+                coupleId={couple.id}
+                onUpdate={fetchWorkspaceData}
+                activeCategory={activeCategory}
+              />
+            )}
+          </>
+        )}
+
+        {/* Upsell / Locked State for Guest List & Budget */}
+        {(activeTab === 'guestlist' || activeTab === 'budget') && (
+          <div className={`${theme.cardBackground} rounded-2xl ${theme.border} ${theme.borderWidth} shadow-sm p-12 text-center max-w-2xl mx-auto`}>
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: `${theme.primaryColor}15`, color: theme.primaryColor }}>
+              <Lock size={32} />
+            </div>
+            <h2 className={`font-display text-3xl ${theme.textPrimary} mb-4`}>Unlock Full Planning Suite</h2>
+            <p className={`${theme.textSecondary} max-w-md mx-auto mb-8`}>
+              Get access to advanced tools like the Guest List Manager, Budget Tracker, and collaborative planning by creating your free account.
+            </p>
+            <button
+              className={`${theme.primaryButton} ${theme.textOnPrimary} px-8 py-3 rounded-lg font-medium ${theme.primaryButtonHover} transition-colors shadow-lg`}
+            >
+              Create Free Account
+            </button>
+          </div>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className={`${theme.cardBackground} border-t ${theme.border} mt-20 py-8 relative z-10`}>
+        <div className="max-w-7xl mx-auto px-4 text-center space-y-2">
+          <div className="flex items-center justify-center gap-2">
+            <Heart className="w-4 h-4" style={{ color: theme.primaryColor }} fill="currentColor" />
+            <p className={`font-display ${theme.textPrimary}`}>{couple.couple_names}</p>
+          </div>
+          <p className={`text-xs ${theme.textMuted}`}>The perfect wedding planned with Bridezilla</p>
+        </div>
+      </footer>
+    </div>
+  )
+}

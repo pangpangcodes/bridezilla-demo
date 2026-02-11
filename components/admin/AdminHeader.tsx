@@ -1,49 +1,44 @@
 'use client'
 
 import Image from 'next/image'
+import { useThemeStyles } from '@/hooks/useThemeStyles'
 
 interface AdminHeaderProps {
   onLogout?: () => void
-  currentView?: 'dashboard' | 'rsvp' | 'vendors'
+  currentView?: 'dashboard' | 'rsvp' | 'vendors' | 'settings'
 }
 
 export default function AdminHeader({ onLogout, currentView = 'dashboard' }: AdminHeaderProps) {
-  const getTitle = () => {
-    switch (currentView) {
-      case 'rsvp':
-        return 'RSVP Tracking'
-      case 'vendors':
-        return 'Vendor Management'
-      case 'dashboard':
-      default:
-        return 'Dashboard'
-    }
-  }
+  const theme = useThemeStyles()
 
   return (
-    <div className="flex justify-between items-center mb-4 md:mb-6 bg-white/10 backdrop-blur-sm rounded-2xl p-3 md:p-4 border border-white/20">
-      <div className="flex items-center gap-2 md:gap-4">
-        <div className="relative w-12 h-12 md:w-20 md:h-20 flex-shrink-0">
-          <Image
-            src="/images/bridezilla-logo-circle.svg"
-            alt="Bridezilla"
-            width={80}
-            height={80}
-            className="object-contain"
-          />
+    <div className="sticky top-0 z-50 bg-stone-900 shadow-lg">
+      <div className="mx-auto px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center gap-3">
+              <div className="relative w-10 h-10 flex-shrink-0">
+                <Image
+                  src="/images/bridezilla-logo-simple.svg"
+                  alt="Bridezilla"
+                  width={40}
+                  height={40}
+                  className="object-contain"
+                />
+              </div>
+              <span className="font-heading text-xl text-white uppercase tracking-wide">Admin</span>
+            </div>
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Logout
+              </button>
+            )}
+          </div>
         </div>
-        <h2 className="font-heading text-xl sm:text-2xl md:text-3xl lg:text-4xl text-white uppercase tracking-wide">
-          {getTitle()}
-        </h2>
       </div>
-      {onLogout && (
-        <button
-          onClick={onLogout}
-          className="bg-bridezilla-pink text-white px-3 py-1.5 md:px-6 md:py-2 rounded-full text-sm md:text-base font-semibold hover:scale-105 transition-transform"
-        >
-          Logout
-        </button>
-      )}
     </div>
   )
 }

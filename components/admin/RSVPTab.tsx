@@ -4,6 +4,7 @@ import { useState, useEffect, Fragment } from 'react'
 import { Users, CheckCircle, XCircle, Download, Eye, EyeOff, Copy, Check, ChevronDown, ChevronRight } from 'lucide-react'
 import { formatDate, maskEmail, maskPhone, exportToCSV } from '@/lib/format'
 import { supabase } from '@/lib/supabase'
+import { useThemeStyles } from '@/hooks/useThemeStyles'
 
 interface Guest {
   name: string
@@ -28,6 +29,7 @@ interface Stats {
 }
 
 export default function RSVPTab() {
+  const theme = useThemeStyles()
   const [loading, setLoading] = useState(true)
   const [rsvps, setRsvps] = useState<RSVP[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
@@ -112,16 +114,16 @@ export default function RSVPTab() {
   return (
     <>
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         {loading ? (
           <>
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-lg p-3 md:p-6">
-                <div className="flex items-center gap-2 md:gap-3">
-                  <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gray-50" />
-                  <div className="flex-1">
-                    <div className="h-3 md:h-4 rounded w-16 md:w-20 mb-1 md:mb-2 bg-gray-50" />
-                    <div className="h-5 md:h-7 rounded w-8 md:w-12 bg-gray-50" />
+              <div key={i} className={`${theme.cardBackground} rounded-2xl ${theme.border} ${theme.borderWidth} p-6`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-stone-50 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="h-4 rounded w-24 mb-2 bg-stone-50" />
+                    <div className="h-7 rounded w-16 bg-stone-50" />
                   </div>
                 </div>
               </div>
@@ -129,79 +131,79 @@ export default function RSVPTab() {
           </>
         ) : stats && (
           <>
-            <div className="bg-white rounded-xl shadow-lg p-3 md:p-6 border-2 border-bridezilla-pink/20 hover:border-bridezilla-pink transition-colors">
-              <div className="flex items-center gap-2 md:gap-3">
-                <Users className="w-6 h-6 md:w-8 md:h-8 text-bridezilla-pink flex-shrink-0" />
-                <div>
-                  <p className="text-xs md:text-sm text-gray-600">Total RSVPs</p>
-                  <p className="font-heading text-2xl md:text-3xl text-bridezilla-pink">{stats.total}</p>
+            <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-2 rounded-lg bg-stone-50">
+                  <Users className={`w-5 h-5 ${theme.textSecondary}`} />
                 </div>
               </div>
+              <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Total RSVPs</p>
+              <p className={`text-3xl font-semibold ${theme.textPrimary}`}>{stats.total}</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-3 md:p-6 border-2 border-bridezilla-orange/20 hover:border-bridezilla-orange transition-colors">
-              <div className="flex items-center gap-2 md:gap-3">
-                <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-bridezilla-orange flex-shrink-0" />
-                <div>
-                  <p className="text-xs md:text-sm text-gray-600">Attending</p>
-                  <p className="font-heading text-2xl md:text-3xl text-bridezilla-orange">{stats.attending}</p>
+            <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className={`p-2 rounded-lg ${theme.success.bg}`}>
+                  <CheckCircle className={`w-5 h-5 ${theme.success.text}`} />
                 </div>
               </div>
+              <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Attending</p>
+              <p className={`text-3xl font-semibold ${theme.textPrimary}`}>{stats.attending}</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-3 md:p-6 border-2 border-gray-200 hover:border-gray-400 transition-colors">
-              <div className="flex items-center gap-2 md:gap-3">
-                <XCircle className="w-6 h-6 md:w-8 md:h-8 text-gray-400 flex-shrink-0" />
-                <div>
-                  <p className="text-xs md:text-sm text-gray-600">Not Attending</p>
-                  <p className="font-heading text-2xl md:text-3xl text-gray-500">{stats.notAttending}</p>
+            <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className={`p-2 rounded-lg ${theme.success.bg}`}>
+                  <Users className={`w-5 h-5 ${theme.success.text}`} />
                 </div>
               </div>
+              <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Total Guests</p>
+              <p className={`text-3xl font-semibold ${theme.textPrimary}`}>{stats.totalGuests}</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-3 md:p-6 border-2 border-bridezilla-orange/20 hover:border-bridezilla-orange transition-colors">
-              <div className="flex items-center gap-2 md:gap-3">
-                <Users className="w-6 h-6 md:w-8 md:h-8 text-bridezilla-orange flex-shrink-0" />
-                <div>
-                  <p className="text-xs md:text-sm text-gray-600">Total Guests</p>
-                  <p className="font-heading text-2xl md:text-3xl text-bridezilla-orange">{stats.totalGuests}</p>
+            <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-2 rounded-lg bg-stone-50">
+                  <XCircle className="w-5 h-5 text-gray-400" />
                 </div>
               </div>
+              <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Not Attending</p>
+              <p className={`text-3xl font-semibold ${theme.textPrimary}`}>{stats.notAttending}</p>
             </div>
           </>
         )}
       </div>
 
       {/* Controls */}
-      <div className="bg-white rounded-xl shadow-lg p-3 md:p-4 mb-4 md:mb-6">
+      <div className={`${theme.cardBackground} rounded-xl shadow p-3 md:p-4 mb-4 md:mb-6`}>
         <div className="flex flex-wrap gap-2 md:gap-4 items-center justify-between">
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => handleFilterChange('all')}
-              className={`px-3 md:px-4 py-2 rounded-full text-sm md:text-base font-semibold transition-all ${
+              className={`px-3 md:px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                 filter === 'all'
-                  ? 'bg-bridezilla-pink text-white hover:scale-105'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? `${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary}`
+                  : `${theme.secondaryButton} ${theme.secondaryButtonHover}`
               }`}
             >
               All
             </button>
             <button
               onClick={() => handleFilterChange('true')}
-              className={`px-3 md:px-4 py-2 rounded-full text-sm md:text-base font-semibold transition-all ${
+              className={`px-3 md:px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                 filter === 'true'
-                  ? 'bg-bridezilla-pink text-white hover:scale-105'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? `${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary}`
+                  : `${theme.secondaryButton} ${theme.secondaryButtonHover}`
               }`}
             >
               Attending
             </button>
             <button
               onClick={() => handleFilterChange('false')}
-              className={`px-3 md:px-4 py-2 rounded-full text-sm md:text-base font-semibold transition-all ${
+              className={`px-3 md:px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                 filter === 'false'
-                  ? 'bg-bridezilla-pink text-white hover:scale-105'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? `${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary}`
+                  : `${theme.secondaryButton} ${theme.secondaryButtonHover}`
               }`}
             >
               Not Attending
@@ -211,42 +213,40 @@ export default function RSVPTab() {
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setShowContactInfo(!showContactInfo)}
-              className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm md:text-base font-semibold hover:bg-gray-200 hover:scale-105 transition-all"
+              className={`flex items-center gap-2 px-3 md:px-4 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors`}
             >
               {showContactInfo ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               <span className="hidden sm:inline">{showContactInfo ? 'Hide' : 'Show'} Contact Info</span>
-              <span className="sm:hidden">{showContactInfo ? 'Hide' : 'Show'}</span>
             </button>
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 bg-bridezilla-pink text-white rounded-full text-sm md:text-base font-semibold hover:scale-105 transition-all"
+              className={`flex items-center gap-2 px-3 md:px-4 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors`}
             >
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Export CSV</span>
-              <span className="sm:hidden">Export</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* RSVPs Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className={`${theme.cardBackground} rounded-2xl ${theme.border} ${theme.borderWidth} overflow-hidden`}>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-bridezilla-pink border-b border-bridezilla-pink">
+            <thead className="bg-stone-50 border-b border-stone-200">
               <tr>
-                {/* Expand icon - only on mobile */}
-                <th className="md:hidden px-4 py-3 text-left text-xs font-semibold text-white uppercase w-12"></th>
-                <th className="px-4 md:px-6 py-3 text-left text-xs font-semibold text-white uppercase">Name</th>
+                {/* Expand icon - visible on all screen sizes */}
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-12"></th>
+                <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Name</th>
                 {/* Desktop columns */}
-                <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-semibold text-white uppercase">Email</th>
-                <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-semibold text-white uppercase">Phone</th>
-                <th className="px-4 md:px-6 py-3 text-left text-xs font-semibold text-white uppercase">Status</th>
-                <th className="px-4 md:px-6 py-3 text-left text-xs font-semibold text-white uppercase">Plus Ones</th>
-                <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-semibold text-white uppercase">Submitted</th>
+                <th className={`hidden md:table-cell px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Email</th>
+                <th className={`hidden md:table-cell px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Phone</th>
+                <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Status</th>
+                <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Plus Ones</th>
+                <th className={`hidden md:table-cell px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Submitted</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-stone-200">
               {loading ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
@@ -262,12 +262,12 @@ export default function RSVPTab() {
               ) : (
                 rsvps.map((rsvp) => (
                   <Fragment key={rsvp.id}>
-                    <tr className="hover:bg-bridezilla-light-pink transition-colors md:cursor-default cursor-pointer">
-                      {/* Expand icon - only on mobile */}
-                      <td
-                        className="md:hidden px-4 py-4 text-sm text-gray-500"
-                        onClick={() => setExpandedRsvp(expandedRsvp === rsvp.id ? null : rsvp.id)}
-                      >
+                    <tr
+                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => setExpandedRsvp(expandedRsvp === rsvp.id ? null : rsvp.id)}
+                    >
+                      {/* Expand icon - visible on all screen sizes */}
+                      <td className="px-2 py-3 text-sm text-gray-500">
                         {expandedRsvp === rsvp.id ? (
                           <ChevronDown className="w-4 h-4" />
                         ) : (
@@ -275,15 +275,12 @@ export default function RSVPTab() {
                         )}
                       </td>
 
-                      <td
-                        className="px-4 md:px-6 py-4 text-sm font-medium text-gray-900 md:cursor-default cursor-pointer"
-                        onClick={() => window.innerWidth < 768 && setExpandedRsvp(expandedRsvp === rsvp.id ? null : rsvp.id)}
-                      >
+                      <td className="px-2 py-3 text-sm font-medium text-gray-900">
                         {rsvp.name}
                       </td>
 
                       {/* Desktop Email column */}
-                      <td className="hidden md:table-cell px-6 py-4 text-sm text-gray-600">
+                      <td className="hidden md:table-cell px-2 py-3 text-sm text-gray-600">
                         {showContactInfo ? (
                           <div className="flex items-center gap-2 group">
                             <span>{rsvp.email}</span>
@@ -305,18 +302,15 @@ export default function RSVPTab() {
                       </td>
 
                       {/* Desktop Phone column */}
-                      <td className="hidden md:table-cell px-6 py-4 text-sm text-gray-600">
+                      <td className="hidden md:table-cell px-2 py-3 text-sm text-gray-600">
                         {showContactInfo ? rsvp.phone : maskPhone(rsvp.phone)}
                       </td>
 
-                      <td
-                        className="px-4 md:px-6 py-4 md:cursor-default cursor-pointer"
-                        onClick={() => window.innerWidth < 768 && setExpandedRsvp(expandedRsvp === rsvp.id ? null : rsvp.id)}
-                      >
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
+                      <td className="px-2 py-3">
+                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold ${
                           rsvp.attending
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-700'
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-stone-100 text-stone-600'
                         }`}>
                           {rsvp.attending ? (
                             <>
@@ -332,10 +326,7 @@ export default function RSVPTab() {
                         </span>
                       </td>
 
-                      <td
-                        className="px-4 md:px-6 py-4 text-sm text-gray-600 md:cursor-default cursor-pointer"
-                        onClick={() => window.innerWidth < 768 && setExpandedRsvp(expandedRsvp === rsvp.id ? null : rsvp.id)}
-                      >
+                      <td className="px-2 py-3 text-sm text-gray-600">
                         {rsvp.guests.length > 0 ? (
                           <>
                             {/* Mobile: just number */}
@@ -353,15 +344,15 @@ export default function RSVPTab() {
                       </td>
 
                       {/* Desktop Submitted column */}
-                      <td className="hidden md:table-cell px-6 py-4 text-sm text-gray-600">
+                      <td className="hidden md:table-cell px-2 py-3 text-sm text-gray-600">
                         {formatDate(rsvp.created_at)}
                       </td>
                     </tr>
 
-                    {/* Expanded Details Row - only visible on mobile */}
+                    {/* Expanded Details Row */}
                     {expandedRsvp === rsvp.id && (
-                      <tr key={`${rsvp.id}-expanded`} className="md:hidden">
-                        <td colSpan={4} className="px-4 py-4 bg-gray-50 border-t border-gray-100">
+                      <tr key={`${rsvp.id}-expanded`}>
+                        <td colSpan={7} className="px-4 py-4 bg-gray-50 border-t border-gray-100">
                           <div className="grid grid-cols-1 gap-4">
                             <div>
                               <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Email</p>

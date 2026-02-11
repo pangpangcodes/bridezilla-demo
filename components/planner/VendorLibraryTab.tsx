@@ -1,0 +1,432 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Image from 'next/image'
+import { Plus, Users, Package, Clock, Search } from 'lucide-react'
+import { VendorLibrary, TagWithCount } from '@/types/planner'
+import { VENDOR_TYPES } from '@/types/vendor'
+import VendorLibraryCard from './VendorLibraryCard'
+import AskBridezillaVendorModal from './AskBridezillaVendorModal'
+import AddVendorModal from './AddVendorModal'
+import Notification from './Notification'
+import SearchableMultiSelect from '../SearchableMultiSelect'
+import { useTheme } from '@/contexts/ThemeContext'
+import { useThemeStyles } from '@/hooks/useThemeStyles'
+
+export default function VendorLibraryTab() {
+  const { theme: currentTheme } = useTheme()
+  const theme = useThemeStyles()
+  const [vendors, setVendors] = useState<VendorLibrary[]>([])
+  const [filteredVendors, setFilteredVendors] = useState<VendorLibrary[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [showManualAdd, setShowManualAdd] = useState(false)
+
+  // Filters
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedType, setSelectedType] = useState<string[]>([])
+  const [selectedTag, setSelectedTag] = useState<string[]>([])
+
+  // Preserve scroll position when filters change
+  const preserveScrollPosition = () => {
+    const scrollY = window.scrollY
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollY)
+    })
+  }
+
+  // Tags
+  const [allTags, setAllTags] = useState<TagWithCount[]>([])
+
+  // Notification
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error' | 'info'
+    title: string
+    message?: string
+  } | null>(null)
+
+  // Stats
+  const [stats, setStats] = useState({
+    total: 0,
+    byType: {} as Record<string, number>,
+    recentlyAdded: 0
+  })
+
+  useEffect(() => {
+    // Ensure planner auth token is set (since password gate was removed)
+    if (typeof window !== 'undefined' && !sessionStorage.getItem('planner_auth')) {
+      sessionStorage.setItem('planner_auth', 'planner')
+    }
+    fetchVendors()
+    fetchTags()
+  }, [])
+
+  useEffect(() => {
+    applyFilters()
+  }, [vendors, searchQuery, selectedType, selectedTag])
+
+  const fetchVendors = async () => {
+    setLoading(true)
+    try {
+      const token = sessionStorage.getItem('planner_auth')
+      if (!token) return
+
+      const response = await fetch('/api/planner/vendor-library', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setVendors(data.data)
+        calculateStats(data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch vendors:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchTags = async () => {
+    try {
+      const token = sessionStorage.getItem('planner_auth')
+      if (!token) return
+
+      const response = await fetch('/api/planner/vendor-library/tags', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setAllTags(data.data.tags)
+      }
+    } catch (error) {
+      console.error('Failed to fetch tags:', error)
+    }
+  }
+
+  const calculateStats = (vendorList: VendorLibrary[]) => {
+    const byType: Record<string, number> = {}
+    VENDOR_TYPES.forEach(type => {
+      byType[type] = 0
+    })
+
+    vendorList.forEach(vendor => {
+      if (byType[vendor.vendor_type] !== undefined) {
+        byType[vendor.vendor_type]++
+      }
+    })
+
+    // Count vendors added in last 7 days
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    const recentlyAdded = vendorList.filter(v =>
+      new Date(v.created_at) > sevenDaysAgo
+    ).length
+
+    setStats({
+      total: vendorList.length,
+      byType,
+      recentlyAdded
+    })
+  }
+
+  const applyFilters = () => {
+    let filtered = [...vendors]
+
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(v =>
+        v.vendor_name.toLowerCase().includes(query) ||
+        v.contact_name?.toLowerCase().includes(query) ||
+        v.email?.toLowerCase().includes(query) ||
+        v.location?.toLowerCase().includes(query)
+      )
+    }
+
+    // Type filter
+    if (selectedType.length > 0) {
+      filtered = filtered.filter(v => selectedType.includes(v.vendor_type))
+    }
+
+    // Tag filter
+    if (selectedTag.length > 0) {
+      filtered = filtered.filter(v =>
+        v.tags && v.tags.some(tag => selectedTag.includes(tag))
+      )
+    }
+
+    setFilteredVendors(filtered)
+  }
+
+  const handleVendorUpdated = () => {
+    fetchVendors()
+    fetchTags()
+  }
+
+  const handleVendorDeleted = (vendorId: string) => {
+    setVendors(vendors.filter(v => v.id !== vendorId))
+  }
+
+  // Filter handlers with scroll preservation
+  const handleTypeChange = (values: string[]) => {
+    preserveScrollPosition()
+    setSelectedType(values)
+  }
+
+  const handleTagChange = (values: string[]) => {
+    preserveScrollPosition()
+    setSelectedTag(values)
+  }
+
+  return (
+    <>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        {loading ? (
+          <>
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className={`${theme.cardBackground} rounded-2xl ${theme.border} ${theme.borderWidth} p-6`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-stone-50 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="h-4 rounded w-24 mb-2 bg-stone-50" />
+                    <div className="h-7 rounded w-16 bg-stone-50" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+          <>
+            <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-2 rounded-lg bg-stone-50">
+                  <Package className={`w-5 h-5 ${theme.textSecondary}`} />
+                </div>
+              </div>
+              <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Total Vendors</p>
+              <p className={`text-3xl font-semibold ${theme.textPrimary}`}>{stats.total}</p>
+            </div>
+
+            <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className={`p-2 rounded-lg ${theme.success.bg}`}>
+                  <Clock className={`w-5 h-5 ${theme.success.text}`} />
+                </div>
+              </div>
+              <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Recently Added</p>
+              <p className={`text-3xl font-semibold ${theme.textPrimary}`}>{stats.recentlyAdded}</p>
+              <p className={`text-xs ${theme.textMuted} mt-1`}>Last 7 days</p>
+            </div>
+
+            <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-2 rounded-lg bg-stone-50">
+                  <Users className={`w-5 h-5 ${theme.textSecondary}`} />
+                </div>
+              </div>
+              <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Top Types</p>
+              <div className="space-y-1 text-xs">
+                {Object.entries(stats.byType)
+                  .filter(([_, count]) => count > 0)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 2)
+                  .map(([type, count]) => (
+                    <div key={type} className={`flex justify-between ${theme.textSecondary}`}>
+                      <span className="truncate">{type}</span>
+                      <span className="font-semibold ml-2">{count}</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className={`p-2 rounded-lg ${theme.success.bg}`}>
+                  <Users className={`w-5 h-5 ${theme.success.text}`} />
+                </div>
+              </div>
+              <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Total Types</p>
+              <p className={`text-3xl font-semibold ${theme.textPrimary}`}>
+                {Object.values(stats.byType).filter(count => count > 0).length}
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div className={`${theme.cardBackground} rounded-2xl ${theme.border} ${theme.borderWidth} p-6 mb-6`}>
+        <div className="flex flex-wrap gap-2 md:gap-4 items-center justify-between">
+          <div className="flex gap-2 flex-wrap flex-1">
+            {/* Search */}
+            <div className="min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search vendors..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={`w-full pl-10 pr-10 py-2 ${theme.border} ${theme.borderWidth} rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all`}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    title="Clear search"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              {searchQuery && (
+                <div className="text-xs text-gray-600 mt-1">
+                  Showing {filteredVendors.length} of {vendors.length} vendors
+                </div>
+              )}
+            </div>
+
+            {/* Type Filter */}
+            <SearchableMultiSelect
+              options={VENDOR_TYPES.map(type => ({
+                value: type,
+                label: type,
+                count: stats.byType[type] || 0
+              }))}
+              selectedValues={selectedType}
+              onChange={handleTypeChange}
+              placeholder="Filter by type..."
+              allLabel="All Types"
+              className="min-w-[160px]"
+            />
+
+            {/* Tag Filter */}
+            {allTags.length > 0 && (
+              <SearchableMultiSelect
+                options={allTags.map(({ tag, count }) => ({
+                  value: tag,
+                  label: tag,
+                  count
+                }))}
+                selectedValues={selectedTag}
+                onChange={handleTagChange}
+                placeholder="Filter by tags..."
+                allLabel="All Filters"
+                className="min-w-[160px]"
+              />
+            )}
+          </div>
+
+          {/* Add Manually Button */}
+          <button
+            onClick={() => setShowManualAdd(true)}
+            className={`flex items-center gap-2 px-6 py-2.5 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors`}
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Add Manually</span>
+          </button>
+
+          {/* Ask Bridezilla Button */}
+          <button
+            onClick={() => setShowAddModal(true)}
+            className={`flex items-center gap-2 px-6 py-2.5 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors`}
+          >
+            <Image
+              src={currentTheme === 'pop' ? '/images/bridezilla-logo-circle.svg' : '/images/bridezilla-logo-simple.svg'}
+              alt="Bridezilla"
+              width={24}
+              height={24}
+              className="object-contain"
+            />
+            <span className="hidden sm:inline">Ask Bridezilla</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Vendor Grid */}
+      {loading ? (
+        <div className={`flex items-center justify-center py-12 ${theme.textMuted}`}>
+          Loading vendors...
+        </div>
+      ) : filteredVendors.length === 0 ? (
+        <div className={`${theme.cardBackground} rounded-xl ${theme.border} ${theme.borderWidth} p-12 text-center`}>
+          <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-600">
+            {vendors.length === 0
+              ? "No vendors in your library yet"
+              : "No vendors match your filters"}
+          </p>
+        </div>
+      ) : (
+        <div className={`${theme.cardBackground} rounded-2xl ${theme.border} ${theme.borderWidth} overflow-hidden`}>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[800px]">
+              <thead className="bg-stone-50 border-b border-stone-200">
+                <tr>
+                  <th className="px-2 py-3"></th>
+                  <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Type</th>
+                  <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Vendor Name</th>
+                  <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Contact</th>
+                  <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Location</th>
+                  <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Tags</th>
+                  <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-200">
+                {filteredVendors.map(vendor => (
+                  <VendorLibraryCard
+                    key={vendor.id}
+                    vendor={vendor}
+                    onUpdate={handleVendorUpdated}
+                    onDelete={handleVendorDeleted}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Add Modal */}
+      {showManualAdd && (
+        <AddVendorModal
+          isOpen={showManualAdd}
+          onClose={() => setShowManualAdd(false)}
+          onSuccess={() => {
+            setShowManualAdd(false)
+            fetchVendors()
+          }}
+        />
+      )}
+
+      {/* Ask Bridezilla Modal */}
+      {showAddModal && (
+        <AskBridezillaVendorModal
+          existingVendors={vendors}
+          onClose={() => setShowAddModal(false)}
+          onSuccess={() => {
+            setShowAddModal(false)
+            fetchVendors()
+          }}
+        />
+      )}
+
+      {/* Notification */}
+      {notification && (
+        <Notification
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          onClose={() => setNotification(null)}
+        />
+      )}
+    </>
+  )
+}

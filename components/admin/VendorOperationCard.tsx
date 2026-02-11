@@ -35,7 +35,7 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
               UPDATE
             </span>
           ) : (
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-semibold">
+            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-semibold">
               CREATE
             </span>
           )}
@@ -164,6 +164,7 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                     amount: 0,
                     amount_currency: editedData.vendor_currency || 'USD',
                     payment_type: 'bank_transfer' as 'cash' | 'bank_transfer',
+                    refundable: false,
                     paid: false
                   }
                   setEditedData({
@@ -171,7 +172,7 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                     payments: [...(editedData.payments || []), newPayment]
                   })
                 }}
-                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                className="px-3 py-1.5 text-xs bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
               >
                 + Add Payment
               </button>
@@ -338,7 +339,7 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
           <>
             <button
               onClick={() => setIsEditing(true)}
-              className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+              className="text-xs text-green-600 hover:text-blue-800 font-medium"
             >
               Edit
             </button>

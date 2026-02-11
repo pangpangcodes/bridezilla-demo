@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Fragment } from 'react'
 import Image from 'next/image'
-import { Users, DollarSign, AlertCircle, CheckCircle, Download, Plus, Edit2, Trash2, Upload, Copy, Check, Settings, Calendar } from 'lucide-react'
+import { Users, DollarSign, AlertCircle, CheckCircle, Download, Plus, Edit2, Trash2, Upload, Copy, Check, Settings, Calendar, ChevronDown, ChevronRight } from 'lucide-react'
 import { Vendor, VendorStats, VENDOR_TYPES } from '@/types/vendor'
 import { formatCurrency, getCurrencySymbol, calculateVendorStats, exportVendorsToCSV } from '@/lib/vendorUtils'
 import { supabase } from '@/lib/supabase'
@@ -10,13 +10,32 @@ import VendorForm from './VendorForm'
 import BulkImportModal from './BulkImportModal'
 import CompleteDetailsModal from './CompleteDetailsModal'
 import PaymentReminderSettingsModal from './PaymentReminderSettingsModal'
+import SearchableMultiSelect from '../SearchableMultiSelect'
+import { useTheme } from '@/contexts/ThemeContext'
+import { useThemeStyles } from '@/hooks/useThemeStyles'
 
 export default function VendorsTab() {
+  const { theme: currentTheme } = useTheme()
+  const theme = useThemeStyles()
   const [loading, setLoading] = useState(true)
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [stats, setStats] = useState<VendorStats | null>(null)
-  const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [typeFilter, setTypeFilter] = useState<string[]>([])
   const [currencyDisplay, setCurrencyDisplay] = useState<'eur' | 'cad' | 'both'>('eur')
+
+  // Preserve scroll position when filters change
+  const preserveScrollPosition = () => {
+    const scrollY = window.scrollY
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollY)
+    })
+  }
+
+  // Filter handler with scroll preservation
+  const handleTypeFilterChange = (values: string[]) => {
+    preserveScrollPosition()
+    setTypeFilter(values)
+  }
   const [showForm, setShowForm] = useState(false)
   const [showBulkImport, setShowBulkImport] = useState(false)
   const [showCompleteDetails, setShowCompleteDetails] = useState(false)
@@ -54,8 +73,8 @@ export default function VendorsTab() {
 
       // Filter by type if needed
       let filteredVendors = allVendors || []
-      if (typeFilter !== 'all') {
-        filteredVendors = filteredVendors.filter(v => v.vendor_type === typeFilter)
+      if (typeFilter.length > 0) {
+        filteredVendors = filteredVendors.filter(v => typeFilter.includes(v.vendor_type))
       }
 
       // Sort vendors: Venue always first, then alphabetically by type
@@ -221,16 +240,16 @@ export default function VendorsTab() {
   return (
     <>
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         {loading ? (
           <>
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl shadow p-3 md:p-6">
-                <div className="flex items-center gap-2 md:gap-3">
-                  <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gray-50 flex-shrink-0" />
+              <div key={i} className={`${theme.cardBackground} rounded-2xl ${theme.border} ${theme.borderWidth} p-6`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-stone-50 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="h-3 md:h-4 rounded w-16 md:w-24 mb-1 md:mb-2 bg-gray-50" />
-                    <div className="h-5 md:h-7 rounded w-12 md:w-16 bg-gray-50" />
+                    <div className="h-4 rounded w-24 mb-2 bg-stone-50" />
+                    <div className="h-7 rounded w-16 bg-stone-50" />
                   </div>
                 </div>
               </div>
@@ -238,67 +257,65 @@ export default function VendorsTab() {
           </>
         ) : stats && (
           <>
-            <div className="bg-white rounded-xl shadow-lg p-3 md:p-6 border-2 border-bridezilla-pink/20 hover:border-bridezilla-pink transition-colors">
-              <div className="flex items-center gap-2 md:gap-3">
-                <Users className="w-6 h-6 md:w-8 md:h-8 text-bridezilla-pink flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs md:text-sm text-gray-600">Total Vendors</p>
-                  <p className="font-heading text-2xl md:text-3xl text-bridezilla-pink">{stats.totalVendors}</p>
+            <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-2 rounded-lg bg-stone-50">
+                  <Users className={`w-5 h-5 ${theme.textSecondary}`} />
                 </div>
               </div>
+              <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Total Vendors</p>
+              <p className={`text-3xl font-semibold ${theme.textPrimary}`}>{stats.totalVendors}</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-3 md:p-6 border-2 border-bridezilla-orange/20 hover:border-bridezilla-orange transition-colors">
-              <div className="flex items-center gap-2 md:gap-3">
-                <DollarSign className="w-6 h-6 md:w-8 md:h-8 text-bridezilla-orange flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs md:text-sm text-gray-600">Total Cost</p>
-                  <p className="font-heading text-xl md:text-3xl text-bridezilla-orange truncate">{formatCurrency(stats.totalCost)} USD</p>
+            <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-2 rounded-lg bg-stone-50">
+                  <DollarSign className={`w-5 h-5 ${theme.textSecondary}`} />
                 </div>
               </div>
+              <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Total Cost</p>
+              <p className={`text-2xl font-semibold ${theme.textPrimary} truncate`}>{formatCurrency(stats.totalCost)} USD</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-3 md:p-6 border-2 border-bridezilla-pink/20 hover:border-bridezilla-pink transition-colors">
-              <div className="flex items-center gap-2 md:gap-3">
-                <DollarSign className="w-6 h-6 md:w-8 md:h-8 text-bridezilla-pink flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs md:text-sm text-gray-600">Total Paid</p>
-                  <p className="font-heading text-xl md:text-3xl text-bridezilla-pink truncate">{formatCurrency(stats.totalPaid)} USD</p>
+            <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className={`p-2 rounded-lg ${theme.success.bg}`}>
+                  <DollarSign className={`w-5 h-5 ${theme.success.text}`} />
                 </div>
               </div>
+              <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Total Paid</p>
+              <p className={`text-2xl font-semibold ${theme.textPrimary} truncate`}>{formatCurrency(stats.totalPaid)} USD</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-3 md:p-6 border-2 border-bridezilla-orange/20 hover:border-bridezilla-orange transition-colors">
-              <div className="flex items-center gap-2 md:gap-3">
-                <AlertCircle className="w-6 h-6 md:w-8 md:h-8 text-bridezilla-orange flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs md:text-sm text-gray-600">Total Outstanding</p>
-                  <p className="font-heading text-xl md:text-3xl text-bridezilla-orange truncate">{formatCurrency(stats.totalOutstanding)} USD</p>
+            <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-2 rounded-lg bg-stone-50">
+                  <AlertCircle className={`w-5 h-5 ${theme.textSecondary}`} />
                 </div>
               </div>
+              <p className={`text-xs font-medium ${theme.textMuted} uppercase tracking-widest mb-2`}>Total Outstanding</p>
+              <p className={`text-2xl font-semibold ${theme.textPrimary} truncate`}>{formatCurrency(stats.totalOutstanding)} USD</p>
             </div>
           </>
         )}
       </div>
 
       {/* Controls */}
-      <div className="bg-white rounded-xl shadow p-3 md:p-4 mb-4 md:mb-6">
+      <div className={`${theme.cardBackground} rounded-xl shadow p-3 md:p-4 mb-4 md:mb-6`}>
         <div className="flex flex-wrap gap-2 md:gap-4 items-center justify-between">
           <div className="flex gap-2 flex-wrap">
             {/* Type Filter */}
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 md:px-4 py-2 border border-gray-300 rounded-lg text-sm md:text-base font-semibold bg-white hover:bg-gray-50 transition-colors"
-            >
-              <option value="all">All Types</option>
-              {VENDOR_TYPES.map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
+            <SearchableMultiSelect
+              options={VENDOR_TYPES.map(type => ({ value: type, label: type }))}
+              selectedValues={typeFilter}
+              onChange={handleTypeFilterChange}
+              placeholder="Filter by type..."
+              allLabel="All Types"
+              className="min-w-[160px]"
+            />
 
             {/* Currency Display Filter */}
-            <div className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 border border-gray-300 rounded-lg bg-white">
+            <div className={`flex items-center gap-2 md:gap-3 px-4 py-2 ${theme.border} ${theme.borderWidth} rounded-xl ${theme.cardBackground}`}>
               <label className="flex items-center gap-1 md:gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -312,7 +329,7 @@ export default function VendorsTab() {
                   }}
                   className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
                 />
-                <span className="text-xs md:text-sm font-semibold text-gray-700">EUR</span>
+                <span className={`text-xs md:text-sm font-medium ${theme.textPrimary}`}>EUR</span>
               </label>
               <label className="flex items-center gap-1 md:gap-2 cursor-pointer">
                 <input
@@ -327,7 +344,7 @@ export default function VendorsTab() {
                   }}
                   className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
                 />
-                <span className="text-xs md:text-sm font-semibold text-gray-700">USD</span>
+                <span className={`text-xs md:text-sm font-medium ${theme.textPrimary}`}>USD</span>
               </label>
             </div>
           </div>
@@ -335,23 +352,23 @@ export default function VendorsTab() {
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm md:text-base font-semibold hover:bg-gray-200 hover:scale-105 transition-all"
+              className={`flex items-center gap-2 px-3 md:px-4 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors`}
             >
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Export</span>
             </button>
             <button
               onClick={handleAddVendor}
-              className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 bg-bridezilla-orange text-white rounded-full text-sm md:text-base font-semibold hover:scale-105 transition-all"
+              className={`flex items-center gap-2 px-3 md:px-4 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors`}
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Add Manually</span>
             </button>
             <button
               onClick={() => setShowBulkImport(true)}
-              className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 bg-bridezilla-pink text-white rounded-full text-sm md:text-base font-semibold hover:scale-105 transition-all"
+              className={`flex items-center gap-2 px-3 md:px-4 py-2 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors`}
             >
-              <Image src="/images/bridezilla-logo-circle.svg" alt="Bridezilla" width={20} height={20} className="object-contain" />
+              <img src={currentTheme === 'pop' ? '/images/bridezilla-logo-circle.svg' : '/images/bridezilla-logo-simple.svg'} alt="Bridezilla" className="w-6 h-6 object-contain" />
               <span className="hidden sm:inline">Ask Bridezilla</span>
             </button>
           </div>
@@ -360,18 +377,21 @@ export default function VendorsTab() {
 
       {/* Budget Progress Visualization */}
       {stats && (
-        <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6 border-2 border-bridezilla-pink/20">
+        <div className={`${theme.cardBackground} rounded-2xl shadow-md p-4 md:p-6 mb-4 md:mb-6 border ${theme.border}`}>
           <div className="flex items-center justify-between mb-3 md:mb-4">
-            <h3 className="font-heading text-xl md:text-2xl uppercase tracking-wide text-gray-900">Budget Progress</h3>
-            <span className="font-heading text-lg md:text-xl text-bridezilla-pink">
+            <h3 className={`font-display text-xl md:text-2xl ${theme.textPrimary}`}>Budget Progress</h3>
+            <span className="text-lg md:text-xl font-semibold" style={{ color: theme.primaryColor }}>
               {((stats.totalPaid / stats.totalCost) * 100).toFixed(1)}% Paid
             </span>
           </div>
           <div className="space-y-3">
             <div className="relative w-full h-8 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="absolute h-full bg-gradient-to-r from-bridezilla-pink to-bridezilla-orange transition-all duration-500 ease-out"
-                style={{ width: `${Math.min((stats.totalPaid / stats.totalCost) * 100, 100)}%` }}
+                className="absolute h-full transition-all duration-500 ease-out"
+                style={{
+                  width: `${Math.min((stats.totalPaid / stats.totalCost) * 100, 100)}%`,
+                  backgroundColor: theme.primaryColor
+                }}
               />
               <div className="absolute inset-0 flex items-center justify-center">
                 {(() => {
@@ -389,19 +409,19 @@ export default function VendorsTab() {
 
                   if (currencyDisplay === 'eur') {
                     return (
-                      <span className="text-xs font-semibold text-gray-700 drop-shadow">
+                      <span className={`text-xs font-semibold ${theme.textPrimary} drop-shadow`}>
                         {formatCurrency(eurTotalPaid, 'EUR')} of {formatCurrency(eurTotalCost, 'EUR')} EUR
                       </span>
                     )
                   } else if (currencyDisplay === 'cad') {
                     return (
-                      <span className="text-xs font-semibold text-gray-700 drop-shadow">
+                      <span className={`text-xs font-semibold ${theme.textPrimary} drop-shadow`}>
                         {formatCurrency(stats.totalPaid)} of {formatCurrency(stats.totalCost)} USD
                       </span>
                     )
                   } else {
                     return (
-                      <span className="text-xs font-semibold text-gray-700 drop-shadow">
+                      <span className={`text-xs font-semibold ${theme.textPrimary} drop-shadow`}>
                         {formatCurrency(stats.totalPaid)} / {formatCurrency(eurTotalPaid, 'EUR')} of {formatCurrency(stats.totalCost)} / {formatCurrency(eurTotalCost, 'EUR')}
                       </span>
                     )
@@ -427,23 +447,23 @@ export default function VendorsTab() {
                 return (
                   <>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-bridezilla-pink rounded-full" />
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: theme.primaryColor }} />
                       {currencyDisplay === 'eur' ? (
-                        <span className="text-gray-600">Paid: {formatCurrency(eurTotalPaid, 'EUR')} EUR</span>
+                        <span className={theme.textSecondary}>Paid: {formatCurrency(eurTotalPaid, 'EUR')} EUR</span>
                       ) : currencyDisplay === 'cad' ? (
-                        <span className="text-gray-600">Paid: {formatCurrency(stats.totalPaid)} USD</span>
+                        <span className={theme.textSecondary}>Paid: {formatCurrency(stats.totalPaid)} USD</span>
                       ) : (
-                        <span className="text-gray-600">Paid: {formatCurrency(stats.totalPaid)} USD / {formatCurrency(eurTotalPaid, 'EUR')} EUR</span>
+                        <span className={theme.textSecondary}>Paid: {formatCurrency(stats.totalPaid)} USD / {formatCurrency(eurTotalPaid, 'EUR')} EUR</span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 bg-gray-200 rounded-full" />
                       {currencyDisplay === 'eur' ? (
-                        <span className="text-gray-600">Outstanding: {formatCurrency(eurTotalOutstanding, 'EUR')} EUR</span>
+                        <span className={theme.textSecondary}>Outstanding: {formatCurrency(eurTotalOutstanding, 'EUR')} EUR</span>
                       ) : currencyDisplay === 'cad' ? (
-                        <span className="text-gray-600">Outstanding: {formatCurrency(stats.totalOutstanding)} USD</span>
+                        <span className={theme.textSecondary}>Outstanding: {formatCurrency(stats.totalOutstanding)} USD</span>
                       ) : (
-                        <span className="text-gray-600">Outstanding: {formatCurrency(stats.totalOutstanding)} USD / {formatCurrency(eurTotalOutstanding, 'EUR')} EUR</span>
+                        <span className={theme.textSecondary}>Outstanding: {formatCurrency(stats.totalOutstanding)} USD / {formatCurrency(eurTotalOutstanding, 'EUR')} EUR</span>
                       )}
                     </div>
                   </>
@@ -481,14 +501,14 @@ export default function VendorsTab() {
           .slice(0, 5) // Show next 5 payments
 
         return upcomingPayments.length > 0 ? (
-          <div className="bg-white rounded-xl shadow p-3 md:p-6 mb-4 md:mb-6">
+          <div className={`${theme.cardBackground} rounded-2xl shadow-md p-3 md:p-6 mb-4 md:mb-6 border ${theme.border}`}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mb-3 md:mb-4">
-              <h3 className="text-base md:text-lg font-semibold text-gray-900">Upcoming Payments</h3>
+              <h3 className={`font-display text-xl md:text-2xl ${theme.textPrimary}`}>Upcoming Payments</h3>
               <button
                 onClick={() => setShowReminderSettings(true)}
-                className="flex items-center gap-2 px-3 py-1.5 text-xs md:text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors self-start sm:self-auto"
+                className={`flex items-center gap-2 px-3 md:px-4 py-2 text-sm font-medium rounded-lg transition-colors ${theme.secondaryButton} ${theme.textPrimary} ${theme.secondaryButtonHover} self-start sm:self-auto`}
               >
-                <Settings className="w-3 h-3 md:w-4 md:h-4" />
+                <Settings className="w-4 h-4" />
                 <span className="hidden sm:inline">Reminder Settings</span>
                 <span className="sm:hidden">Settings</span>
               </button>
@@ -514,13 +534,13 @@ export default function VendorsTab() {
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <span className="font-medium text-sm md:text-base text-gray-900 truncate">{payment.vendor_name}</span>
-                        <span className="hidden sm:inline text-xs text-gray-500">•</span>
-                        <span className="text-xs md:text-sm text-gray-600 truncate">{payment.payment_description}</span>
+                        <span className={`font-medium text-sm md:text-base ${theme.textPrimary} truncate`}>{payment.vendor_name}</span>
+                        <span className={`hidden sm:inline text-xs ${theme.textMuted}`}>•</span>
+                        <span className={`text-xs md:text-sm ${theme.textSecondary} truncate`}>{payment.payment_description}</span>
                         {payment.payment_type && (
                           <>
-                            <span className="hidden sm:inline text-xs text-gray-500">•</span>
-                            <span className="text-xs text-gray-500">
+                            <span className={`hidden sm:inline text-xs ${theme.textMuted}`}>•</span>
+                            <span className={`text-xs ${theme.textMuted}`}>
                               {payment.payment_type === 'bank_transfer' ? 'Bank Transfer' : 'Cash'}
                             </span>
                           </>
@@ -529,7 +549,7 @@ export default function VendorsTab() {
                     </div>
                     <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
                       <div className="text-left sm:text-right">
-                        <span className="text-sm font-semibold text-gray-900 whitespace-nowrap">
+                        <span className={`text-sm font-semibold ${theme.textPrimary} whitespace-nowrap`}>
                           {formatCurrency(payment.payment_amount)} {payment.payment_currency}
                         </span>
                       </div>
@@ -571,7 +591,7 @@ export default function VendorsTab() {
       {vendorsNeedingDetails.length > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start justify-between">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-blue-900">
                 {vendorsNeedingDetails.length} {vendorsNeedingDetails.length === 1 ? 'vendor needs' : 'vendors need'} more details
@@ -591,32 +611,34 @@ export default function VendorsTab() {
       )}
 
       {/* Vendors Table */}
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className={`${theme.cardBackground} rounded-2xl border ${theme.border} ${theme.borderWidth} overflow-hidden`}>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px]">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-stone-50 border-b border-stone-200">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Email</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Contract</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Deposit</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Total Cost</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Total Paid</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Total Outstanding</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                {/* Expand icon column */}
+                <th className="px-4 py-3 text-left w-10"></th>
+                <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Type</th>
+                <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Email</th>
+                <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Contract</th>
+                <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Deposit</th>
+                <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Cost</th>
+                <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Paid</th>
+                <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Outstanding</th>
+                <th className={`px-4 py-3 text-left text-xs font-semibold ${theme.textSecondary} uppercase`}>Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-stone-200">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
                     Loading...
                   </td>
                 </tr>
               ) : vendors.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
-                    No vendors found. Click "Add Manually" to get started.
+                  <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
+                    No vendors found
                   </td>
                 </tr>
               ) : (
@@ -624,13 +646,21 @@ export default function VendorsTab() {
                   <Fragment key={vendor.id}>
                     <tr
                       id={`vendor-${vendor.id}`}
-                      className="hover:bg-bridezilla-light-pink cursor-pointer transition-all duration-150 hover:shadow-md group"
+                      className="hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-200 last:border-b-0"
                       onClick={() => setExpandedVendor(expandedVendor === vendor.id ? null : vendor.id)}
                     >
-                    <td className="px-4 py-4 text-sm text-gray-600 truncate border-l-4 border-transparent group-hover:border-bridezilla-pink transition-colors">
+                    {/* Expand icon */}
+                    <td className="px-2 py-3 text-sm text-gray-500">
+                      {expandedVendor === vendor.id ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
+                    </td>
+                    <td className="px-2 py-3 text-sm text-gray-600 truncate">
                       {vendor.vendor_type}
                     </td>
-                    <td className="px-4 py-4 text-sm text-gray-600">
+                    <td className="px-2 py-3 text-sm text-gray-600">
                       {vendor.email ? (
                         <div className="flex items-center gap-2 group">
                           <span className="truncate">{vendor.email}</span>
@@ -650,13 +680,13 @@ export default function VendorsTab() {
                         <span className="text-gray-400 italic">(no email)</span>
                       )}
                     </td>
-                    <td className="px-4 py-4">
-                      <span className={`inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full text-xs font-semibold w-full ${
+                    <td className="px-2 py-3">
+                      <span className={`inline-flex items-center justify-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold w-full ${
                         vendor.contract_signed
-                          ? 'bg-blue-100 text-blue-700'
+                          ? 'bg-emerald-50 text-emerald-700'
                           : !vendor.contract_required
-                          ? 'bg-gray-100 text-gray-500'
-                          : 'bg-yellow-100 text-yellow-700'
+                          ? 'bg-stone-100 text-stone-600'
+                          : 'bg-amber-50 text-amber-700'
                       }`}>
                         {vendor.contract_signed ? (
                           <>
@@ -670,7 +700,7 @@ export default function VendorsTab() {
                         )}
                       </span>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-2 py-3">
                       {(() => {
                         // Check if first deposit payment is paid
                         // Look for payment with description containing "1st", "first", or just "deposit"
@@ -681,10 +711,10 @@ export default function VendorsTab() {
                         const isDepositPaid = firstDepositPayment?.paid || false
 
                         return (
-                          <span className={`inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full text-xs font-semibold w-full ${
+                          <span className={`inline-flex items-center justify-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold w-full ${
                             isDepositPaid
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-yellow-100 text-yellow-700'
+                              ? 'bg-emerald-50 text-emerald-700'
+                              : 'bg-amber-50 text-amber-700'
                           }`}>
                             {isDepositPaid ? (
                               <>
@@ -701,7 +731,7 @@ export default function VendorsTab() {
                         )
                       })()}
                     </td>
-                    <td className="px-4 py-4 text-sm">
+                    <td className="px-2 py-3 text-sm">
                       <div>
                         {(() => {
                           // Check if any payment has estimated conversion
@@ -743,7 +773,7 @@ export default function VendorsTab() {
                         })()}
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-sm">
+                    <td className="px-2 py-3 text-sm">
                       <div>
                         {(() => {
                           // Calculate total paid (excluding refundable)
@@ -769,12 +799,12 @@ export default function VendorsTab() {
                           return (
                             <>
                               {(currencyDisplay === 'cad' || currencyDisplay === 'both') && (
-                                <div className="font-medium text-green-600 whitespace-nowrap">
+                                <div className="font-medium text-emerald-700 whitespace-nowrap">
                                   {hasPaidEstimate ? '≈ ' : ''}{formatCurrency(totalPaidConverted, vendor.cost_converted_currency || 'USD')} USD
                                 </div>
                               )}
                               {(currencyDisplay === 'eur' || currencyDisplay === 'both') && vendor.vendor_currency && vendor.vendor_currency !== (vendor.cost_converted_currency || 'USD') && totalPaidVendorCurrency > 0 && (
-                                <div className={`text-xs whitespace-nowrap ${currencyDisplay === 'eur' ? 'font-medium text-green-600' : 'text-gray-500'}`}>
+                                <div className={`text-xs whitespace-nowrap ${currencyDisplay === 'eur' ? 'font-medium text-emerald-700' : 'text-gray-500'}`}>
                                   {formatCurrency(totalPaidVendorCurrency, vendor.vendor_currency)} {vendor.vendor_currency}
                                 </div>
                               )}
@@ -783,7 +813,7 @@ export default function VendorsTab() {
                         })()}
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-sm">
+                    <td className="px-2 py-3 text-sm">
                       <div>
                         {(() => {
                           // Calculate total remaining (unpaid, excluding refundable)
@@ -809,12 +839,12 @@ export default function VendorsTab() {
                           return (
                             <>
                               {(currencyDisplay === 'cad' || currencyDisplay === 'both') && (
-                                <div className="font-medium text-red-600 whitespace-nowrap">
+                                <div className="font-medium text-red-700 whitespace-nowrap">
                                   {hasRemainingEstimate ? '≈ ' : ''}{formatCurrency(totalRemainingConverted, vendor.cost_converted_currency || 'USD')} USD
                                 </div>
                               )}
                               {(currencyDisplay === 'eur' || currencyDisplay === 'both') && vendor.vendor_currency && vendor.vendor_currency !== (vendor.cost_converted_currency || 'USD') && totalRemainingVendorCurrency > 0 && (
-                                <div className={`text-xs whitespace-nowrap ${currencyDisplay === 'eur' ? 'font-medium text-red-600' : 'text-gray-500'}`}>
+                                <div className={`text-xs whitespace-nowrap ${currencyDisplay === 'eur' ? 'font-medium text-red-700' : 'text-gray-500'}`}>
                                   {formatCurrency(totalRemainingVendorCurrency, vendor.vendor_currency)} {vendor.vendor_currency}
                                 </div>
                               )}
@@ -823,7 +853,7 @@ export default function VendorsTab() {
                         })()}
                       </div>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-2 py-3">
                       <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => handleEditVendor(vendor)}
@@ -863,24 +893,24 @@ export default function VendorsTab() {
                   {/* Expanded Payment Details Row */}
                   {expandedVendor === vendor.id && (
                     <tr key={`${vendor.id}-expanded`}>
-                      <td colSpan={8} className="px-4 py-3 border-t border-gray-200">
+                      <td colSpan={9} className="px-2 py-3 bg-gray-50 border-t border-gray-200">
                         <div className="space-y-2 mx-auto" style={{ maxWidth: '95%' }}>
                           <h4 className="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-2">Payment Schedule</h4>
                           {vendor.payments && vendor.payments.length > 0 ? (
                             <table className="w-full bg-white rounded border border-gray-200">
                               <thead>
-                                <tr className="text-xs text-gray-600 border-b border-gray-200 bg-gray-50">
-                                  <th className="text-left px-3 py-2 font-medium">Description</th>
-                                  <th className="text-left px-3 py-2 font-medium">Due Date</th>
-                                  <th className="text-left px-3 py-2 font-medium">Paid Date</th>
-                                  <th className="text-left px-3 py-2 font-medium">Payment Type</th>
-                                  <th className="text-center px-3 py-2 font-medium">Refundable</th>
-                                  <th className="text-left px-3 py-2 font-medium">Status</th>
+                                <tr className="text-xs text-gray-600 border-b border-gray-200 bg-gray-100">
+                                  <th className="text-left px-3 py-2 font-bold">Description</th>
+                                  <th className="text-left px-3 py-2 font-bold">Due Date</th>
+                                  <th className="text-left px-3 py-2 font-bold">Paid Date</th>
+                                  <th className="text-left px-3 py-2 font-bold">Payment Type</th>
+                                  <th className="text-center px-3 py-2 font-bold">Refundable</th>
+                                  <th className="text-left px-3 py-2 font-bold">Status</th>
                                   {(currencyDisplay === 'eur' || currencyDisplay === 'both') && vendor.vendor_currency && vendor.vendor_currency !== (vendor.cost_converted_currency || 'USD') && (
-                                    <th className="text-right px-3 py-2 font-medium">Amount ({vendor.vendor_currency})</th>
+                                    <th className="text-right px-3 py-2 font-bold">Amount ({vendor.vendor_currency})</th>
                                   )}
                                   {(currencyDisplay === 'cad' || currencyDisplay === 'both') && (
-                                    <th className="text-right px-3 py-2 font-medium">Amount ({vendor.cost_converted_currency || 'USD'})</th>
+                                    <th className="text-right px-3 py-2 font-bold">Amount ({vendor.cost_converted_currency || 'USD'})</th>
                                   )}
                                 </tr>
                               </thead>
@@ -911,10 +941,10 @@ export default function VendorsTab() {
                                       {payment.refundable ? 'Yes' : '-'}
                                     </td>
                                     <td className="px-3 py-2">
-                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold ${
                                         payment.paid
-                                          ? 'bg-green-100 text-green-700'
-                                          : 'bg-yellow-100 text-yellow-700'
+                                          ? 'bg-emerald-50 text-emerald-700'
+                                          : 'bg-amber-50 text-amber-700'
                                       }`}>
                                         {payment.paid ? (
                                           <>

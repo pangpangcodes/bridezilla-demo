@@ -19,7 +19,7 @@ export class AnthropicClient {
   ): Promise<any> {
     try {
       const message = await this.client.messages.create({
-        model: 'claude-3-5-haiku-20241022',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 4096,
         system: systemPrompt,
         messages: [{
@@ -27,7 +27,7 @@ export class AnthropicClient {
           content: text
         }]
       }, {
-        timeout: 30000 // 30 second timeout
+        timeout: 180000 // 3 minute timeout for large PDFs
       })
 
       // Extract and parse JSON response
@@ -36,7 +36,17 @@ export class AnthropicClient {
         throw new Error('Unexpected response format')
       }
 
-      return JSON.parse(content.text)
+      // Strip markdown code fences if present
+      let jsonText = content.text.trim()
+      if (jsonText.startsWith('```')) {
+        // Remove opening fence (```json or ```)
+        jsonText = jsonText.replace(/^```(?:json)?\n?/, '')
+        // Remove closing fence
+        jsonText = jsonText.replace(/\n?```$/, '')
+        jsonText = jsonText.trim()
+      }
+
+      return JSON.parse(jsonText)
     } catch (error) {
       console.error('Anthropic API error:', error)
       throw error

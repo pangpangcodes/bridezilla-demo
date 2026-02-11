@@ -15,6 +15,34 @@
   }
 }
 
+/* Vintage fonts for landing page */
+.font-vintage {
+  font-family: var(--font-playfair), 'Playfair Display', serif;
+}
+
+.font-heading {
+  font-family: var(--font-bebas), 'Bebas Neue', cursive;
+  font-weight: normal;
+}
+
+.font-body {
+  font-family: var(--font-inter), 'Inter', sans-serif;
+}
+
+/* Landing page animations */
+@keyframes bounce-slow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 3s ease-in-out infinite;
+}
+
 /* Heart decoration animation - Partiful style */
 @keyframes float {
   0%, 100% {
@@ -120,3 +148,18 @@
   z-index: 1;
 }
 
+/* Notification slide in animation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}

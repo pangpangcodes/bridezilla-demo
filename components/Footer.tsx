@@ -9,7 +9,7 @@ export default function Footer() {
 
   return (
     <>
-      <footer className="bg-gray-900 text-white py-2 mb-9">
+      <footer className="bg-gray-900 text-white py-2">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center space-y-1">
             <div className="flex items-center justify-center gap-2">

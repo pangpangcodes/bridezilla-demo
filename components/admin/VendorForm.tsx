@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, Plus, Trash2 } from 'lucide-react'
 import { Vendor, VendorFormData, Payment, VENDOR_TYPES, CURRENCIES } from '@/types/vendor'
+import { useThemeStyles } from '@/hooks/useThemeStyles'
 
 interface VendorFormProps {
   vendor?: Vendor | null
@@ -11,6 +12,7 @@ interface VendorFormProps {
 }
 
 export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps) {
+  const theme = useThemeStyles()
   const [formData, setFormData] = useState<VendorFormData>({
     vendor_type: '',
     vendor_name: '',
@@ -31,8 +33,23 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [])
+
   useEffect(() => {
     if (vendor) {
+      // Ensure payment amounts are parsed as numbers, not strings
+      const parsedPayments = (vendor.payments || []).map(payment => ({
+        ...payment,
+        amount: typeof payment.amount === 'string' ? parseFloat(payment.amount) : payment.amount,
+        amount_converted: typeof payment.amount_converted === 'string' ? parseFloat(payment.amount_converted) : payment.amount_converted,
+      }))
+
       setFormData({
         vendor_type: vendor.vendor_type,
         vendor_name: vendor.vendor_name || '',
@@ -47,7 +64,7 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
         contract_required: vendor.contract_required || false,
         contract_signed: vendor.contract_signed || false,
         contract_signed_date: vendor.contract_signed_date || '',
-        payments: vendor.payments || [],
+        payments: parsedPayments,
         notes: vendor.notes || ''
       })
     }
@@ -93,6 +110,7 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
       amount_converted: 0,  // Initialize with 0
       amount_converted_currency: formData.converted_currency,  // Set conversion currency
       payment_type: 'bank_transfer',  // Default to bank transfer
+      refundable: false,  // Default to non-refundable
       due_date: '',
       paid: false,
       paid_date: ''
@@ -183,29 +201,29 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
-        <div className="bg-bridezilla-pink rounded-t-2xl p-6 relative">
-          <h3 className="font-heading text-3xl uppercase tracking-wide text-white pr-12">
-            {vendor ? 'Edit Vendor' : 'Add New Vendor'}
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4" onClick={onClose} style={{ WebkitBackdropFilter: 'blur(12px)', backdropFilter: 'blur(12px)' }}>
+      <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[95vh] border border-stone-200 overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="bg-white border-b border-stone-200 px-8 py-6 flex justify-between items-center flex-shrink-0">
+          <h3 className={`font-display text-2xl md:text-3xl ${theme.textPrimary}`}>
+            {vendor ? 'Edit Vendor' : 'Add Vendor'}
           </h3>
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 text-white hover:text-white/80 transition-colors z-[9999] p-2 -m-2 bg-white/20 rounded-full hover:bg-white/30"
+            className={`${theme.textMuted} hover:${theme.textSecondary} transition-colors`}
             aria-label="Close"
           >
-            <X className="w-6 h-6" />
+            <X size={20} />
           </button>
         </div>
 
-        <div className="p-6">
-
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Form - Scrollable Content */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-8 py-8 space-y-4">
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Vendor Type */}
             <div>
-              <label htmlFor="vendor_type" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="vendor_type" className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
                 Vendor Type *
               </label>
               <select
@@ -213,7 +231,7 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
                 required
                 value={formData.vendor_type}
                 onChange={(e) => setFormData({ ...formData, vendor_type: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-white focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all"
               >
                 <option value="">Select type...</option>
                 {VENDOR_TYPES.map((type) => (
@@ -224,7 +242,7 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
 
             {/* Vendor Name */}
             <div>
-              <label htmlFor="vendor_name" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="vendor_name" className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
                 Vendor Name
               </label>
               <input
@@ -232,14 +250,14 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
                 id="vendor_name"
                 value={formData.vendor_name}
                 onChange={(e) => setFormData({ ...formData, vendor_name: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all"
                 placeholder="Optional vendor name"
               />
             </div>
 
             {/* Contact Name */}
             <div>
-              <label htmlFor="contact_name" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="contact_name" className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
                 Contact Name
               </label>
               <input
@@ -247,14 +265,14 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
                 id="contact_name"
                 value={formData.contact_name}
                 onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all"
                 placeholder="Contact person name"
               />
             </div>
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="email" className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
                 Email
               </label>
               <input
@@ -262,14 +280,14 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
                 id="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all"
                 placeholder="email@example.com"
               />
             </div>
 
             {/* Phone */}
             <div>
-              <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="phone" className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
                 Phone
               </label>
               <input
@@ -277,14 +295,14 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
                 id="phone"
                 value={formData.phone}
                 onChange={handlePhoneChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all"
                 placeholder="(555) 555-5555"
               />
             </div>
 
             {/* Website */}
             <div>
-              <label htmlFor="website" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="website" className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
                 Website
               </label>
               <input
@@ -292,21 +310,21 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
                 id="website"
                 value={formData.website}
                 onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all"
                 placeholder="https://example.com"
               />
             </div>
 
             {/* Vendor Currency */}
             <div>
-              <label htmlFor="vendor_currency" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="vendor_currency" className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
                 Vendor Currency
               </label>
               <select
                 id="vendor_currency"
                 value={formData.vendor_currency}
                 onChange={(e) => setFormData({ ...formData, vendor_currency: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-white focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all"
               >
                 {CURRENCIES.map((currency) => (
                   <option key={currency.code} value={currency.code}>
@@ -318,8 +336,8 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
 
             {/* Vendor Cost in Vendor Currency - Auto-calculated */}
             <div>
-              <label htmlFor="vendor_cost" className="block text-sm font-semibold text-gray-700 mb-2">
-                Vendor Cost ({CURRENCIES.find(c => c.code === formData.vendor_currency)?.symbol || '$'}) <span className="text-xs font-normal text-gray-500 italic">- Auto-calculated</span>
+              <label htmlFor="vendor_cost" className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
+                Vendor Cost ({CURRENCIES.find(c => c.code === formData.vendor_currency)?.symbol || '$'}) <span className="text-xs font-normal normal-case">- Auto-calculated</span>
               </label>
               <input
                 type="text"
@@ -332,20 +350,20 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
                 })()}
                 readOnly
                 disabled
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-gray-50 text-gray-700 cursor-not-allowed"
               />
             </div>
 
             {/* Conversion Currency Dropdown */}
             <div>
-              <label htmlFor="converted_currency" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="converted_currency" className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
                 Conversion Currency
               </label>
               <select
                 id="converted_currency"
                 value={formData.converted_currency}
                 onChange={(e) => setFormData({ ...formData, converted_currency: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-white focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all"
               >
                 {CURRENCIES.map(currency => (
                   <option key={currency.code} value={currency.code}>
@@ -357,8 +375,8 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
 
             {/* Converted Cost - Auto-calculated */}
             <div>
-              <label htmlFor="cost_converted" className="block text-sm font-semibold text-gray-700 mb-2">
-                Converted Cost ({CURRENCIES.find(c => c.code === formData.converted_currency)?.symbol || '$'}) <span className="text-xs font-normal text-gray-500 italic">- Auto-calculated</span>
+              <label htmlFor="cost_converted" className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
+                Converted Cost ({CURRENCIES.find(c => c.code === formData.converted_currency)?.symbol || '$'}) <span className="text-xs font-normal normal-case">- Auto-calculated</span>
               </label>
               <input
                 type="text"
@@ -377,7 +395,7 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
                 })()}
                 readOnly
                 disabled
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-gray-50 text-gray-700 cursor-not-allowed"
               />
             </div>
           </div>
@@ -416,7 +434,7 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
 
                   {formData.contract_signed && (
                     <div>
-                      <label htmlFor="contract_signed_date" className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label htmlFor="contract_signed_date" className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
                         Contract Signed Date
                       </label>
                       <input
@@ -429,7 +447,7 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
                         }}
                         placeholder="YYYY-MM-DD"
                         maxLength={10}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all"
                       />
                     </div>
                   )}
@@ -445,7 +463,7 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
               <button
                 type="button"
                 onClick={handleAddPayment}
-                className="flex items-center gap-2 px-3 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
               >
                 <Plus className="w-4 h-4" />
                 Add Payment
@@ -665,7 +683,7 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
 
           {/* Notes */}
           <div>
-            <label htmlFor="notes" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="notes" className={`block text-xs font-medium ${theme.textSecondary} uppercase tracking-widest mb-3`}>
               Notes
             </label>
             <textarea
@@ -673,7 +691,7 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
               rows={3}
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all resize-none"
               placeholder="Additional notes..."
             />
           </div>
@@ -683,25 +701,26 @@ export default function VendorForm({ vendor, onClose, onSave }: VendorFormProps)
               {error}
             </div>
           )}
-
-          {/* Actions */}
-          <div className="flex gap-3 justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 hover:scale-105 transition-all"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-3 bg-bridezilla-pink text-white rounded-full font-semibold hover:scale-105 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Saving...' : (vendor ? 'Update Vendor' : 'Add Vendor')}
-            </button>
-          </div>
         </form>
+
+        {/* Footer - Sticky CTA Buttons */}
+        <div className="bg-white border-t border-stone-200 px-8 py-6 flex gap-3 justify-end flex-shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className={`px-6 py-2.5 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors`}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="vendor-form"
+            disabled={loading}
+            className={`px-6 py-2.5 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+            onClick={handleSubmit}
+          >
+            {loading ? 'Saving...' : (vendor ? 'Update Vendor' : 'Add Vendor')}
+          </button>
         </div>
       </div>
     </div>
