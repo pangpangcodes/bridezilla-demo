@@ -23,18 +23,18 @@ const LandingNavbar: React.FC = () => {
           </span>
         </Link>
 
-        <div className="hidden sm:flex items-center gap-3 md:gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           <span className="text-[#2B2D42] opacity-30">|</span>
           <Link
             href="/planners"
-            className="font-heading text-sm md:text-lg tracking-[0.2em] uppercase text-[#2B2D42] hover:text-[#2F5249] transition-colors opacity-70 hover:opacity-100"
+            className="font-heading text-[10px] sm:text-sm md:text-lg tracking-[0.2em] uppercase text-[#2B2D42] hover:text-[#2F5249] transition-colors opacity-70 hover:opacity-100"
           >
             PLANNERS
           </Link>
           <span className="text-[#2B2D42] opacity-30">|</span>
           <Link
             href="/couples"
-            className="font-heading text-sm md:text-lg tracking-[0.2em] uppercase text-[#2B2D42] hover:text-[#2F5249] transition-colors opacity-70 hover:opacity-100"
+            className="font-heading text-[10px] sm:text-sm md:text-lg tracking-[0.2em] uppercase text-[#2B2D42] hover:text-[#2F5249] transition-colors opacity-70 hover:opacity-100"
           >
             COUPLES
           </Link>

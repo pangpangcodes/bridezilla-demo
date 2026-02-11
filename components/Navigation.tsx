@@ -88,14 +88,34 @@ export default function Navigation() {
       >
         <div className="container mx-auto px-4 relative">
           <div className="flex items-center justify-between h-14 md:h-16">
-            <a
-              href="/demo"
-              className={`text-4xl font-display font-bold text-gray-900 transition-colors ${
-                isWorkspacePage ? 'hover:text-bridezilla-pink' : 'hover:text-primary-600'
-              }`}
-            >
-              B & E
-            </a>
+            <div className="flex items-center gap-2 md:gap-4">
+              <a
+                href="/demo"
+                className={`text-4xl font-display font-bold text-gray-900 transition-colors ${
+                  isWorkspacePage ? 'hover:text-bridezilla-pink' : 'hover:text-primary-600'
+                }`}
+              >
+                B & E
+              </a>
+              {isWorkspacePage && (
+                <div className="flex items-center gap-2 md:gap-3">
+                  <span className="text-gray-300">|</span>
+                  <a
+                    href="/planners"
+                    className="font-heading text-[10px] sm:text-xs md:text-sm tracking-[0.2em] uppercase text-gray-600 hover:text-bridezilla-pink transition-colors"
+                  >
+                    PLANNERS
+                  </a>
+                  <span className="text-gray-300">|</span>
+                  <a
+                    href="/couples"
+                    className="font-heading text-[10px] sm:text-xs md:text-sm tracking-[0.2em] uppercase text-gray-600 hover:text-bridezilla-pink transition-colors"
+                  >
+                    COUPLES
+                  </a>
+                </div>
+              )}
+            </div>
 
             {/* Desktop Navigation - Always Visible */}
             <div className="hidden md:flex items-center gap-6">
