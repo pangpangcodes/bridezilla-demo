@@ -60,6 +60,10 @@ export default function CouplesCalendarView() {
       const saved = localStorage.getItem('couplesViewMode')
       if (saved === 'list' || saved === 'calendar') {
         setDisplayMode(saved)
+      } else {
+        // Default to list view on mobile (width < 768px), calendar on desktop
+        const isMobile = window.innerWidth < 768
+        setDisplayMode(isMobile ? 'list' : 'calendar')
       }
     }
   }, [])
@@ -156,17 +160,11 @@ export default function CouplesCalendarView() {
     calculateStats()
   }, [couples, vendorCounts])
 
-  // Load saved display mode from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('couples_display_mode')
-    if (saved === 'list' || saved === 'calendar') {
-      setDisplayMode(saved)
-    }
-  }, [])
-
   // Persist display mode to localStorage
   useEffect(() => {
-    localStorage.setItem('couples_display_mode', displayMode)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('couplesViewMode', displayMode)
+    }
   }, [displayMode])
 
   const fetchCouples = async () => {
