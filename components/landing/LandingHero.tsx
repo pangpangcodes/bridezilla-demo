@@ -34,7 +34,7 @@ const LandingHero: React.FC = () => {
 
         <div className="mt-6 sm:mt-12 md:mt-24">
           <p className="font-heading text-xl sm:text-2xl md:text-5xl uppercase tracking-wide sm:tracking-widest mb-6 sm:mb-10 text-[#2B2D42] max-w-4xl mx-auto leading-tight px-4">
-            The AI POWERED Wedding Assistant for Brides who want perfection.
+            The AI powered workspace for modern wedding planning.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
             <Link
