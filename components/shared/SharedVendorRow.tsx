@@ -14,11 +14,8 @@ interface SharedVendorRowProps {
 
 const STATUS_OPTIONS: { value: VendorStatus | null; label: string; color: string }[] = [
   { value: null, label: 'Not Reviewed', color: 'bg-stone-100 text-stone-600' },
-  { value: 'interested', label: 'Interested', color: 'bg-blue-50 text-blue-700' },
-  { value: 'contacted', label: 'Contacted', color: 'bg-purple-50 text-purple-700' },
-  { value: 'quoted', label: 'Quoted', color: 'bg-yellow-50 text-yellow-700' },
-  { value: 'booked', label: 'Booked', color: 'bg-emerald-50 text-emerald-700' },
-  { value: 'pass', label: 'Pass', color: 'bg-red-50 text-red-700' },
+  { value: 'interested', label: 'Approved', color: 'bg-emerald-50 text-emerald-700' },
+  { value: 'pass', label: 'Declined', color: 'bg-gray-100 text-gray-600' },
 ]
 
 export default function SharedVendorRow({

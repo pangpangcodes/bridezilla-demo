@@ -14,10 +14,7 @@ interface SharedVendorCardProps {
 
 const STATUS_OPTIONS: { value: VendorStatus; label: string }[] = [
   { value: null, label: 'Review Needed' },
-  { value: 'interested', label: 'Shortlisted' },
-  { value: 'contacted', label: 'Contacted' },
-  { value: 'quoted', label: 'Quoted' },
-  { value: 'booked', label: 'Booked' },
+  { value: 'interested', label: 'Approved' },
   { value: 'pass', label: 'Declined' },
 ]
 
@@ -72,7 +69,7 @@ export default function SharedVendorCard({ vendor, coupleId, onStatusChange, onN
   return (
     <div
       className={`group ${theme.cardBackground} rounded-xl shadow-sm ${theme.border} ${theme.borderWidth} overflow-hidden transition-all duration-300 hover:shadow-lg ${
-        vendor.couple_status === 'booked' ? 'ring-2 ring-emerald-500/20' : ''
+        vendor.couple_status === 'interested' ? 'ring-2 ring-emerald-500/20' : ''
       } ${vendor.couple_status === 'pass' ? 'opacity-60 grayscale-[0.5]' : ''}`}
     >
       {/* Card Content */}

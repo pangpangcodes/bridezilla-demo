@@ -115,7 +115,7 @@ export default function SharedVendorList({ vendors, coupleId, onUpdate, activeCa
         // Calculate status counts (excluding declined)
         const inReview = activeVendors.filter(v => !v.couple_status).length
         const approved = activeVendors.filter(v => v.couple_status === 'interested').length
-        const booked = activeVendors.filter(v => v.couple_status === 'booked').length
+        const booked = activeVendors.filter(v => v.couple_status === 'interested').length
 
         // Build status text - if there's at least one approved or booked, only show that
         let statusText

@@ -367,7 +367,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
 
   const stats = {
     vendorTypes: new Set(vendors.map(v => v.vendor_type)).size,
-    booked: vendors.filter(v => v.couple_status === 'booked').length,
+    booked: vendors.filter(v => v.couple_status === 'interested').length,
     approved: vendors.filter(v => v.couple_status === 'interested').length,
     inReview: vendors.filter(v => !v.couple_status).length,
   }
@@ -458,7 +458,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleCopyEmail(couple.couple_email)
+                          if (couple.couple_email) handleCopyEmail(couple.couple_email)
                         }}
                         className={`opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-stone-100 rounded`}
                         title="Copy email"
@@ -631,10 +631,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                     {/* Status Filter */}
                     <SearchableMultiSelect
                       options={[
-                        { value: 'booked', label: 'Booked & Confirmed', count: vendors.filter(v => v.couple_status === 'booked').length },
                         { value: 'interested', label: 'Approved', count: vendors.filter(v => v.couple_status === 'interested').length },
-                        { value: 'contacted', label: 'Contacted', count: vendors.filter(v => v.couple_status === 'contacted').length },
-                        { value: 'quoted', label: 'Quoted', count: vendors.filter(v => v.couple_status === 'quoted').length },
                         { value: 'in_review', label: 'In Review', count: vendors.filter(v => !v.couple_status).length },
                         { value: 'pass', label: 'Declined', count: vendors.filter(v => v.couple_status === 'pass').length }
                       ].filter(opt => opt.count > 0)}
@@ -715,7 +712,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                   const categoryVendors = vendorsByCategory[category]
                   const inReview = categoryVendors.filter(v => !v.couple_status).length
                   const approved = categoryVendors.filter(v => v.couple_status === 'interested').length
-                  const booked = categoryVendors.filter(v => v.couple_status === 'booked').length
+                  const booked = categoryVendors.filter(v => v.couple_status === 'interested').length
                   const declined = categoryVendors.filter(v => v.couple_status === 'pass').length
 
                   // Build status text - if there's at least one approved or booked, only show that
@@ -792,8 +789,8 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                   const bStatus = b.couple_status || 'null'
                   return statusOrder[aStatus] - statusOrder[bStatus]
                 }).map(vendor => {
-                  // Check if any vendor in the filtered category is approved or booked
-                  const hasApprovedInCategory = filteredVendors.some(v => v.couple_status === 'interested' || v.couple_status === 'booked')
+                  // Check if any vendor in the filtered category is approved
+                  const hasApprovedInCategory = filteredVendors.some(v => v.couple_status === 'interested')
                   const isSuperseded = hasApprovedInCategory && !vendor.couple_status
                   return (
                     <VendorCard

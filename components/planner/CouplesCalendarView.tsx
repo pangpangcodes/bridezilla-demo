@@ -163,7 +163,7 @@ export default function CouplesCalendarView() {
           const categoriesMap = new Map<string, boolean>()
           vendors.forEach((vendor: any) => {
             const category = vendor.vendor_type
-            const isBooked = vendor.couple_status === 'booked'
+            const isBooked = vendor.couple_status === 'interested'
             if (!categoriesMap.has(category)) {
               categoriesMap.set(category, isBooked)
             } else if (isBooked) {
