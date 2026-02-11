@@ -306,7 +306,18 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
             <Heart className="w-4 h-4" style={{ color: theme.primaryColor }} fill="currentColor" />
             <p className={`font-display ${theme.textPrimary}`}>{couple.couple_names}</p>
           </div>
-          <p className={`text-xs ${theme.textMuted}`}>The perfect wedding planned with Bridezilla</p>
+          <p className={`text-xs ${theme.textMuted}`}>
+            The perfect wedding planned with{' '}
+            <a
+              href="https://bridezilla-demo.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+              style={{ color: theme.primaryColor }}
+            >
+              Bridezilla
+            </a>
+          </p>
         </div>
       </footer>
     </div>
