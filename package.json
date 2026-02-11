@@ -11,7 +11,9 @@
     "lint": "eslint",
     "validate-schema": "node scripts/validate-schema.js",
     "test-errors": "node scripts/test-error-detection.js",
-    "db:migrate": "echo 'Run migration manually, then: npm run validate-schema'"
+    "db:migrate": "echo 'Run migration manually, then: npm run validate-schema'",
+    "db:setup": "echo 'Opening Supabase SQL Editor...' && open setup-database.sql && open https://supabase.com/dashboard/project/$(node -p \"require('fs').readFileSync('.env.local', 'utf8').match(/NEXT_PUBLIC_SUPABASE_URL=https:\\/\\/(.+?)\\.supabase\\.co/)[1]\")/sql/new",
+    "db:populate": "npx tsx scripts/populate-admin-data.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
@@ -27,7 +29,9 @@
     "next": "16.1.6",
     "nodemailer": "^8.0.1",
     "pdf-parse": "^1.1.0",
-    "pdfjs-dist": "^3.11.174",
+    "pdfjs-dist": "^5.4.624",
+    "pg": "^8.18.0",
+    "postgres": "^3.4.8",
     "react": "19.2.3",
     "react-big-calendar": "^1.19.4",
     "react-dom": "19.2.3",
@@ -36,7 +40,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^20.19.33",
     "@types/react": "^19",
     "@types/react-big-calendar": "^1.16.3",
     "@types/react-dom": "^19",

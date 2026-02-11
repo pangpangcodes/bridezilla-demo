@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 const LandingHero: React.FC = () => {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center py-8 md:py-32 px-4 overflow-hidden text-[#2B2D42]">
+    <section className="relative h-screen flex flex-col items-center justify-center py-8 md:py-32 px-4 overflow-hidden text-[#2B2D42]">
       {/* Subtle background decoration */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] opacity-[0.02] pointer-events-none">
         <div className="absolute inset-0 border-[40px] border-[#8D99AE] rounded-full"></div>

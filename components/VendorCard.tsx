@@ -224,7 +224,7 @@ export default function VendorCard({ vendor, mode, onStatusChange, onNoteChange,
               {showDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
             {showDetails && (
-              <div className={`mt-4 text-sm ${theme.textSecondary} animate-in fade-in slide-in-from-top-2`}>
+              <div className={`mt-4 text-sm ${theme.textSecondary} animate-in fade-in slide-in-from-top-2 max-h-[40vh] md:max-h-none overflow-y-auto`}>
                 {/* Display pricing details from library vendor */}
                 {vendor.vendor_library?.pricing ? (
                   <div className="space-y-1 whitespace-pre-line leading-relaxed">

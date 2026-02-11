@@ -145,22 +145,25 @@ export default function SharedVendorList({ vendors, coupleId, onUpdate, activeCa
               </div>
             )}
 
-            {/* Active Vendors - Card Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {activeVendors.map((vendor) => {
-                // Vendor is superseded if another vendor in same category is approved and this one is in review
-                const isSuperseded = hasApprovedVendor && !vendor.couple_status
-                return (
-                  <VendorCard
-                    key={vendor.id}
-                    vendor={vendor}
-                    mode="shared"
-                    onStatusChange={handleStatusChange}
-                    onNoteChange={handleNoteChange}
-                    isSuperseded={isSuperseded}
-                  />
-                )
-              })}
+            {/* Active Vendors - Card Grid (Desktop) / Horizontal Scroll (Mobile) */}
+            <div className="md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
+              <div className="flex md:contents gap-4 overflow-x-auto snap-x snap-mandatory pb-4 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
+                {activeVendors.map((vendor) => {
+                  // Vendor is superseded if another vendor in same category is approved and this one is in review
+                  const isSuperseded = hasApprovedVendor && !vendor.couple_status
+                  return (
+                    <div key={vendor.id} className="flex-shrink-0 w-[85vw] sm:w-[70vw] md:w-auto snap-start">
+                      <VendorCard
+                        vendor={vendor}
+                        mode="shared"
+                        onStatusChange={handleStatusChange}
+                        onNoteChange={handleNoteChange}
+                        isSuperseded={isSuperseded}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </section>
         )
@@ -188,16 +191,19 @@ export default function SharedVendorList({ vendors, coupleId, onUpdate, activeCa
           {/* Declined Vendors Grid */}
           {showDeclined && (
             <div className="mt-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {allDeclinedVendors.map((vendor) => (
-                  <VendorCard
-                    key={vendor.id}
-                    vendor={vendor}
-                    mode="shared"
-                    onStatusChange={handleStatusChange}
-                    onNoteChange={handleNoteChange}
-                  />
-                ))}
+              <div className="md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
+                <div className="flex md:contents gap-4 overflow-x-auto snap-x snap-mandatory pb-4 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
+                  {allDeclinedVendors.map((vendor) => (
+                    <div key={vendor.id} className="flex-shrink-0 w-[85vw] sm:w-[70vw] md:w-auto snap-start">
+                      <VendorCard
+                        vendor={vendor}
+                        mode="shared"
+                        onStatusChange={handleStatusChange}
+                        onNoteChange={handleNoteChange}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}

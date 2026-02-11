@@ -509,7 +509,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
               </div>
 
               {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-4 md:gap-6">
                 <div className={`${theme.cardBackground} rounded-2xl p-6 border ${theme.border} hover:shadow-sm transition-all`}>
                   <div className="flex items-start justify-between mb-4">
                     <div className="p-2 rounded-lg bg-stone-50">
@@ -539,7 +539,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
 
             {/* Status Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               <div className={`${theme.cardBackground} rounded-2xl p-6 border ${theme.border} hover:shadow-sm transition-all`}>
                 <div className="flex items-start justify-between mb-4">
                   <div className="p-2 rounded-lg bg-stone-50">

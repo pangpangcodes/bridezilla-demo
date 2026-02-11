@@ -48,17 +48,20 @@ export default function CouplesCalendarView() {
 
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<View>('month')
-  const [displayMode, setDisplayMode] = useState<'calendar' | 'list'>(() => {
-    // Load saved view preference from localStorage
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('couplesViewMode')
-      return (saved === 'list' || saved === 'calendar') ? saved : 'calendar'
-    }
-    return 'calendar'
-  })
+  const [displayMode, setDisplayMode] = useState<'calendar' | 'list'>('calendar')
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [selectedVenue, setSelectedVenue] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Load saved view preference from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('couplesViewMode')
+      if (saved === 'list' || saved === 'calendar') {
+        setDisplayMode(saved)
+      }
+    }
+  }, [])
 
   // Preserve scroll position when filters change
   const preserveScrollPosition = () => {
@@ -339,89 +342,68 @@ export default function CouplesCalendarView() {
     }
 
     return (
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        {/* Navigation Buttons */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onNavigate('TODAY')}
-            className="px-4 py-2 bg-stone-50 hover:bg-stone-100 rounded-lg font-semibold text-sm transition-colors"
-          >
-            Today
-          </button>
-          <button
-            onClick={() => onNavigate('PREV')}
-            className="px-4 py-2 bg-stone-50 hover:bg-stone-100 rounded-lg font-semibold text-sm transition-colors"
-          >
-            Back
-          </button>
-          <button
-            onClick={() => onNavigate('NEXT')}
-            className="px-4 py-2 bg-stone-50 hover:bg-stone-100 rounded-lg font-semibold text-sm transition-colors"
-          >
-            Next
-          </button>
+      <>
+        {/* Mobile: Compact 3-Row Layout */}
+        <div className="md:hidden space-y-2 mb-3">
+          {/* Row 1: Navigation Buttons */}
+          <div className="flex items-center justify-center gap-2">
+            <button onClick={() => onNavigate('TODAY')} className="px-3 py-1.5 bg-stone-50 hover:bg-stone-100 rounded-lg font-semibold text-xs transition-colors">
+              Today
+            </button>
+            <button onClick={() => onNavigate('PREV')} className="px-3 py-1.5 bg-stone-50 hover:bg-stone-100 rounded-lg font-semibold text-xs transition-colors">
+              Back
+            </button>
+            <button onClick={() => onNavigate('NEXT')} className="px-3 py-1.5 bg-stone-50 hover:bg-stone-100 rounded-lg font-semibold text-xs transition-colors">
+              Next
+            </button>
+          </div>
+
+          {/* Row 2: Month/Year Dropdowns */}
+          <div className="flex items-center justify-center gap-2">
+            <select value={currentMonth} onChange={(e) => handleMonthChange(parseInt(e.target.value))} className={`px-3 py-1.5 border rounded-lg text-xs font-medium focus:outline-none focus:ring-1 transition-all ${theme.border} ${theme.cardBackground} ${theme.textPrimary}`}>
+              {months.map((month, index) => (<option key={month} value={index}>{month}</option>))}
+            </select>
+            <select value={currentYear} onChange={(e) => handleYearChange(parseInt(e.target.value))} className={`px-3 py-1.5 border rounded-lg text-xs font-medium focus:outline-none focus:ring-1 transition-all ${theme.border} ${theme.cardBackground} ${theme.textPrimary}`}>
+              {years.map(year => (<option key={year} value={year}>{year}</option>))}
+            </select>
+          </div>
+
+          {/* Row 3: View Buttons */}
+          <div className="flex items-center justify-center gap-2">
+            <button onClick={() => onView('month')} className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-colors ${view === 'month' ? `${theme.primaryButton} text-white` : 'bg-stone-50 hover:bg-stone-100'}`}>
+              Month
+            </button>
+            <button onClick={() => onView('week')} className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-colors ${view === 'week' ? `${theme.primaryButton} text-white` : 'bg-stone-50 hover:bg-stone-100'}`}>
+              Week
+            </button>
+            <button onClick={() => onView('day')} className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-colors ${view === 'day' ? `${theme.primaryButton} text-white` : 'bg-stone-50 hover:bg-stone-100'}`}>
+              Day
+            </button>
+          </div>
         </div>
 
-        {/* Month and Year Dropdowns */}
-        <div className="flex items-center gap-2">
-          <select
-            value={currentMonth}
-            onChange={(e) => handleMonthChange(parseInt(e.target.value))}
-            className={`px-4 py-2 border rounded-xl text-sm font-medium focus:outline-none focus:ring-1 transition-all ${theme.border} ${theme.cardBackground} ${theme.textPrimary}`}
-          >
-            {months.map((month, index) => (
-              <option key={month} value={index}>
-                {month}
-              </option>
-            ))}
-          </select>
-          <select
-            value={currentYear}
-            onChange={(e) => handleYearChange(parseInt(e.target.value))}
-            className={`px-4 py-2 border rounded-xl text-sm font-medium focus:outline-none focus:ring-1 transition-all ${theme.border} ${theme.cardBackground} ${theme.textPrimary}`}
-          >
-            {years.map(year => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
+        {/* Desktop: Original Layout */}
+        <div className="hidden md:flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div className="flex items-center gap-2">
+            <button onClick={() => onNavigate('TODAY')} className="px-4 py-2 bg-stone-50 hover:bg-stone-100 rounded-lg font-semibold text-sm transition-colors">Today</button>
+            <button onClick={() => onNavigate('PREV')} className="px-4 py-2 bg-stone-50 hover:bg-stone-100 rounded-lg font-semibold text-sm transition-colors">Back</button>
+            <button onClick={() => onNavigate('NEXT')} className="px-4 py-2 bg-stone-50 hover:bg-stone-100 rounded-lg font-semibold text-sm transition-colors">Next</button>
+          </div>
+          <div className="flex items-center gap-2">
+            <select value={currentMonth} onChange={(e) => handleMonthChange(parseInt(e.target.value))} className={`px-4 py-2 border rounded-xl text-sm font-medium focus:outline-none focus:ring-1 transition-all ${theme.border} ${theme.cardBackground} ${theme.textPrimary}`}>
+              {months.map((month, index) => (<option key={month} value={index}>{month}</option>))}
+            </select>
+            <select value={currentYear} onChange={(e) => handleYearChange(parseInt(e.target.value))} className={`px-4 py-2 border rounded-xl text-sm font-medium focus:outline-none focus:ring-1 transition-all ${theme.border} ${theme.cardBackground} ${theme.textPrimary}`}>
+              {years.map(year => (<option key={year} value={year}>{year}</option>))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => onView('month')} className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${view === 'month' ? `${theme.primaryButton} text-white` : 'bg-stone-50 hover:bg-stone-100'}`}>Month</button>
+            <button onClick={() => onView('week')} className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${view === 'week' ? `${theme.primaryButton} text-white` : 'bg-stone-50 hover:bg-stone-100'}`}>Week</button>
+            <button onClick={() => onView('day')} className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${view === 'day' ? `${theme.primaryButton} text-white` : 'bg-stone-50 hover:bg-stone-100'}`}>Day</button>
+          </div>
         </div>
-
-        {/* View Buttons */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onView('month')}
-            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
-              view === 'month'
-                ? `${theme.primaryButton} text-white`
-                : 'bg-stone-50 hover:bg-stone-100'
-            }`}
-          >
-            Month
-          </button>
-          <button
-            onClick={() => onView('week')}
-            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
-              view === 'week'
-                ? `${theme.primaryButton} text-white`
-                : 'bg-stone-50 hover:bg-stone-100'
-            }`}
-          >
-            Week
-          </button>
-          <button
-            onClick={() => onView('day')}
-            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
-              view === 'day'
-                ? `${theme.primaryButton} text-white`
-                : 'bg-stone-50 hover:bg-stone-100'
-            }`}
-          >
-            Day
-          </button>
-        </div>
-      </div>
+      </>
     )
   }
 
@@ -444,7 +426,7 @@ export default function CouplesCalendarView() {
   return (
     <div className="space-y-6">
       {/* Stats Cards - Theme Aware */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <div className={`${theme.cardBackground} rounded-2xl p-6 border ${theme.border} hover:shadow-sm transition-all`}>
           <div className="flex items-start justify-between mb-4">
             <div className="p-2 rounded-lg bg-stone-50">
@@ -487,8 +469,66 @@ export default function CouplesCalendarView() {
       </div>
 
       {/* Filters and Controls */}
-      <div className={`${theme.cardBackground} border ${theme.border} rounded-2xl p-6`}>
-        <div className="flex flex-wrap gap-2 md:gap-4 items-center justify-between">
+      <div className={`${theme.cardBackground} border ${theme.border} rounded-2xl p-4 md:p-6`}>
+        {/* Mobile: Stacked Layout */}
+        <div className="md:hidden space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            {/* View Toggle */}
+            <div className="flex gap-1 bg-stone-50 rounded-lg p-1">
+              <button
+                onClick={() => handleDisplayModeChange('calendar')}
+                className={`flex items-center justify-center p-2 rounded-md transition-all ${
+                  displayMode === 'calendar'
+                    ? `${theme.cardBackground} ${theme.textPrimary} shadow-sm`
+                    : `${theme.textSecondary} hover:${theme.textPrimary}`
+                }`}
+                title="Calendar view"
+                aria-label="Calendar view"
+              >
+                <CalendarIcon size={18} />
+              </button>
+              <button
+                onClick={() => handleDisplayModeChange('list')}
+                className={`flex items-center justify-center p-2 rounded-md transition-all ${
+                  displayMode === 'list'
+                    ? `${theme.cardBackground} ${theme.textPrimary} shadow-sm`
+                    : `${theme.textSecondary} hover:${theme.textPrimary}`
+                }`}
+                title="List view"
+                aria-label="List view"
+              >
+                <List size={18} />
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setShowManualInvite(true)} className={`flex items-center justify-center gap-2 px-3 py-2.5 ${theme.cardBackground} border ${theme.border} rounded-xl text-sm font-medium hover:bg-stone-50 transition-colors`}>
+                <Plus className="w-4 h-4" />
+              </button>
+              <button onClick={() => setShowAddModal(true)} className={`flex items-center justify-center gap-2 px-3 py-2.5 ${theme.primaryButton} text-white rounded-xl text-sm font-medium hover:${theme.primaryButtonHover} transition-colors`}>
+                <Image src={currentTheme === 'pop' ? '/images/bridezilla-logo-circle.svg' : '/images/bridezilla-logo-simple.svg'} alt="Bridezilla" width={24} height={24} className="object-contain" />
+              </button>
+            </div>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input type="text" placeholder="Search couples..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className={`w-full pl-10 pr-10 py-2 border rounded-xl text-sm font-medium focus:outline-none focus:ring-1 transition-all ${theme.border} ${theme.textPrimary}`} />
+            {searchQuery && (<button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" title="Clear search">✕</button>)}
+          </div>
+          {searchQuery && (<div className="text-xs text-gray-600 -mt-2">Showing {filteredCouples.length} of {couples.length} couples</div>)}
+          <div className="flex gap-2 flex-wrap">
+            <select value={selectedYear} onChange={(e) => { const year = parseInt(e.target.value); setSelectedYear(year); setCurrentDate(new Date(year, currentDate.getMonth(), 1)); }} className={`flex-1 min-w-[120px] px-4 py-2 border rounded-xl text-sm font-medium ${theme.cardBackground} hover:bg-stone-50 transition-colors ${theme.border} ${theme.textPrimary}`}>
+              {years.map(year => (<option key={year} value={year}>{year}</option>))}
+            </select>
+            {venues.length > 0 && (
+              <div className="flex-1 min-w-[140px]">
+                <SearchableMultiSelect options={venues.map(venue => ({ value: venue, label: venue }))} selectedValues={selectedVenue} onChange={handleVenueChange} placeholder="Filter by venue..." allLabel="All Venues" />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop: Original Horizontal Layout */}
+        <div className="hidden md:flex flex-wrap gap-2 md:gap-4 items-center justify-between">
           {/* View Toggle */}
           <div className="flex gap-1 bg-stone-50 rounded-lg p-1">
             <button
@@ -518,88 +558,29 @@ export default function CouplesCalendarView() {
           </div>
 
           <div className="flex gap-2 flex-wrap flex-1">
-            {/* Search */}
             <div className="min-w-[200px]">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search couples..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full pl-10 pr-10 py-2 border rounded-xl text-sm font-medium focus:outline-none focus:ring-1 transition-all ${theme.border} ${theme.textPrimary}`}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    title="Clear search"
-                  >
-                    ✕
-                  </button>
-                )}
+                <input type="text" placeholder="Search couples..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className={`w-full pl-10 pr-10 py-2 border rounded-xl text-sm font-medium focus:outline-none focus:ring-1 transition-all ${theme.border} ${theme.textPrimary}`} />
+                {searchQuery && (<button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" title="Clear search">✕</button>)}
               </div>
-              {searchQuery && (
-                <div className="text-xs text-gray-600 mt-1">
-                  Showing {filteredCouples.length} of {couples.length} couples
-                </div>
-              )}
+              {searchQuery && (<div className="text-xs text-gray-600 mt-1">Showing {filteredCouples.length} of {couples.length} couples</div>)}
             </div>
-
-            {/* Year Selector */}
-            <select
-              value={selectedYear}
-              onChange={(e) => {
-                const year = parseInt(e.target.value)
-                setSelectedYear(year)
-                setCurrentDate(new Date(year, currentDate.getMonth(), 1))
-              }}
-              className={`px-4 py-2 border rounded-xl text-sm font-medium ${theme.cardBackground} hover:bg-stone-50 transition-colors ${theme.border} ${theme.textPrimary}`}
-            >
-              {years.map(year => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
+            <select value={selectedYear} onChange={(e) => { const year = parseInt(e.target.value); setSelectedYear(year); setCurrentDate(new Date(year, currentDate.getMonth(), 1)); }} className={`px-4 py-2 border rounded-xl text-sm font-medium ${theme.cardBackground} hover:bg-stone-50 transition-colors ${theme.border} ${theme.textPrimary}`}>
+              {years.map(year => (<option key={year} value={year}>{year}</option>))}
             </select>
-
-            {/* Venue Filter */}
             {venues.length > 0 && (
-              <SearchableMultiSelect
-                options={venues.map(venue => ({ value: venue, label: venue }))}
-                selectedValues={selectedVenue}
-                onChange={handleVenueChange}
-                placeholder="Filter by venue..."
-                allLabel="All Venues"
-                className="min-w-[160px]"
-              />
+              <SearchableMultiSelect options={venues.map(venue => ({ value: venue, label: venue }))} selectedValues={selectedVenue} onChange={handleVenueChange} placeholder="Filter by venue..." allLabel="All Venues" className="min-w-[160px]" />
             )}
-
           </div>
-
           <div className="flex gap-2 flex-wrap">
-            {/* Add Manually Button */}
-            <button
-              onClick={() => setShowManualInvite(true)}
-              className={`flex items-center gap-2 px-6 py-2.5 ${theme.cardBackground} border ${theme.border} rounded-xl text-sm font-medium hover:bg-stone-50 transition-colors`}
-            >
+            <button onClick={() => setShowManualInvite(true)} className={`flex items-center gap-2 px-6 py-2.5 ${theme.cardBackground} border ${theme.border} rounded-xl text-sm font-medium hover:bg-stone-50 transition-colors`}>
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Add Manually</span>
+              <span>Add Manually</span>
             </button>
-
-            {/* Ask Bridezilla Button */}
-            <button
-              onClick={() => setShowAddModal(true)}
-              className={`flex items-center gap-2 px-6 py-2.5 ${theme.primaryButton} text-white rounded-xl text-sm font-medium hover:${theme.primaryButtonHover} transition-colors`}
-            >
-              <Image
-                src={currentTheme === 'pop' ? '/images/bridezilla-logo-circle.svg' : '/images/bridezilla-logo-simple.svg'}
-                alt="Bridezilla"
-                width={24}
-                height={24}
-                className="object-contain"
-              />
-              <span className="hidden sm:inline">Ask Bridezilla</span>
+            <button onClick={() => setShowAddModal(true)} className={`flex items-center gap-2 px-6 py-2.5 ${theme.primaryButton} text-white rounded-xl text-sm font-medium hover:${theme.primaryButtonHover} transition-colors`}>
+              <Image src={currentTheme === 'pop' ? '/images/bridezilla-logo-circle.svg' : '/images/bridezilla-logo-simple.svg'} alt="Bridezilla" width={24} height={24} className="object-contain" />
+              <span>Ask Bridezilla</span>
             </button>
           </div>
         </div>
@@ -739,6 +720,17 @@ export default function CouplesCalendarView() {
               font-size: 0.875rem;
               font-family: Inter, system-ui, -apple-system, sans-serif;
               font-weight: 400;
+            }
+            @media (max-width: 768px) {
+              .rbc-month-view .rbc-day-bg {
+                min-height: 100px;
+              }
+              .rbc-header {
+                padding: 14px 6px;
+              }
+              .rbc-date-cell {
+                padding: 10px 6px;
+              }
             }
             .rbc-today {
               background-color: #fef2f2;

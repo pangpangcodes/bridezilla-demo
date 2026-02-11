@@ -140,7 +140,7 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
       <AnimatedHearts />
 
       {/* Hero Header */}
-      <header className={`relative ${theme.cardBackground} pt-8 pb-6`}>
+      <header className={`relative ${theme.cardBackground} pt-8 pb-0`}>
         <div className="max-w-3xl mx-auto px-4 relative z-10 text-center">
           {/* Date and Location Metadata */}
           <div className={`mb-3 text-xs ${theme.textMuted} font-medium uppercase tracking-widest flex items-center justify-center gap-2 flex-wrap`}>
@@ -178,30 +178,28 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
           </div>
 
           {/* Stats */}
-          <div className="flex justify-center gap-16 pb-6">
+          <div className="grid grid-cols-3 gap-4 md:gap-16 pb-6 max-w-2xl mx-auto">
             <div className="text-center">
-              <div className={`text-4xl font-semibold ${theme.textPrimary} mb-2`}>{stats.totalCategories}</div>
-              <div className={`text-[11px] font-semibold ${theme.textMuted} uppercase tracking-[0.15em]`}>Vendor Types</div>
+              <div className={`text-2xl md:text-4xl font-semibold ${theme.textPrimary} mb-2`}>{stats.totalCategories}</div>
+              <div className={`text-[9px] md:text-[11px] font-semibold ${theme.textMuted} uppercase tracking-[0.12em] md:tracking-[0.15em]`}>Vendor Types</div>
             </div>
-            <div className="w-px bg-stone-200 h-12 self-center"></div>
             <div className="text-center">
-              <div className="text-4xl font-semibold mb-2" style={{ color: theme.primaryColor }}>{stats.bookedCount}</div>
-              <div className={`text-[11px] font-semibold ${theme.textMuted} uppercase tracking-[0.15em]`}>Booked & Confirmed</div>
+              <div className="text-2xl md:text-4xl font-semibold mb-2" style={{ color: theme.primaryColor }}>{stats.bookedCount}</div>
+              <div className={`text-[9px] md:text-[11px] font-semibold ${theme.textMuted} uppercase tracking-[0.12em] md:tracking-[0.15em]`}>Booked & Confirmed</div>
             </div>
-            <div className="w-px bg-stone-200 h-12 self-center"></div>
             <div className="text-center">
-              <div className={`text-4xl font-semibold ${theme.textPrimary} mb-2`}>{stats.toHireCount}</div>
-              <div className={`text-[11px] font-semibold ${theme.textMuted} uppercase tracking-[0.15em]`}>To Hire</div>
+              <div className={`text-2xl md:text-4xl font-semibold ${theme.textPrimary} mb-2`}>{stats.toHireCount}</div>
+              <div className={`text-[9px] md:text-[11px] font-semibold ${theme.textMuted} uppercase tracking-[0.12em] md:tracking-[0.15em]`}>To Hire</div>
             </div>
           </div>
         </div>
       </header>
 
       {/* Tab Navigation Section */}
-      <div className="sticky top-0 z-40 bg-white border-b border-stone-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0">
+      <div className="sticky top-0 z-40 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
           {/* Module Tabs */}
-          <div className="flex justify-center space-x-8">
+          <div className="flex justify-center space-x-8 border-b border-stone-200">
             <button
               onClick={() => setActiveTab('vendors')}
               className={`pb-4 text-sm font-medium border-b-2 transition-colors ${
@@ -237,13 +235,13 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-0 pt-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-0">
         {/* Vendor Team Tab Content */}
         {activeTab === 'vendors' && (
           <>
             {/* Category Filters */}
             {vendors.length > 0 && (
-              <div className={`py-6 mb-8`}>
+              <div className={`sticky top-[57px] md:top-[65px] z-30 ${theme.pageBackground} border-b border-stone-200 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 mb-8`}>
                 <div className="flex justify-center space-x-2 overflow-x-auto no-scrollbar pb-1">
                   {categories.map((cat) => (
                     <button

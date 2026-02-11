@@ -189,10 +189,10 @@ export default function DashboardTab() {
               Welcome back, Bella & Edward
             </h2>
             <p className={theme.textSecondary}>
-              Only <span className={`font-semibold ${theme.textPrimary}`}>{daysUntilWedding}</span> days until your wedding in Seville on <strong>September 20, 2026</strong>.
+              Only <span className={`font-semibold ${theme.textPrimary}`}>{daysUntilWedding}</span> days until your wedding in Seville on <strong>September 20, 2026</strong>!
             </p>
           </div>
-          <div className="flex items-center gap-3 animate-in fade-in zoom-in-50 duration-700 delay-300">
+          <div className="hidden md:flex items-center gap-3 animate-in fade-in zoom-in-50 duration-700 delay-300">
             <div className={`text-center px-6 py-3 bg-stone-50 rounded-xl border ${theme.border} shadow-md hover:shadow-lg transition-all duration-300`}>
               <div className={`text-3xl font-semibold ${theme.textPrimary} tabular-nums`}>
                 {countedDays || daysUntilWedding}
@@ -204,7 +204,7 @@ export default function DashboardTab() {
       </div>
 
       {/* Stats Grid - 4 Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
         {/* Budget Spent */}
         <div className={`${theme.cardBackground} rounded-2xl p-6 ${theme.border} ${theme.borderWidth} hover:shadow-sm transition-all`}>
           <div className="flex items-start justify-between mb-4">

@@ -187,7 +187,7 @@ export default function VendorLibraryTab() {
   return (
     <>
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
         {loading ? (
           <>
             {[...Array(4)].map((_, i) => (
@@ -263,7 +263,99 @@ export default function VendorLibraryTab() {
 
       {/* Controls */}
       <div className={`${theme.cardBackground} rounded-2xl ${theme.border} ${theme.borderWidth} p-6 mb-6`}>
-        <div className="flex flex-wrap gap-2 md:gap-4 items-center justify-between">
+        {/* Mobile: Stacked Layout */}
+        <div className="md:hidden space-y-3">
+          {/* Search */}
+          <div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search vendors..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full pl-10 pr-10 py-2 ${theme.border} ${theme.borderWidth} rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all`}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  title="Clear search"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            {searchQuery && (
+              <div className="text-xs text-gray-600 mt-1">
+                Showing {filteredVendors.length} of {vendors.length} vendors
+              </div>
+            )}
+          </div>
+
+          {/* Filters Row */}
+          <div className="flex gap-2">
+            {/* Type Filter */}
+            <SearchableMultiSelect
+              options={VENDOR_TYPES.map(type => ({
+                value: type,
+                label: type,
+                count: stats.byType[type] || 0
+              }))}
+              selectedValues={selectedType}
+              onChange={handleTypeChange}
+              placeholder="Filter by type..."
+              allLabel="All Types"
+              className="flex-1"
+            />
+
+            {/* Tag Filter */}
+            {allTags.length > 0 && (
+              <SearchableMultiSelect
+                options={allTags.map(({ tag, count }) => ({
+                  value: tag,
+                  label: tag,
+                  count
+                }))}
+                selectedValues={selectedTag}
+                onChange={handleTagChange}
+                placeholder="Filter by tags..."
+                allLabel="All Filters"
+                className="flex-1"
+              />
+            )}
+          </div>
+
+          {/* Buttons Row */}
+          <div className="flex gap-2">
+            {/* Add Manually Button */}
+            <button
+              onClick={() => setShowManualAdd(true)}
+              className={`flex items-center justify-center gap-2 px-4 py-2.5 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors flex-1`}
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Manually</span>
+            </button>
+
+            {/* Ask Bridezilla Button */}
+            <button
+              onClick={() => setShowAddModal(true)}
+              className={`flex items-center justify-center gap-2 px-4 py-2.5 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors flex-1`}
+            >
+              <Image
+                src={currentTheme === 'pop' ? '/images/bridezilla-logo-circle.svg' : '/images/bridezilla-logo-simple.svg'}
+                alt="Bridezilla"
+                width={24}
+                height={24}
+                className="object-contain"
+              />
+              <span>Ask Bridezilla</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop: Original Horizontal Layout */}
+        <div className="hidden md:flex flex-wrap gap-2 md:gap-4 items-center justify-between">
           <div className="flex gap-2 flex-wrap flex-1">
             {/* Search */}
             <div className="min-w-[200px]">
