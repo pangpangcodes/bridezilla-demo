@@ -69,6 +69,18 @@ export default function InviteCoupleModal({ isOpen, onClose, onSuccess, coupleTo
     }))
   }
 
+  const normalizeCoupleNames = (names: string): string => {
+    // Replace "and" with "&" (case-insensitive)
+    return names.replace(/\s+and\s+/gi, ' & ')
+  }
+
+  const handleCoupleNamesBlur = () => {
+    setFormData(prev => ({
+      ...prev,
+      couple_names: normalizeCoupleNames(prev.couple_names)
+    }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -94,7 +106,7 @@ export default function InviteCoupleModal({ isOpen, onClose, onSuccess, coupleTo
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          couple_names: formData.couple_names.trim(),
+          couple_names: normalizeCoupleNames(formData.couple_names.trim()),
           couple_email: formData.couple_email?.trim() || null,
           wedding_date: formData.wedding_date || null,
           wedding_location: formData.wedding_location?.trim() || null,
@@ -200,6 +212,7 @@ export default function InviteCoupleModal({ isOpen, onClose, onSuccess, coupleTo
                   required
                   value={formData.couple_names}
                   onChange={handleChange}
+                  onBlur={handleCoupleNamesBlur}
                   className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all"
                   placeholder="e.g., Sarah & Mike"
                 />

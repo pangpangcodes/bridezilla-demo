@@ -78,6 +78,11 @@ export default function AskBridezillaCoupleModal({
     }
   }
 
+  const normalizeCoupleNames = (names: string): string => {
+    // Replace "and" with "&" (case-insensitive)
+    return names.replace(/\s+and\s+/gi, ' & ')
+  }
+
   const handleExecute = async () => {
     if (operations.length === 0) {
       setError('No couples to add')
@@ -100,9 +105,17 @@ export default function AskBridezillaCoupleModal({
 
         const method = operation.action === 'create' ? 'POST' : 'PATCH'
 
+        // Normalize couple names before submitting
+        const normalizedCoupleData = {
+          ...operation.couple_data,
+          couple_names: operation.couple_data.couple_names
+            ? normalizeCoupleNames(operation.couple_data.couple_names)
+            : operation.couple_data.couple_names
+        }
+
         const requestBody = operation.action === 'create'
-          ? { ...operation.couple_data, share_link_id: shareLinkId }
-          : operation.couple_data
+          ? { ...normalizedCoupleData, share_link_id: shareLinkId }
+          : normalizedCoupleData
 
         const response = await fetch(url, {
           method,
@@ -259,6 +272,12 @@ export default function AskBridezillaCoupleModal({
                         type="text"
                         value={operation.couple_data.couple_names || ''}
                         onChange={(e) => handleEditOperation(idx, 'couple_names', e.target.value)}
+                        onBlur={(e) => {
+                          const normalized = normalizeCoupleNames(e.target.value)
+                          if (normalized !== e.target.value) {
+                            handleEditOperation(idx, 'couple_names', normalized)
+                          }
+                        }}
                         placeholder="Sarah & Mike"
                         className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all"
                       />
