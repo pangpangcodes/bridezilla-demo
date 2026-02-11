@@ -69,7 +69,16 @@ export default function VendorsTab() {
   const fetchVendors = async () => {
     setLoading(true)
     try {
-      const { data: allVendors } = await supabase.from('vendors').select('*')
+      const { data: rawVendors } = await supabase.from('vendors').select('*')
+
+      // Map database fields to component expected fields
+      const allVendors = (rawVendors || []).map((v: any) => ({
+        ...v,
+        vendor_cost: v.estimated_cost_eur || v.vendor_cost,
+        cost_converted: v.estimated_cost_cad || v.cost_converted,
+        vendor_currency: 'EUR',
+        cost_converted_currency: 'USD'
+      }))
 
       // Filter by type if needed
       let filteredVendors = allVendors || []
