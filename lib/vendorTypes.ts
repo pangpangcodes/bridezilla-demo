@@ -8,7 +8,7 @@ export const VENDOR_TYPES = [
   'Florist',
   'Caterer',
   'Entertainment - DJ',
-  'Entertainment - Band',
+  'Entertainment - Live Music',
   'Hair & Makeup',
   'Hair',
   'Makeup',
@@ -31,8 +31,14 @@ export function normalizeVendorType(type: string): VendorType {
   const normalized = type.trim()
 
   // Handle legacy types
-  if (normalized === 'DJ/Band' || normalized === 'DJ' || normalized === 'Band') {
+  if (normalized === 'DJ/Band') {
     return 'Entertainment - DJ' // Default to DJ for backwards compatibility
+  }
+  if (normalized === 'DJ') {
+    return 'Entertainment - DJ'
+  }
+  if (normalized === 'Band' || normalized === 'Live Music' || normalized.toLowerCase().includes('live music')) {
+    return 'Entertainment - Live Music'
   }
 
   if (isValidVendorType(normalized)) {
