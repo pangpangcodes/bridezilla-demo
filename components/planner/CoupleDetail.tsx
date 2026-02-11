@@ -34,6 +34,7 @@ import SearchableMultiSelect from '../SearchableMultiSelect'
 import SelectVendorsModal from './SelectVendorsModal'
 import EmailPreviewModal from './EmailPreviewModal'
 import AskBridezillaVendorModal from './AskBridezillaVendorModal'
+import InviteCoupleModal from './InviteCoupleModal'
 import Notification from './Notification'
 import type { PlannerCouple, SharedVendor, VendorStatus, VendorLibrary } from '@/types/planner'
 
@@ -64,6 +65,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
   const [loadingVendors, setLoadingVendors] = useState(false)
   const [notification, setNotification] = useState<{type: 'success' | 'error' | 'warning', title: string, message: string} | null>(null)
   const [showAskBridezillaModal, setShowAskBridezillaModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -435,7 +437,10 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                 <div className={`w-32 h-32 rounded-full ${theme.secondaryButton} flex items-center justify-center text-4xl font-serif ${theme.textMuted}`}>
                   {couple.couple_names.charAt(0)}
                 </div>
-                <button className={`absolute bottom-0 right-0 p-2 ${theme.cardBackground} rounded-full ${theme.border} ${theme.borderWidth} shadow-sm ${theme.secondaryButtonHover} ${theme.textSecondary}`}>
+                <button
+                  onClick={() => setShowEditModal(true)}
+                  className={`absolute bottom-0 right-0 p-2 ${theme.cardBackground} rounded-full ${theme.border} ${theme.borderWidth} shadow-sm ${theme.secondaryButtonHover} ${theme.textSecondary}`}
+                >
                   <Edit2 size={14} />
                 </button>
               </div>
@@ -975,6 +980,19 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
               message: 'New vendors have been added to your library and are ready to share with couples.'
             })
           }}
+        />
+      )}
+
+      {/* Edit Couple Modal */}
+      {couple && (
+        <InviteCoupleModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={() => {
+            setShowEditModal(false)
+            fetchData() // Refresh couple data
+          }}
+          coupleToEdit={couple}
         />
       )}
 
