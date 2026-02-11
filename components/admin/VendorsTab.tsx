@@ -349,24 +349,24 @@ export default function VendorsTab() {
             </div>
           </div>
 
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2">
             <button
               onClick={handleExportCSV}
-              className={`flex items-center gap-2 px-3 md:px-4 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors`}
+              className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors min-w-[44px]`}
             >
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Export</span>
             </button>
             <button
               onClick={handleAddVendor}
-              className={`flex items-center gap-2 px-3 md:px-4 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors`}
+              className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors min-w-[44px]`}
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Add Manually</span>
             </button>
             <button
               onClick={() => setShowBulkImport(true)}
-              className={`flex items-center gap-2 px-3 md:px-4 py-2 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors`}
+              className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors min-w-[44px]`}
             >
               <img src={currentTheme === 'pop' ? '/images/bridezilla-logo-circle.svg' : '/images/bridezilla-logo-simple.svg'} alt="Bridezilla" className="w-6 h-6 object-contain" />
               <span className="hidden sm:inline">Ask Bridezilla</span>
@@ -522,7 +522,7 @@ export default function VendorsTab() {
                 return (
                   <div
                     key={index}
-                    className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 rounded-lg border ${
+                    className={`p-3 md:p-4 rounded-lg border ${
                       isOverdue
                         ? 'bg-red-50 border-red-200'
                         : isDueToday
@@ -532,29 +532,29 @@ export default function VendorsTab() {
                         : 'bg-gray-50 border-gray-200'
                     }`}
                   >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <span className={`font-medium text-sm md:text-base ${theme.textPrimary} truncate`}>{payment.vendor_name}</span>
-                        <span className={`hidden sm:inline text-xs ${theme.textMuted}`}>•</span>
-                        <span className={`text-xs md:text-sm ${theme.textSecondary} truncate`}>{payment.payment_description}</span>
-                        {payment.payment_type && (
-                          <>
-                            <span className={`hidden sm:inline text-xs ${theme.textMuted}`}>•</span>
-                            <span className={`text-xs ${theme.textMuted}`}>
-                              {payment.payment_type === 'bank_transfer' ? 'Bank Transfer' : 'Cash'}
-                            </span>
-                          </>
-                        )}
+                    <div className="flex flex-col gap-2">
+                      {/* Vendor name and description */}
+                      <div className="flex flex-col gap-0.5">
+                        <span className={`font-medium text-sm md:text-base ${theme.textPrimary}`}>{payment.vendor_name}</span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`text-xs md:text-sm ${theme.textSecondary}`}>{payment.payment_description}</span>
+                          {payment.payment_type && (
+                            <>
+                              <span className={`text-xs ${theme.textMuted}`}>•</span>
+                              <span className={`text-xs ${theme.textMuted}`}>
+                                {payment.payment_type === 'bank_transfer' ? 'Bank Transfer' : 'Cash'}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
-                      <div className="text-left sm:text-right">
-                        <span className={`text-sm font-semibold ${theme.textPrimary} whitespace-nowrap`}>
+
+                      {/* Amount and due date - side by side on mobile */}
+                      <div className="flex items-center justify-between gap-3 pt-1">
+                        <span className={`text-base md:text-lg font-semibold ${theme.textPrimary} whitespace-nowrap`}>
                           {formatCurrency(payment.payment_amount)} {payment.payment_currency}
                         </span>
-                      </div>
-                      <div className="text-right">
-                        <span className={`text-xs font-medium ${
+                        <span className={`text-xs md:text-sm font-medium text-right whitespace-nowrap ${
                           isOverdue
                             ? 'text-red-700'
                             : isDueToday
