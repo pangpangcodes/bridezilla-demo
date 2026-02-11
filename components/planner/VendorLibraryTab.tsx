@@ -294,7 +294,7 @@ export default function VendorLibraryTab() {
           </div>
 
           {/* Filters Row */}
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
             {/* Type Filter */}
             <SearchableMultiSelect
               options={VENDOR_TYPES.map(type => ({
@@ -306,7 +306,8 @@ export default function VendorLibraryTab() {
               onChange={handleTypeChange}
               placeholder="Filter by type..."
               allLabel="All Types"
-              className="flex-1"
+              className="w-full"
+              inlineOnMobile={true}
             />
 
             {/* Tag Filter */}
@@ -321,7 +322,8 @@ export default function VendorLibraryTab() {
                 onChange={handleTagChange}
                 placeholder="Filter by tags..."
                 allLabel="All Filters"
-                className="flex-1"
+                className="w-full"
+                inlineOnMobile={true}
               />
             )}
           </div>

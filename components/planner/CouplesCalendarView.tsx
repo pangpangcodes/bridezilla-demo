@@ -521,7 +521,7 @@ export default function CouplesCalendarView() {
             </select>
             {venues.length > 0 && (
               <div className="flex-1 min-w-[140px]">
-                <SearchableMultiSelect options={venues.map(venue => ({ value: venue, label: venue }))} selectedValues={selectedVenue} onChange={handleVenueChange} placeholder="Filter by venue..." allLabel="All Venues" />
+                <SearchableMultiSelect options={venues.map(venue => ({ value: venue, label: venue }))} selectedValues={selectedVenue} onChange={handleVenueChange} placeholder="Filter by venue..." allLabel="All Venues" inlineOnMobile={true} />
               </div>
             )}
           </div>

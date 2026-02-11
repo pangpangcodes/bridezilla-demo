@@ -584,7 +584,8 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
             {/* Filter Bar */}
 
               <div className={`${theme.cardBackground} rounded-2xl ${theme.border} ${theme.borderWidth} p-6 mb-6`}>
-                <div className="flex flex-wrap gap-2 md:gap-4 items-center justify-between">
+                {/* Desktop Layout - unchanged */}
+                <div className="hidden md:flex flex-wrap gap-2 md:gap-4 items-center justify-between">
                   <div className="flex gap-2 flex-wrap flex-1">
                     {/* Search */}
                     <div className="min-w-[200px]">
@@ -666,6 +667,94 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                     />
                     <span className="hidden sm:inline">Ask Bridezilla</span>
                   </button>
+                </div>
+
+                {/* Mobile Layout - dropdowns at top, then controls */}
+                <div className="md:hidden">
+                  <div className="flex flex-col gap-2">
+                    {/* Type Filter - full width */}
+                    <SearchableMultiSelect
+                      options={categories.map(type => ({
+                        value: type,
+                        label: type,
+                        count: vendors.filter(v => v.vendor_type === type).length
+                      }))}
+                      selectedValues={selectedTypeFilter}
+                      onChange={handleTypeFilterChange}
+                      placeholder="Filter by type..."
+                      allLabel="All Types"
+                      className="w-full"
+                      inlineOnMobile={true}
+                    />
+
+                    {/* Status Filter - full width */}
+                    <SearchableMultiSelect
+                      options={[
+                        { value: 'interested', label: 'Approved', count: vendors.filter(v => v.couple_status === 'interested').length },
+                        { value: 'in_review', label: 'In Review', count: vendors.filter(v => !v.couple_status).length },
+                        { value: 'pass', label: 'Declined', count: vendors.filter(v => v.couple_status === 'pass').length }
+                      ].filter(opt => opt.count > 0)}
+                      selectedValues={selectedStatusFilter}
+                      onChange={setSelectedStatusFilter}
+                      placeholder="Filter by status..."
+                      allLabel="All Statuses"
+                      className="w-full"
+                      inlineOnMobile={true}
+                    />
+
+                    {/* Search */}
+                    <div className="w-full">
+                      <div className="relative">
+                        <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${theme.textMuted}`} />
+                        <input
+                          type="text"
+                          placeholder="Search vendors..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className={`w-full pl-10 pr-10 py-2 ${theme.border} ${theme.borderWidth} rounded-xl text-sm font-medium ${theme.textPrimary} focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-all`}
+                        />
+                        {searchQuery && (
+                          <button
+                            onClick={() => setSearchQuery('')}
+                            className={`absolute right-3 top-1/2 -translate-y-1/2 ${theme.textMuted} hover:${theme.textSecondary}`}
+                            title="Clear search"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      {searchQuery && (
+                        <div className={`text-xs ${theme.textSecondary} mt-1`}>
+                          Showing {filteredVendors.length} of {vendors.length} vendors
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Buttons row */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleShareVendors}
+                        disabled={loadingVendors}
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors disabled:opacity-50`}
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Add Manually</span>
+                      </button>
+
+                      <button
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors`}
+                      >
+                        <Image
+                          src={currentTheme === 'pop' ? '/images/bridezilla-logo-circle.svg' : '/images/bridezilla-logo-simple.svg'}
+                          alt="Bridezilla"
+                          width={32}
+                          height={32}
+                          className="object-contain"
+                        />
+                        <span>Ask Bridezilla</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
