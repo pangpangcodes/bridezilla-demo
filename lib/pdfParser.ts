@@ -1,6 +1,7 @@
 /**
  * PDF Parser Utility
  * Extracts text content from uploaded PDF files for AI parsing
+ * Uses pdf-parse library for server-side Node.js compatibility
  */
 
 export interface PDFParseResult {
@@ -24,7 +25,8 @@ export interface PDFParseError {
 const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB limit
 
 /**
- * Extract text content from a PDF file buffer using pdfjs-dist
+ * Extract text content from a PDF file buffer using pdf-parse
+ * This library is designed for Node.js and doesn't require browser APIs
  */
 export async function extractTextFromPDF(
   fileBuffer: Buffer
@@ -39,35 +41,16 @@ export async function extractTextFromPDF(
       }
     }
 
-    // Import pdfjs-dist with legacy build for Node.js compatibility
-    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
+    // Import pdf-parse (Node.js compatible library)
+    const pdfParse = (await import('pdf-parse')).default
 
-    // Disable worker for server-side rendering (avoids DOMMatrix error)
-    pdfjsLib.GlobalWorkerOptions.workerSrc = ''
-
-    // Load the PDF document
-    const loadingTask = pdfjsLib.getDocument({
-      data: new Uint8Array(fileBuffer),
-      useSystemFonts: true,
-      isEvalSupported: false,
-      useWorkerFetch: false,
+    // Parse the PDF
+    const data = await pdfParse(fileBuffer, {
+      max: 0, // Parse all pages
     })
 
-    const pdf = await loadingTask.promise
-
-    // Extract text from all pages
-    let fullText = ''
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page = await pdf.getPage(pageNum)
-      const textContent = await page.getTextContent()
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ')
-      fullText += pageText + '\n\n'
-    }
-
     // Check if PDF is empty
-    if (!fullText || fullText.trim().length === 0) {
+    if (!data.text || data.text.trim().length === 0) {
       return {
         error: 'Empty PDF',
         code: 'EMPTY',
@@ -75,13 +58,10 @@ export async function extractTextFromPDF(
       }
     }
 
-    // Get metadata
-    const metadata = await pdf.getMetadata().catch(() => null)
-
     return {
-      text: fullText.trim(),
-      numPages: pdf.numPages,
-      info: metadata?.info || undefined,
+      text: data.text.trim(),
+      numPages: data.numpages,
+      info: data.info || undefined,
     }
   } catch (error: any) {
     // Handle specific PDF errors
