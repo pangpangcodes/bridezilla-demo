@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 Extract couple information from the provided text and return a structured JSON response.
 
 EXISTING COUPLES:
-${existingCouples?.map(c => `- ${c.couple_names} (${c.wedding_date || 'date TBD'}, ${c.venue_name || 'venue TBD'})`).join('\n') || 'None'}
+${existingCouples?.map(c => `- ${c.couple_names} ${c.couple_email ? `(${c.couple_email})` : '(no email)'} - ${c.wedding_date || 'date TBD'}, ${c.venue_name || 'venue TBD'}`).join('\n') || 'None'}
 
 EXTRACT THESE FIELDS:
 - couple_names: Couple's names formatted as "Name1 & Name2" (REQUIRED)
@@ -61,9 +61,15 @@ FORMATTING RULES:
 4. wedding_location: Extract city/region
 
 DUPLICATE DETECTION:
-- If couple names match an existing couple, set action: 'update' with couple_id
-- If similar but not exact match, flag as ambiguous and ask for clarification
-- If completely new, set action: 'create'
+- CRITICAL: To suggest an UPDATE, BOTH couple names AND email must match an existing couple
+- If ONLY names match but email is different or missing, treat as CREATE (new couple)
+- If names are similar but not exact match, flag as ambiguous and ask for clarification
+- If completely new (names don't match any existing couple), set action: 'create'
+
+EXAMPLES:
+- Input: "Monica & Kevin, monica@email.com" + Existing: "Monica & Kevin (monica@email.com)" → UPDATE ✓
+- Input: "Monica & Kevin" (no email) + Existing: "Monica & Kevin (monica@email.com)" → CREATE (email missing) ✓
+- Input: "Monica & Kevin, different@email.com" + Existing: "Monica & Kevin (monica@email.com)" → CREATE (email mismatch) ✓
 
 REQUIRED FIELD VALIDATION:
 - wedding_date is REQUIRED - if not provided or ambiguous, add to clarifications_needed
