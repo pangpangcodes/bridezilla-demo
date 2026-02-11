@@ -52,6 +52,7 @@ export default function CouplesCalendarView() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [selectedVenue, setSelectedVenue] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [initialNavigationDone, setInitialNavigationDone] = useState(false)
 
   // Load saved view preference from localStorage after mount to avoid hydration mismatch
   useEffect(() => {
@@ -62,6 +63,37 @@ export default function CouplesCalendarView() {
       }
     }
   }, [])
+
+  // Auto-navigate to last viewed date or first couple's wedding date (calendar view only)
+  useEffect(() => {
+    if (couples.length > 0 && !initialNavigationDone && displayMode === 'calendar') {
+      setInitialNavigationDone(true)
+
+      if (typeof window !== 'undefined') {
+        // Try to load last viewed date
+        const savedDate = localStorage.getItem('couplesCalendarLastDate')
+        if (savedDate) {
+          const parsedDate = new Date(savedDate)
+          if (!isNaN(parsedDate.getTime())) {
+            setCurrentDate(parsedDate)
+            setSelectedYear(parsedDate.getFullYear())
+            return
+          }
+        }
+
+        // If no saved date, navigate to first couple with a wedding date
+        const couplesWithDates = couples.filter(c => c.wedding_date).sort((a, b) =>
+          new Date(a.wedding_date!).getTime() - new Date(b.wedding_date!).getTime()
+        )
+
+        if (couplesWithDates.length > 0) {
+          const firstDate = new Date(couplesWithDates[0].wedding_date!)
+          setCurrentDate(firstDate)
+          setSelectedYear(firstDate.getFullYear())
+        }
+      }
+    }
+  }, [couples, initialNavigationDone, displayMode])
 
   // Preserve scroll position when filters change
   const preserveScrollPosition = () => {
@@ -312,6 +344,11 @@ export default function CouplesCalendarView() {
   const handleNavigate = (newDate: Date) => {
     setCurrentDate(newDate)
     setSelectedYear(newDate.getFullYear())
+
+    // Save to localStorage for next visit
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('couplesCalendarLastDate', newDate.toISOString())
+    }
   }
 
   const handleSelectEvent = (event: CalendarEvent) => {
@@ -515,7 +552,7 @@ export default function CouplesCalendarView() {
             {searchQuery && (<button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" title="Clear search">✕</button>)}
           </div>
           {searchQuery && (<div className="text-xs text-gray-600 -mt-2">Showing {filteredCouples.length} of {couples.length} couples</div>)}
-          <select value={selectedYear} onChange={(e) => { const year = parseInt(e.target.value); setSelectedYear(year); setCurrentDate(new Date(year, currentDate.getMonth(), 1)); }} className={`w-full px-4 py-2 border rounded-xl text-sm font-medium ${theme.cardBackground} hover:bg-stone-50 transition-colors ${theme.border} ${theme.textPrimary}`}>
+          <select value={selectedYear} onChange={(e) => { const year = parseInt(e.target.value); const newDate = new Date(year, currentDate.getMonth(), 1); setSelectedYear(year); setCurrentDate(newDate); if (typeof window !== 'undefined') localStorage.setItem('couplesCalendarLastDate', newDate.toISOString()); }} className={`w-full px-4 py-2 border rounded-xl text-sm font-medium ${theme.cardBackground} hover:bg-stone-50 transition-colors ${theme.border} ${theme.textPrimary}`}>
             {years.map(year => (<option key={year} value={year}>{year}</option>))}
           </select>
           {venues.length > 0 && (
@@ -562,7 +599,7 @@ export default function CouplesCalendarView() {
               </div>
               {searchQuery && (<div className="text-xs text-gray-600 mt-1">Showing {filteredCouples.length} of {couples.length} couples</div>)}
             </div>
-            <select value={selectedYear} onChange={(e) => { const year = parseInt(e.target.value); setSelectedYear(year); setCurrentDate(new Date(year, currentDate.getMonth(), 1)); }} className={`px-4 py-2 border rounded-xl text-sm font-medium ${theme.cardBackground} hover:bg-stone-50 transition-colors ${theme.border} ${theme.textPrimary}`}>
+            <select value={selectedYear} onChange={(e) => { const year = parseInt(e.target.value); const newDate = new Date(year, currentDate.getMonth(), 1); setSelectedYear(year); setCurrentDate(newDate); if (typeof window !== 'undefined') localStorage.setItem('couplesCalendarLastDate', newDate.toISOString()); }} className={`px-4 py-2 border rounded-xl text-sm font-medium ${theme.cardBackground} hover:bg-stone-50 transition-colors ${theme.border} ${theme.textPrimary}`}>
               {years.map(year => (<option key={year} value={year}>{year}</option>))}
             </select>
             {venues.length > 0 && (
