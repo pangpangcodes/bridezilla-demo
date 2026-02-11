@@ -301,77 +301,73 @@ export default function VendorsTab() {
       </div>
 
       {/* Controls */}
-      <div className={`${theme.cardBackground} rounded-xl shadow p-3 md:p-4 mb-4 md:mb-6`}>
-        <div className="flex flex-wrap gap-2 md:gap-4 items-center justify-between">
-          <div className="flex gap-2 flex-wrap">
-            {/* Type Filter */}
-            <SearchableMultiSelect
-              options={VENDOR_TYPES.map(type => ({ value: type, label: type }))}
-              selectedValues={typeFilter}
-              onChange={handleTypeFilterChange}
-              placeholder="Filter by type..."
-              allLabel="All Types"
-              className="min-w-[160px]"
-            />
+      <div className={`${theme.cardBackground} rounded-xl shadow p-3 md:p-4 mb-4 md:mb-6 overflow-x-auto`}>
+        <div className="flex gap-2 items-center md:flex-wrap md:justify-between">
+          {/* Type Filter */}
+          <SearchableMultiSelect
+            options={VENDOR_TYPES.map(type => ({ value: type, label: type }))}
+            selectedValues={typeFilter}
+            onChange={handleTypeFilterChange}
+            placeholder="Filter by type..."
+            allLabel="All Types"
+            className="min-w-[120px] md:min-w-[160px] flex-shrink-0"
+          />
 
-            {/* Currency Display Filter */}
-            <div className={`flex items-center gap-2 md:gap-3 px-4 py-2 ${theme.border} ${theme.borderWidth} rounded-xl ${theme.cardBackground}`}>
-              <label className="flex items-center gap-1 md:gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={currencyDisplay === 'eur' || currencyDisplay === 'both'}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setCurrencyDisplay(currencyDisplay === 'cad' ? 'both' : 'eur')
-                    } else {
-                      setCurrencyDisplay('cad')
-                    }
-                  }}
-                  className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
-                />
-                <span className={`text-xs md:text-sm font-medium ${theme.textPrimary}`}>EUR</span>
-              </label>
-              <label className="flex items-center gap-1 md:gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={currencyDisplay === 'cad' || currencyDisplay === 'both'}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setCurrencyDisplay(currencyDisplay === 'eur' ? 'both' : 'cad')
-                    } else {
-                      setCurrencyDisplay('eur')
-                    }
-                  }}
-                  className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
-                />
-                <span className={`text-xs md:text-sm font-medium ${theme.textPrimary}`}>USD</span>
-              </label>
-            </div>
+          {/* Currency Display Filter */}
+          <div className={`flex items-center gap-1.5 md:gap-3 px-2 md:px-4 py-2 ${theme.border} ${theme.borderWidth} rounded-xl ${theme.cardBackground} flex-shrink-0`}>
+            <label className="flex items-center gap-1 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={currencyDisplay === 'eur' || currencyDisplay === 'both'}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setCurrencyDisplay(currencyDisplay === 'cad' ? 'both' : 'eur')
+                  } else {
+                    setCurrencyDisplay('cad')
+                  }
+                }}
+                className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+              />
+              <span className={`text-xs md:text-sm font-medium ${theme.textPrimary}`}>EUR</span>
+            </label>
+            <label className="flex items-center gap-1 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={currencyDisplay === 'cad' || currencyDisplay === 'both'}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setCurrencyDisplay(currencyDisplay === 'eur' ? 'both' : 'cad')
+                  } else {
+                    setCurrencyDisplay('eur')
+                  }
+                }}
+                className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+              />
+              <span className={`text-xs md:text-sm font-medium ${theme.textPrimary}`}>USD</span>
+            </label>
           </div>
 
-          <div className="flex gap-2">
-            <button
-              onClick={handleExportCSV}
-              className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors min-w-[44px]`}
-            >
-              <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">Export</span>
-            </button>
-            <button
-              onClick={handleAddVendor}
-              className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors min-w-[44px]`}
-            >
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Add Manually</span>
-            </button>
-            <button
-              onClick={() => setShowBulkImport(true)}
-              className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors min-w-[44px]`}
-            >
-              <img src={currentTheme === 'pop' ? '/images/bridezilla-logo-circle.svg' : '/images/bridezilla-logo-simple.svg'} alt="Bridezilla" className="w-6 h-6 object-contain" />
-              <span className="hidden sm:inline">Ask Bridezilla</span>
-            </button>
-          </div>
+          <button
+            onClick={handleExportCSV}
+            className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors min-w-[44px] flex-shrink-0`}
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Export</span>
+          </button>
+          <button
+            onClick={handleAddVendor}
+            className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors min-w-[44px] flex-shrink-0`}
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Add Manually</span>
+          </button>
+          <button
+            onClick={() => setShowBulkImport(true)}
+            className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors min-w-[44px] flex-shrink-0`}
+          >
+            <img src={currentTheme === 'pop' ? '/images/bridezilla-logo-circle.svg' : '/images/bridezilla-logo-simple.svg'} alt="Bridezilla" className="w-6 h-6 object-contain" />
+            <span className="hidden sm:inline">Ask Bridezilla</span>
+          </button>
         </div>
       </div>
 
