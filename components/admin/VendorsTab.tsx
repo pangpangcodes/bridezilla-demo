@@ -311,17 +311,19 @@ export default function VendorsTab() {
 
       {/* Controls */}
       <div className={`${theme.cardBackground} rounded-xl shadow p-3 md:p-4 mb-4 md:mb-6`}>
-        {/* Mobile: Single row with horizontal scroll */}
-        <div className="md:hidden overflow-x-auto">
-          <div className="flex gap-2 items-center">
+        {/* Mobile: Stacked layout with inline dropdown */}
+        <div className="md:hidden">
+          <div className="flex flex-col gap-2">
             <SearchableMultiSelect
               options={VENDOR_TYPES.map(type => ({ value: type, label: type }))}
               selectedValues={typeFilter}
               onChange={handleTypeFilterChange}
               placeholder="Filter by type..."
               allLabel="All Types"
-              className="min-w-[120px] flex-shrink-0"
+              className="w-full"
+              inlineOnMobile={true}
             />
+            <div className="flex gap-2 items-center overflow-x-auto pb-1">
             <div className={`flex items-center gap-1.5 px-2 py-2 ${theme.border} ${theme.borderWidth} rounded-xl ${theme.cardBackground} flex-shrink-0`}>
               <label className="flex items-center gap-1 cursor-pointer">
                 <input

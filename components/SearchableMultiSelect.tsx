@@ -17,6 +17,7 @@ interface SearchableMultiSelectProps {
   placeholder?: string
   allLabel?: string
   className?: string
+  inlineOnMobile?: boolean
 }
 
 export default function SearchableMultiSelect({
@@ -25,7 +26,8 @@ export default function SearchableMultiSelect({
   onChange,
   placeholder = 'Select options...',
   allLabel = 'All',
-  className = ''
+  className = '',
+  inlineOnMobile = false
 }: SearchableMultiSelectProps) {
   const theme = useThemeStyles()
   const [isOpen, setIsOpen] = useState(false)
@@ -121,7 +123,7 @@ export default function SearchableMultiSelect({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 bg-white border border-stone-200 rounded-xl shadow-xl z-50 max-h-[320px] min-w-[280px] w-full flex flex-col">
+        <div className={`${inlineOnMobile ? 'relative mt-2 sm:absolute sm:top-full sm:left-0' : 'absolute top-full left-0 mt-2'} bg-white border border-stone-200 rounded-xl shadow-xl z-50 max-h-[320px] min-w-[280px] w-full flex flex-col`}>
           {/* Search Input */}
           <div className="p-4 border-b border-stone-200">
             <div className="relative">
