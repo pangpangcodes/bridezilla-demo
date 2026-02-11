@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Search, CheckCircle, Loader2, ChevronDown, ChevronRight, Check } from 'lucide-react'
 import { VendorLibrary } from '@/types/planner'
-import { VENDOR_TYPES } from '@/types/vendor'
+import { VENDOR_TYPES } from '@/lib/vendorTypes'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 
 interface SelectVendorsModalProps {
