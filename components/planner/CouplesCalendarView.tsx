@@ -515,16 +515,12 @@ export default function CouplesCalendarView() {
             {searchQuery && (<button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" title="Clear search">✕</button>)}
           </div>
           {searchQuery && (<div className="text-xs text-gray-600 -mt-2">Showing {filteredCouples.length} of {couples.length} couples</div>)}
-          <div className="flex gap-2 flex-wrap">
-            <select value={selectedYear} onChange={(e) => { const year = parseInt(e.target.value); setSelectedYear(year); setCurrentDate(new Date(year, currentDate.getMonth(), 1)); }} className={`flex-1 min-w-[120px] px-4 py-2 border rounded-xl text-sm font-medium ${theme.cardBackground} hover:bg-stone-50 transition-colors ${theme.border} ${theme.textPrimary}`}>
-              {years.map(year => (<option key={year} value={year}>{year}</option>))}
-            </select>
-            {venues.length > 0 && (
-              <div className="flex-1 min-w-[140px]">
-                <SearchableMultiSelect options={venues.map(venue => ({ value: venue, label: venue }))} selectedValues={selectedVenue} onChange={handleVenueChange} placeholder="Filter by venue..." allLabel="All Venues" inlineOnMobile={true} />
-              </div>
-            )}
-          </div>
+          <select value={selectedYear} onChange={(e) => { const year = parseInt(e.target.value); setSelectedYear(year); setCurrentDate(new Date(year, currentDate.getMonth(), 1)); }} className={`w-full px-4 py-2 border rounded-xl text-sm font-medium ${theme.cardBackground} hover:bg-stone-50 transition-colors ${theme.border} ${theme.textPrimary}`}>
+            {years.map(year => (<option key={year} value={year}>{year}</option>))}
+          </select>
+          {venues.length > 0 && (
+            <SearchableMultiSelect options={venues.map(venue => ({ value: venue, label: venue }))} selectedValues={selectedVenue} onChange={handleVenueChange} placeholder="Filter by venue..." allLabel="All Venues" className="w-full" inlineOnMobile={true} />
+          )}
         </div>
 
         {/* Desktop: Original Horizontal Layout */}
