@@ -39,13 +39,18 @@ export async function extractTextFromPDF(
       }
     }
 
-    // Import pdfjs-dist
-    const pdfjsLib = await import('pdfjs-dist')
+    // Import pdfjs-dist with legacy build for Node.js compatibility
+    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
+
+    // Disable worker for server-side rendering (avoids DOMMatrix error)
+    pdfjsLib.GlobalWorkerOptions.workerSrc = ''
 
     // Load the PDF document
     const loadingTask = pdfjsLib.getDocument({
       data: new Uint8Array(fileBuffer),
       useSystemFonts: true,
+      isEvalSupported: false,
+      useWorkerFetch: false,
     })
 
     const pdf = await loadingTask.promise

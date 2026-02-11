@@ -33,6 +33,7 @@ import VendorCard from '../VendorCard'
 import SearchableMultiSelect from '../SearchableMultiSelect'
 import SelectVendorsModal from './SelectVendorsModal'
 import EmailPreviewModal from './EmailPreviewModal'
+import AskBridezillaVendorModal from './AskBridezillaVendorModal'
 import Notification from './Notification'
 import type { PlannerCouple, SharedVendor, VendorStatus, VendorLibrary } from '@/types/planner'
 
@@ -62,6 +63,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
   const [selectedVendors, setSelectedVendors] = useState<{vendorIds: string[], customMessage: string}>({vendorIds: [], customMessage: ''})
   const [loadingVendors, setLoadingVendors] = useState(false)
   const [notification, setNotification] = useState<{type: 'success' | 'error' | 'warning', title: string, message: string} | null>(null)
+  const [showAskBridezillaModal, setShowAskBridezillaModal] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -656,6 +658,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
 
                   {/* Ask Bridezilla Button */}
                   <button
+                    onClick={() => setShowAskBridezillaModal(true)}
                     className={`flex items-center gap-2 px-6 py-2.5 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors`}
                   >
                     <Image
@@ -742,6 +745,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                       </button>
 
                       <button
+                        onClick={() => setShowAskBridezillaModal(true)}
                         className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors`}
                       >
                         <Image
@@ -948,6 +952,23 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
           />
         )
       })()}
+
+      {/* Ask Bridezilla Modal */}
+      {showAskBridezillaModal && (
+        <AskBridezillaVendorModal
+          existingVendors={vendorLibrary}
+          onClose={() => setShowAskBridezillaModal(false)}
+          onSuccess={() => {
+            setShowAskBridezillaModal(false)
+            fetchData() // Refresh vendor data
+            setNotification({
+              type: 'success',
+              title: 'Vendors Added!',
+              message: 'New vendors have been added to your library and are ready to share with couples.'
+            })
+          }}
+        />
+      )}
 
       {/* Notification */}
       {notification && (
