@@ -1,11 +1,15 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import WaitlistModal from '../WaitlistModal'
 
 const LandingNavbar: React.FC = () => {
+  const [showWaitlist, setShowWaitlist] = useState(false)
+
   return (
+    <>
     <nav className="px-4 sm:px-6 py-4 sm:py-8 flex justify-between items-center max-w-7xl mx-auto w-full absolute top-0 left-0 right-0 z-50">
       <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
         <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
@@ -41,13 +45,16 @@ const LandingNavbar: React.FC = () => {
         </div>
       </div>
 
-      <a
-        href="mailto:hello@bridezilla.ai?subject=Join%20Waitlist"
+      <button
+        onClick={() => setShowWaitlist(true)}
         className="bg-[#2F5249] text-white px-4 sm:px-8 py-2 rounded-full font-heading text-sm sm:text-xl hover:bg-[#3d6960] transition-all transform hover:scale-105 shadow-md tracking-wide sm:tracking-widest uppercase whitespace-nowrap"
       >
         Join Waitlist
-      </a>
+      </button>
     </nav>
+
+    <WaitlistModal isOpen={showWaitlist} onClose={() => setShowWaitlist(false)} />
+    </>
   )
 }
 
