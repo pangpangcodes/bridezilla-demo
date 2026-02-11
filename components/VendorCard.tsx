@@ -15,9 +15,12 @@ interface VendorCardProps {
 
 const STATUS_OPTIONS: { value: VendorStatus; label: string }[] = [
   { value: null, label: 'Review Needed' },
-  { value: 'interested', label: 'Approved' },
-  { value: 'pass', label: 'Declined' },
+  { value: 'interested' as const, label: 'Approved' },
+  { value: 'pass' as const, label: 'Declined' },
 ]
+
+// Type guard to help TypeScript understand vendor status
+const isPassStatus = (status: VendorStatus | undefined): status is 'pass' => status === 'pass'
 
 export default function VendorCard({ vendor, mode, onStatusChange, onNoteChange, isSuperseded = false }: VendorCardProps) {
   const theme = useThemeStyles()
@@ -324,9 +327,9 @@ export default function VendorCard({ vendor, mode, onStatusChange, onNoteChange,
                     </button>
 
                     <button
-                      onClick={() => handleStatusChange('pass')}
+                      onClick={() => handleStatusChange('pass' as VendorStatus)}
                       className={`flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-sm transition-colors ${
-                        vendor.couple_status === 'pass'
+                        isPassStatus(vendor.couple_status)
                           ? `bg-gray-100 text-gray-600 border border-gray-300`
                           : `${theme.secondaryButton} ${theme.textSecondary} ${theme.secondaryButtonHover}`
                       }`}
