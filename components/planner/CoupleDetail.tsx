@@ -373,7 +373,28 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
     vendorTypes: new Set(vendors.map(v => v.vendor_type)).size,
     booked: vendors.filter(v => v.couple_status === 'booked').length,
     approved: vendors.filter(v => v.couple_status === 'interested').length,
-    inReview: vendors.filter(v => !v.couple_status).length,
+    inReview: (() => {
+      // Count categories that are "in review" (no booked or approved vendors)
+      const categoriesInReview = new Set<string>()
+      const vendorsByType = vendors.reduce((acc, vendor) => {
+        if (!acc[vendor.vendor_type]) acc[vendor.vendor_type] = []
+        acc[vendor.vendor_type].push(vendor)
+        return acc
+      }, {} as Record<string, SharedVendor[]>)
+
+      Object.entries(vendorsByType).forEach(([type, typeVendors]) => {
+        const hasBookedOrApproved = typeVendors.some(v =>
+          v.couple_status === 'booked' || v.couple_status === 'interested'
+        )
+        const hasInReview = typeVendors.some(v => !v.couple_status)
+
+        if (!hasBookedOrApproved && hasInReview) {
+          categoriesInReview.add(type)
+        }
+      })
+
+      return categoriesInReview.size
+    })(),
   }
 
   const formatDate = (dateString: string | null | undefined) => {
