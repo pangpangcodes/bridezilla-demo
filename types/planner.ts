@@ -148,12 +148,9 @@ export interface CoupleParseResult {
 // =============================================================================
 
 export type VendorStatus =
-  | 'interested'
-  | 'contacted'
-  | 'quoted'
-  | 'booked'
-  | 'pass'
-  | null
+  | 'interested' // Approve
+  | 'pass' // Not for us
+  | null // Review Needed
 
 export interface SharedVendor {
   id: string
