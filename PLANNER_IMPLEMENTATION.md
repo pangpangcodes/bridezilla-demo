@@ -88,12 +88,10 @@ Before testing with real Supabase:
 3. Get URL and anon key from project settings
 4. Update `.env.local`:
    ```
-   NEXT_PUBLIC_DEMO_MODE=false
    NEXT_PUBLIC_SUPABASE_URL=your_project_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
    ```
-
-For MVP, we're using demo mode (localStorage) which doesn't require real Supabase.
 
 ---
 
@@ -109,10 +107,10 @@ For MVP, we're using demo mode (localStorage) which doesn't require real Supabas
 - **Couples**: No authentication (access via unique share link)
 - **Post-MVP**: Full email/password auth with user accounts
 
-### Database Mode
-- **Demo mode** (NEXT_PUBLIC_DEMO_MODE=true): Uses localStorage (DemoSupabaseClient)
-- **Real mode** (NEXT_PUBLIC_DEMO_MODE=false): Uses actual Supabase database
-- Hybrid client in `lib/supabase-client.ts` handles both modes seamlessly
+### Database
+- Uses Supabase for data persistence
+- Client configured in `lib/supabase-client.ts`
+- Requires environment variables for connection
 
 ---
 
