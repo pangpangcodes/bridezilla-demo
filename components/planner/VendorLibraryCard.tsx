@@ -233,14 +233,14 @@ export default function VendorLibraryCard({ vendor, onUpdate, onDelete }: Vendor
             id: vendor.id,
             vendor_name: vendor.vendor_name,
             vendor_type: vendor.vendor_type,
-            contact_name: vendor.contact_name,
-            email: vendor.email,
-            phone: vendor.phone,
-            instagram: vendor.instagram,
-            website: vendor.website,
-            pricing: vendor.pricing,
-            description: vendor.description,
-            tags: vendor.tags,
+            contact_name: vendor.contact_name || undefined,
+            email: vendor.email || undefined,
+            phone: vendor.phone || undefined,
+            instagram: vendor.instagram || undefined,
+            website: vendor.website || undefined,
+            pricing: vendor.pricing || undefined,
+            description: vendor.description || undefined,
+            tags: vendor.tags || undefined,
           }}
         />
       )}

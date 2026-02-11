@@ -50,13 +50,7 @@ export default function SharedVendorCard({ vendor, coupleId, onStatusChange, onN
       case undefined:
         return 'bg-slate-100 text-slate-600 border-slate-200'
       case 'interested':
-        return 'bg-rose-50 text-rose-600 border-rose-200'
-      case 'contacted':
-        return 'bg-amber-50 text-amber-600 border-amber-200'
-      case 'quoted':
-        return 'bg-purple-50 text-purple-600 border-purple-200'
-      case 'booked':
-        return `${theme.success.bg} ${theme.success.text} border-emerald-200`
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200'
       case 'pass':
         return 'bg-gray-100 text-gray-400 border-gray-200 line-through opacity-70'
       default:

@@ -39,7 +39,7 @@ export default function TagInput({
   const [aiSuggestion, setAiSuggestion] = useState<TagSuggestion | null>(null)
   const [isLoadingSuggestion, setIsLoadingSuggestion] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   // Fetch suggestions when vendor type changes
   useEffect(() => {
