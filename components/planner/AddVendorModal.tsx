@@ -365,11 +365,11 @@ export default function AddVendorModal({ isOpen, onClose, onSuccess, coupleId, v
         </form>
 
         {/* Footer - Sticky CTA Buttons */}
-        <div className="bg-white border-t border-stone-200 px-8 py-6 flex gap-3 flex-shrink-0">
+        <div className="bg-white border-t border-stone-200 px-4 sm:px-8 py-6 flex gap-2 sm:gap-3 flex-shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className={`flex-1 px-6 py-3 border border-stone-200 ${theme.textSecondary} rounded-xl text-sm font-medium hover:bg-stone-50 transition-colors`}
+            className={`flex-1 px-3 sm:px-6 py-3 border border-stone-200 ${theme.textSecondary} rounded-xl text-xs sm:text-sm font-medium hover:bg-stone-50 transition-colors whitespace-nowrap`}
           >
             Cancel
           </button>
@@ -377,7 +377,7 @@ export default function AddVendorModal({ isOpen, onClose, onSuccess, coupleId, v
             type="submit"
             form="vendor-form"
             disabled={loading}
-            className={`flex-1 ${theme.primaryButton} ${theme.textOnPrimary} px-6 py-3 rounded-xl text-sm font-medium ${theme.primaryButtonHover} transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed`}
+            className={`flex-1 ${theme.primaryButton} ${theme.textOnPrimary} px-3 sm:px-6 py-3 rounded-xl text-xs sm:text-sm font-medium ${theme.primaryButtonHover} transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed whitespace-nowrap`}
             onClick={handleSubmit}
           >
             {loading

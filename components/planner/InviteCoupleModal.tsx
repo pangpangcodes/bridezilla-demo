@@ -271,18 +271,18 @@ export default function InviteCoupleModal({ isOpen, onClose, onSuccess, coupleTo
                 </div>
               )}
 
-              <div className="flex gap-3 pt-6">
+              <div className="flex gap-2 sm:gap-3 pt-6">
                 <button
                   type="button"
                   onClick={handleClose}
-                  className={`flex-1 px-6 py-3 border border-stone-200 ${theme.textSecondary} rounded-xl text-sm font-medium hover:bg-stone-50 transition-colors`}
+                  className={`flex-1 px-3 sm:px-6 py-3 border border-stone-200 ${theme.textSecondary} rounded-xl text-xs sm:text-sm font-medium hover:bg-stone-50 transition-colors whitespace-nowrap`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`flex-1 ${theme.primaryButton} ${theme.textOnPrimary} px-6 py-3 rounded-xl text-sm font-medium ${theme.primaryButtonHover} transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed`}
+                  className={`flex-1 ${theme.primaryButton} ${theme.textOnPrimary} px-3 sm:px-6 py-3 rounded-xl text-xs sm:text-sm font-medium ${theme.primaryButtonHover} transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed whitespace-nowrap`}
                 >
                   {loading
                     ? (isEditMode ? 'Updating...' : 'Creating...')

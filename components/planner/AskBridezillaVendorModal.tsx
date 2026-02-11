@@ -359,27 +359,27 @@ export default function AskBridezillaVendorModal({
                 </div>
               )}
 
-              <div className="flex gap-3 pt-6">
+              <div className="flex gap-2 sm:gap-3 pt-6">
                 <button
                   type="button"
                   onClick={() => setInputMode(null)}
-                  className={`flex-1 px-6 py-3 border border-stone-200 ${theme.textSecondary} rounded-xl text-sm font-medium hover:bg-stone-50 transition-colors`}
+                  className={`flex-1 px-3 sm:px-6 py-3 border border-stone-200 ${theme.textSecondary} rounded-xl text-xs sm:text-sm font-medium hover:bg-stone-50 transition-colors whitespace-nowrap`}
                 >
                   Back
                 </button>
                 <button
                   onClick={handleParseText}
                   disabled={parsing || !textInput.trim()}
-                  className={`flex-1 ${theme.primaryButton} ${theme.textOnPrimary} px-6 py-3 rounded-xl text-sm font-medium ${theme.primaryButtonHover} transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+                  className={`flex-1 ${theme.primaryButton} ${theme.textOnPrimary} px-3 sm:px-6 py-3 rounded-xl text-xs sm:text-sm font-medium ${theme.primaryButtonHover} transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap`}
                 >
                   {parsing ? (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                       Analyzing with AI...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-5 h-5" />
+                      <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
                       Parse with AI
                     </>
                   )}

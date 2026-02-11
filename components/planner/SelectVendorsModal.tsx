@@ -325,21 +325,21 @@ export default function SelectVendorsModal({
             </div>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <button
               type="button"
               onClick={onClose}
-              className={`flex-1 px-6 py-3 ${theme.secondaryButton} ${theme.textSecondary} ${theme.secondaryButtonHover} rounded-xl text-sm font-medium transition-colors`}
+              className={`flex-1 px-3 sm:px-6 py-3 ${theme.secondaryButton} ${theme.textSecondary} ${theme.secondaryButtonHover} rounded-xl text-xs sm:text-sm font-medium transition-colors whitespace-nowrap`}
             >
               Cancel
             </button>
             <button
               onClick={handleContinue}
               disabled={selectedCount === 0}
-              className={`flex-1 ${theme.primaryButton} ${theme.textOnPrimary} px-6 py-3 rounded-xl text-sm font-medium ${theme.primaryButtonHover} transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+              className={`flex-1 ${theme.primaryButton} ${theme.textOnPrimary} px-3 sm:px-6 py-3 rounded-xl text-xs sm:text-sm font-medium ${theme.primaryButtonHover} transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap`}
             >
-              <CheckCircle className="w-5 h-5" />
-              Preview Email ({selectedCount} selected)
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden xs:inline">Preview Email </span>({selectedCount})
             </button>
           </div>
         </div>
