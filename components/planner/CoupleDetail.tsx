@@ -816,10 +816,10 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
           vendorLibrary={vendorLibrary}
           alreadySharedVendors={alreadySharedVendors}
           initialSelectedVendorIds={selectedVendors.vendorIds}
-          initialCustomNotes={selectedVendors.customMessage}
+          initialCustomMessage={selectedVendors.customMessage}
           onClose={() => {
             setShowShareModal(false)
-            setSelectedVendors({vendorIds: [], customMessage: {}})
+            setSelectedVendors({vendorIds: [], customMessage: ''})
           }}
           onContinue={handleVendorSelectionComplete}
         />
@@ -854,7 +854,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
             onConfirm={handleConfirmAndSend}
             onClose={() => {
               setShowConfirmModal(false)
-              setSelectedVendors({vendorIds: [], customMessage: {}})
+              setSelectedVendors({vendorIds: [], customMessage: ''})
             }}
           />
         )

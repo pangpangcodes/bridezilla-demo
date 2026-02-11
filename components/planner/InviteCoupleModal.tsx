@@ -94,7 +94,7 @@ export default function InviteCoupleModal({ isOpen, onClose, onSuccess, coupleTo
         },
         body: JSON.stringify({
           couple_names: formData.couple_names.trim(),
-          couple_email: formData.couple_email.trim(),
+          couple_email: formData.couple_email?.trim() || null,
           wedding_date: formData.wedding_date || null,
           wedding_location: formData.wedding_location?.trim() || null,
           notes: formData.notes?.trim() || null,
@@ -243,7 +243,7 @@ export default function InviteCoupleModal({ isOpen, onClose, onSuccess, coupleTo
                   <LocationAutocompleteInput
                     id="wedding_location"
                     name="wedding_location"
-                    value={formData.wedding_location}
+                    value={formData.wedding_location || ''}
                     onChange={(value) => setFormData(prev => ({ ...prev, wedding_location: value }))}
                     placeholder="e.g., Marbella, Spain"
                   />
