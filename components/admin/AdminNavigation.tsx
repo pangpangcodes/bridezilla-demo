@@ -41,8 +41,8 @@ export default function AdminNavigation({ currentView, onViewChange, onLogout }:
               <span className={`font-heading text-base sm:text-xl md:text-2xl lg:text-3xl tracking-[0.2em] sm:tracking-[0.3em] uppercase ${theme.textPrimary}`}>
                 BRIDEZILLA
               </span>
-              <span className={`hidden sm:inline ${theme.textMuted} text-xs md:text-sm`}>|</span>
-              <span className={`hidden sm:inline font-heading text-xs md:text-sm uppercase tracking-wider ${theme.textSecondary}`}>
+              <span className={`${theme.textMuted} text-xs md:text-sm`}>|</span>
+              <span className={`font-heading text-xs md:text-sm uppercase tracking-wider ${theme.textSecondary}`}>
                 Couples
               </span>
             </div>
