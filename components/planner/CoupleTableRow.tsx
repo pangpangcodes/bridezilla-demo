@@ -266,7 +266,7 @@ export default function CoupleTableRow({
       >
         {/* Couple Names */}
         <td className="px-4 py-4">
-          <span className={`text-sm font-medium ${theme.textPrimary}`}>
+          <span className={`text-sm font-medium ${theme.textPrimary} group-hover:underline group-hover:text-stone-900 transition-all`}>
             {couple.couple_names}
           </span>
         </td>
@@ -300,9 +300,12 @@ export default function CoupleTableRow({
 
         {/* Wedding Date */}
         <td className={`px-4 py-4 text-sm ${theme.textSecondary}`}>
-          {couple.wedding_date ? (
-            format(new Date(couple.wedding_date), 'MMM d, yyyy')
-          ) : (
+          {couple.wedding_date ? (() => {
+            // Parse date without timezone conversion to avoid date shifting
+            const [year, month, day] = couple.wedding_date.split('-').map(Number)
+            const date = new Date(year, month - 1, day)
+            return format(date, 'MMM d, yyyy')
+          })() : (
             <span className={`${theme.textMuted} italic`}>-</span>
           )}
         </td>

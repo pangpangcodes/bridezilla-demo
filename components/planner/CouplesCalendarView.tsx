@@ -297,6 +297,22 @@ export default function CouplesCalendarView() {
       )
     }
 
+    // Sort by wedding date (earliest to latest)
+    // Couples with dates come first (sorted), couples without dates come last
+    filtered.sort((a, b) => {
+      if (!a.wedding_date && !b.wedding_date) return 0
+      if (!a.wedding_date) return 1 // a goes to end
+      if (!b.wedding_date) return -1 // b goes to end
+
+      // Both have dates - parse without timezone to avoid date shifting
+      const [yearA, monthA, dayA] = a.wedding_date.split('-').map(Number)
+      const [yearB, monthB, dayB] = b.wedding_date.split('-').map(Number)
+      const dateA = new Date(yearA, monthA - 1, dayA)
+      const dateB = new Date(yearB, monthB - 1, dayB)
+
+      return dateA.getTime() - dateB.getTime() // Earliest first
+    })
+
     console.log('Filter results:', filtered.length, 'couples out of', couples.length)
     setFilteredCouples(filtered)
   }
