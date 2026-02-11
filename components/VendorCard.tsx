@@ -232,44 +232,46 @@ export default function VendorCard({ vendor, mode, onStatusChange, onNoteChange,
             )}
           </div>
 
-          {/* Expandable Pricing Details */}
-          <div>
-            <button
-              onClick={() => setShowDetails(!showDetails)}
-              className={`flex items-center justify-between w-full text-xs font-bold ${theme.textMuted} uppercase tracking-widest hover:${theme.textPrimary} transition-colors`}
-            >
-              <span>Pricing</span>
-              {showDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
-            {showDetails && (
-              <div className={`mt-4 text-sm ${theme.textSecondary} animate-in fade-in slide-in-from-top-2 max-h-[40vh] md:max-h-none overflow-y-auto`}>
-                {/* Display pricing details from library vendor */}
-                {vendor.vendor_library?.pricing ? (
-                  <div className="space-y-1 whitespace-pre-line leading-relaxed">
-                    {vendor.vendor_library.pricing}
-                  </div>
-                ) : (
-                  /* Fallback: Show estimated pricing only */
-                  <div className="space-y-3">
-                    {(vendor.estimated_cost_eur || vendor.estimated_cost_usd) ? (
-                      <div>
-                        <div className="font-semibold text-stone-900 mb-1">Estimated Cost</div>
-                        <div className="text-lg font-serif text-stone-900">
-                          {vendor.estimated_cost_eur && formatCurrency(vendor.estimated_cost_eur, 'EUR')}
-                          {vendor.estimated_cost_eur && vendor.estimated_cost_usd && ' / '}
-                          {vendor.estimated_cost_usd && formatCurrency(vendor.estimated_cost_usd, 'USD')}
+          {/* Expandable Pricing Details - Hide for Alternative and Declined statuses */}
+          {!(vendor.couple_status === 'pass' || (isSuperseded && !vendor.couple_status)) && (
+            <div>
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className={`flex items-center justify-between w-full text-xs font-bold ${theme.textMuted} uppercase tracking-widest hover:${theme.textPrimary} transition-colors`}
+              >
+                <span>Pricing</span>
+                {showDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+              {showDetails && (
+                <div className={`mt-4 text-sm ${theme.textSecondary} animate-in fade-in slide-in-from-top-2 max-h-[40vh] md:max-h-none overflow-y-auto`}>
+                  {/* Display pricing details from library vendor */}
+                  {vendor.vendor_library?.pricing ? (
+                    <div className="space-y-1 whitespace-pre-line leading-relaxed">
+                      {vendor.vendor_library.pricing}
+                    </div>
+                  ) : (
+                    /* Fallback: Show estimated pricing only */
+                    <div className="space-y-3">
+                      {(vendor.estimated_cost_eur || vendor.estimated_cost_usd) ? (
+                        <div>
+                          <div className="font-semibold text-stone-900 mb-1">Estimated Cost</div>
+                          <div className="text-lg font-serif text-stone-900">
+                            {vendor.estimated_cost_eur && formatCurrency(vendor.estimated_cost_eur, 'EUR')}
+                            {vendor.estimated_cost_eur && vendor.estimated_cost_usd && ' / '}
+                            {vendor.estimated_cost_usd && formatCurrency(vendor.estimated_cost_usd, 'USD')}
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="text-stone-400 italic">
-                        Pricing information not available. Contact vendor for details.
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                      ) : (
+                        <div className="text-stone-400 italic">
+                          Pricing information not available. Contact vendor for details.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Notes Section (Shared View Only) - Moved above status buttons */}
           {mode === 'shared' && (
