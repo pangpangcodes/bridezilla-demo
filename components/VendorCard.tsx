@@ -292,7 +292,7 @@ export default function VendorCard({ vendor, mode, onStatusChange, onNoteChange,
                     onChange={(e) => setNote(e.target.value)}
                     onBlur={handleNoteBlur}
                     onKeyDown={handleNoteKeyDown}
-                    placeholder="e.g., Contacted on Tuesday, waiting for pricing PDF... (Press Enter to save)"
+                    placeholder="Press Enter to save"
                     className={`w-full text-sm p-3 ${theme.border} rounded-lg bg-yellow-50/30 focus:${theme.cardBackground} focus:ring-2 outline-none resize-none transition-all`}
                     rows={2}
                   />
