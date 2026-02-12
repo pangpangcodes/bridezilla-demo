@@ -551,10 +551,10 @@ export default function CouplesCalendarView() {
             </div>
             <div className="flex items-center gap-2">
               <button onClick={() => setShowManualInvite(true)} className={`flex items-center justify-center gap-2 px-3 py-2.5 ${theme.cardBackground} border ${theme.border} rounded-xl text-sm font-medium hover:bg-stone-50 transition-colors`}>
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4" /> Add
               </button>
               <button onClick={() => setShowAddModal(true)} className={`flex items-center justify-center gap-2 px-3 py-2.5 ${theme.primaryButton} text-white rounded-xl text-sm font-medium hover:${theme.primaryButtonHover} transition-colors`}>
-                <Image src="/images/bridezilla-logo-green.png" alt="Bridezilla" width={20} height={20} className="object-contain" />
+                <Image src="/images/bridezilla-logo-green.png" alt="Bridezilla" width={20} height={20} className="object-contain" /> Ask Bridezilla
               </button>
             </div>
           </div>

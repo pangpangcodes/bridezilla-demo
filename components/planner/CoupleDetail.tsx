@@ -598,18 +598,18 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                 )}
               </div>
 
-              <div className="mt-auto pt-4 lg:pt-8 w-full space-y-2 lg:space-y-3">
-                <button
-                  onClick={() => window.open(`/s/${couple.share_link_id}`, '_blank')}
-                  className={`w-full py-2.5 ${theme.primaryButton} ${theme.textOnPrimary} rounded-lg text-sm font-medium ${theme.primaryButtonHover} flex items-center justify-center gap-2 shadow-sm transition-all`}
-                >
-                  <Eye size={16} /> Preview Shared Portal
-                </button>
+              <div className="mt-auto pt-4 lg:pt-8 w-full flex gap-2">
                 <button
                   onClick={handleCopyLink}
-                  className={`w-full py-2 ${theme.secondaryButton} rounded-lg text-sm font-medium ${theme.textSecondary} ${theme.secondaryButtonHover} flex items-center justify-center gap-2`}
+                  className={`flex-1 py-2.5 ${theme.secondaryButton} rounded-lg text-sm font-medium ${theme.textSecondary} ${theme.secondaryButtonHover} flex items-center justify-center gap-2`}
                 >
-                  <Copy size={16} /> Copy Share Link
+                  <Copy size={16} /> Copy Link
+                </button>
+                <button
+                  onClick={() => window.open(`/s/${couple.share_link_id}`, '_blank')}
+                  className={`flex-1 py-2.5 ${theme.primaryButton} ${theme.textOnPrimary} rounded-lg text-sm font-medium ${theme.primaryButtonHover} flex items-center justify-center gap-2 shadow-sm transition-all`}
+                >
+                  <Eye size={16} /> Preview Portal
                 </button>
               </div>
             </div>

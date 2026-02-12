@@ -73,7 +73,7 @@ export const themes: Record<ThemeName, ThemeColors> = {
     warning: { bg: 'bg-amber-50', text: 'text-amber-700' },
     error: { bg: 'bg-red-50', text: 'text-red-700' },
     typeSectionHeading: 'font-display text-xl md:text-2xl',
-    typeStatValue: 'text-lg font-semibold',
+    typeStatValue: 'text-base font-semibold',
     typeStatLabel: 'text-xs font-medium uppercase tracking-widest',
     typeStatSubtitle: 'text-xs',
     primaryColor: '#EC4899', // bridezilla-pink
@@ -104,7 +104,7 @@ export const themes: Record<ThemeName, ThemeColors> = {
     warning: { bg: 'bg-amber-50', text: 'text-amber-700' },
     error: { bg: 'bg-red-50', text: 'text-red-700' },
     typeSectionHeading: 'font-display text-xl md:text-2xl',
-    typeStatValue: 'text-lg font-semibold',
+    typeStatValue: 'text-base font-semibold',
     typeStatLabel: 'text-xs font-medium uppercase tracking-widest',
     typeStatSubtitle: 'text-xs',
     primaryColor: '#1b3b2b', // dark forest green
