@@ -303,7 +303,30 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
     )
   }
 
-  const categories = Array.from(new Set(vendors.map(v => v.vendor_type))).sort()
+  // Sort categories by status priority: Approved first, Review Needed second, Booked last
+  const categories = Array.from(new Set(vendors.map(v => v.vendor_type))).sort((a, b) => {
+    const aVendors = vendors.filter(v => v.vendor_type === a)
+    const bVendors = vendors.filter(v => v.vendor_type === b)
+
+    // Determine priority for each category
+    const getPriority = (categoryVendors: SharedVendor[]) => {
+      const hasBooked = categoryVendors.some(v => v.couple_status === 'booked')
+      const hasApproved = categoryVendors.some(v => v.couple_status === 'interested')
+
+      if (hasApproved) return 1 // Approved - show first (needs to be booked)
+      if (!hasBooked && !hasApproved) return 2 // Review Needed - show second
+      return 3 // Booked & Confirmed - show last (already done)
+    }
+
+    const aPriority = getPriority(aVendors)
+    const bPriority = getPriority(bVendors)
+
+    // Sort by priority first, then alphabetically within same priority
+    if (aPriority !== bPriority) {
+      return aPriority - bPriority
+    }
+    return a.localeCompare(b)
+  })
 
   // Sync handlers for filters and pills
   const handleTypeFilterChange = (types: string[]) => {
