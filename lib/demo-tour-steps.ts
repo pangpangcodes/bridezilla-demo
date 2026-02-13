@@ -27,7 +27,7 @@ export const PLANNER_TOUR_STEPS: DemoStep[] = [
   {
     title: 'Your Vendor Library',
     description:
-      'Your curated vendor collection. Hit "Ask Bridezilla" to add vendors instantly - paste any website, email, or pricing info and AI does the rest.',
+      'Your curated vendor collection. Hit "Ask Bridezilla" to add vendors instantly - upload any PDF files or input any text and AI does the rest.',
   },
   {
     title: 'You\'re All Set!',
