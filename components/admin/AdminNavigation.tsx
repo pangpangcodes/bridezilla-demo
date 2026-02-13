@@ -140,6 +140,7 @@ export default function AdminNavigation({ currentView, onViewChange, onLogout, o
 
           {/* Mobile Menu Button */}
           <button
+            id="tour-mobile-menu"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className={`md:hidden p-2 ${theme.textSecondary} hover:${theme.textPrimary} transition-colors`}
             aria-label="Toggle menu"
@@ -180,6 +181,7 @@ export default function AdminNavigation({ currentView, onViewChange, onLogout, o
               Dashboard
             </a>
             <a
+              id="tour-nav-rsvp-mobile"
               href="/couples?view=rsvp"
               onClick={(e) => {
                 e.preventDefault()
@@ -194,6 +196,7 @@ export default function AdminNavigation({ currentView, onViewChange, onLogout, o
               RSVP Tracking
             </a>
             <a
+              id="tour-nav-vendors-couples-mobile"
               href="/couples?view=vendors"
               onClick={(e) => {
                 e.preventDefault()
@@ -222,6 +225,7 @@ export default function AdminNavigation({ currentView, onViewChange, onLogout, o
               Settings
             </a>
             <a
+              id="tour-nav-view-website-mobile"
               href="/demo"
               target="_blank"
               rel="noopener noreferrer"

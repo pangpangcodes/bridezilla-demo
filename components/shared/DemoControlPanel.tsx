@@ -156,12 +156,35 @@ export default function DemoControlPanel({
       setTargetRect(null)
       return
     }
-    const el = document.getElementById(step.highlightId)
+    let el = document.getElementById(step.highlightId)
     if (!el) {
       setTargetRect(null)
       return
     }
-    const rect = el.getBoundingClientRect()
+    let rect = el.getBoundingClientRect()
+
+    // On mobile, hidden desktop nav items return a zero-size rect.
+    // If the mobile menu is open, point to the mobile variant of the item.
+    // Otherwise fall back to the hamburger menu button.
+    if (rect.width === 0 && rect.height === 0) {
+      const mobileVariant = document.getElementById(step.highlightId + '-mobile')
+      if (mobileVariant) {
+        const mobileRect = mobileVariant.getBoundingClientRect()
+        if (mobileRect.width > 0 && mobileRect.height > 0) {
+          rect = mobileRect
+        }
+      }
+      if (rect.width === 0 && rect.height === 0) {
+        const mobileMenu = document.getElementById('tour-mobile-menu')
+        if (mobileMenu) {
+          rect = mobileMenu.getBoundingClientRect()
+        } else {
+          setTargetRect(null)
+          return
+        }
+      }
+    }
+
     setTargetRect(rect)
 
     // Determine arrow direction based on element position
@@ -206,20 +229,32 @@ export default function DemoControlPanel({
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       const highlightEl = document.getElementById(step.highlightId!)
-      if (highlightEl && (highlightEl === target || highlightEl.contains(target))) {
+
+      // Check if click is on the original highlight element
+      const clickedHighlight = highlightEl && (highlightEl === target || highlightEl.contains(target))
+
+      // On mobile, also check the mobile menu button and mobile variant of the nav item
+      const mobileMenuEl = document.getElementById('tour-mobile-menu')
+      const clickedMobileMenu = mobileMenuEl && (mobileMenuEl === target || mobileMenuEl.contains(target))
+      const mobileVariantEl = document.getElementById(step.highlightId! + '-mobile')
+      const clickedMobileVariant = mobileVariantEl && (mobileVariantEl === target || mobileVariantEl.contains(target))
+
+      if (clickedHighlight || clickedMobileVariant) {
         if (step.actionRequired) {
           setPanelHidden(true)
           onAdvance()
         } else {
-          // Non-actionRequired: pause spotlight, advance after modal closes
           setSpotlightPaused(true)
         }
+      } else if (clickedMobileMenu) {
+        // User opened hamburger menu - update spotlight to track the mobile menu item once it appears
+        setTimeout(updateTargetRect, 100)
       }
     }
 
     document.addEventListener('click', handleClick, true)
     return () => document.removeEventListener('click', handleClick, true)
-  }, [currentStep, steps, isOpen, onAdvance])
+  }, [currentStep, steps, isOpen, onAdvance, updateTargetRect])
 
   // When spotlight is paused, poll for modal close then advance
   useEffect(() => {

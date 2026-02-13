@@ -108,6 +108,7 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
 
           {/* Mobile Menu Button */}
           <button
+            id="tour-mobile-menu"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className={`md:hidden p-2 ${theme.textSecondary} hover:${theme.textPrimary} transition-colors`}
             aria-label="Toggle menu"
@@ -148,6 +149,7 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
               Couples
             </a>
             <a
+              id="tour-nav-vendors-mobile"
               href="/planners?view=vendors"
               onClick={(e) => {
                 e.preventDefault()
