@@ -37,11 +37,23 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://bridezilla-demo.vercel.app'),
   title: {
-    default: 'Bridezilla Demo',
+    default: 'Bridezilla - AI-Powered Wedding Planning',
     template: '%s | Bridezilla',
   },
-  description: 'Demo wedding website - Experience Bridezilla',
+  description: 'The modern wedding planner\'s command centre. Manage couples, curate vendors, and share beautiful portals - all powered by AI.',
+  openGraph: {
+    title: 'Bridezilla - AI-Powered Wedding Planning',
+    description: 'The modern wedding planner\'s command centre. Manage couples, curate vendors, and share beautiful portals - all powered by AI.',
+    siteName: 'Bridezilla',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Bridezilla - AI-Powered Wedding Planning',
+    description: 'The modern wedding planner\'s command centre. Manage couples, curate vendors, and share beautiful portals - all powered by AI.',
+  },
 }
 
 export default function RootLayout({
