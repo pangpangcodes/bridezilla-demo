@@ -125,8 +125,9 @@ export default function PlannerDashboard() {
   const handlePlannerStepActivate = useCallback((stepIndex: number) => {
     switch (stepIndex) {
       case 1:
-        // Stay on calendar view for "Your Couples Database"
+        // Switch to list view for "Your Couples Database"
         handleViewChange('couples')
+        setDisplayModeRef.current?.('list')
         break
       case 2:
         // Switch to list view so Bella & Edward row is visible
