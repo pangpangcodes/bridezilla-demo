@@ -73,6 +73,23 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
   const [showEditModal, setShowEditModal] = useState(false)
   const [aiInsight, setAiInsight] = useState<string | null>(null)
   const [aiInsightLoading, setAiInsightLoading] = useState(false)
+  const [tourHighlightInsight, setTourHighlightInsight] = useState(false)
+
+  // Highlight AI insight banner when tour is on "Inside a Couple's File" step
+  useEffect(() => {
+    try {
+      const tourState = localStorage.getItem('bridezilla_demo_tour_planner')
+      if (tourState) {
+        const parsed = JSON.parse(tourState)
+        // completedUpTo === 1 means step 2 ("Inside a Couple's File") is current
+        if (!parsed.allCompleted && parsed.completedUpTo === 1) {
+          setTourHighlightInsight(true)
+          const timer = setTimeout(() => setTourHighlightInsight(false), 6000)
+          return () => clearTimeout(timer)
+        }
+      }
+    } catch {}
+  }, [])
 
   useEffect(() => {
     fetchData()
@@ -654,7 +671,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
             <div className="lg:col-span-2 space-y-6">
 
               {/* AI Insight Banner */}
-              <div className={`${theme.cardBackground} rounded-2xl p-5 ${theme.border} ${theme.borderWidth} shadow-sm relative overflow-hidden`}>
+              <div className={`${theme.cardBackground} rounded-2xl p-5 ${theme.border} ${theme.borderWidth} shadow-sm relative overflow-hidden transition-all duration-700 ${tourHighlightInsight ? `ring-2 ${currentTheme === 'pop' ? 'ring-pink-400' : 'ring-emerald-400'} animate-pulse` : ''}`}>
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-2">
                     <Image
