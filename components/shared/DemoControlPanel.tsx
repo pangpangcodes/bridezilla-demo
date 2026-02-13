@@ -134,7 +134,6 @@ export default function DemoControlPanel({
   const [mounted, setMounted] = useState(false)
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
   const [arrowDirection, setArrowDirection] = useState<'left' | 'right' | 'up' | 'down'>('right')
-  const spotlightIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   // When a highlighted element is clicked, pause spotlight:
   // - actionRequired: hide panel while page navigates (new page takes over)
   // - non-actionRequired: hide spotlight while modal is open, advance on close
@@ -203,24 +202,16 @@ export default function DemoControlPanel({
     }
   }, [currentStep, steps, isOpen])
 
-  useEffect(() => {
-    updateTargetRect()
-    spotlightIntervalRef.current = setInterval(updateTargetRect, 300)
-    return () => {
-      if (spotlightIntervalRef.current) clearInterval(spotlightIntervalRef.current)
-    }
-  }, [updateTargetRect])
-
-  // Also update on scroll / resize
+  // Use rAF loop for smooth spotlight tracking during scroll
   useEffect(() => {
     if (!isOpen) return
-    const handler = () => updateTargetRect()
-    window.addEventListener('scroll', handler, true)
-    window.addEventListener('resize', handler)
-    return () => {
-      window.removeEventListener('scroll', handler, true)
-      window.removeEventListener('resize', handler)
+    let rafId: number
+    const tick = () => {
+      updateTargetRect()
+      rafId = requestAnimationFrame(tick)
     }
+    rafId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafId)
   }, [isOpen, updateTargetRect])
 
   // Global click listener: detect clicks on highlighted element and advance tour
