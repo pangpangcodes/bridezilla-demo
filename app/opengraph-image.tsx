@@ -6,11 +6,24 @@ export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 export default async function Image() {
+  // Design system colours (heirloom theme)
+  const primary = '#1b3b2b'       // primaryColor - dark forest green
+  const pageBg = '#FAF9F6'        // pageBackground
+  const textPrimary = '#1c1917'   // stone-900
+  const textSecondary = '#57534e' // stone-600
+  const textMuted = '#a8a29e'     // stone-400
+  const border = '#e7e5e4'        // stone-200
+
+  // Read logo from local public directory
+  const logoData = await fetch(
+    new URL('../public/images/bridezilla-logo-green.png', import.meta.url)
+  ).then((res) => res.arrayBuffer())
+
   return new ImageResponse(
     (
       <div
         style={{
-          background: 'linear-gradient(135deg, #faf5f0 0%, #f5ede4 50%, #ece3d8 100%)',
+          background: pageBg,
           width: '100%',
           height: '100%',
           display: 'flex',
@@ -21,7 +34,7 @@ export default async function Image() {
           position: 'relative',
         }}
       >
-        {/* Decorative border */}
+        {/* Decorative border matching design system */}
         <div
           style={{
             position: 'absolute',
@@ -29,8 +42,8 @@ export default async function Image() {
             left: '20px',
             right: '20px',
             bottom: '20px',
-            border: '2px solid rgba(120, 100, 80, 0.15)',
-            borderRadius: '24px',
+            border: `1px solid ${border}`,
+            borderRadius: '16px',
             display: 'flex',
           }}
         />
@@ -42,38 +55,60 @@ export default async function Image() {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '24px',
+            gap: '20px',
           }}
         >
-          {/* Logo text */}
+          {/* Logo image */}
+          <img
+            src={logoData as unknown as string}
+            width={80}
+            height={80}
+            style={{ objectFit: 'contain' }}
+          />
+
+          {/* Logo text + divider row */}
           <div
             style={{
-              fontSize: '72px',
-              fontWeight: 400,
-              letterSpacing: '0.3em',
-              color: '#1c1917',
-              textTransform: 'uppercase',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
             }}
           >
-            BRIDEZILLA
+            <div
+              style={{
+                width: '40px',
+                height: '1px',
+                background: textMuted,
+                display: 'flex',
+              }}
+            />
+            <div
+              style={{
+                fontSize: '64px',
+                fontWeight: 400,
+                letterSpacing: '0.3em',
+                color: textPrimary,
+                textTransform: 'uppercase',
+              }}
+            >
+              BRIDEZILLA
+            </div>
+            <div
+              style={{
+                width: '40px',
+                height: '1px',
+                background: textMuted,
+                display: 'flex',
+              }}
+            />
           </div>
-
-          {/* Divider */}
-          <div
-            style={{
-              width: '80px',
-              height: '2px',
-              background: '#1c1917',
-              display: 'flex',
-            }}
-          />
 
           {/* Tagline */}
           <div
             style={{
-              fontSize: '24px',
+              fontSize: '22px',
               fontWeight: 300,
-              color: '#57534e',
+              color: textSecondary,
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
             }}
@@ -81,18 +116,29 @@ export default async function Image() {
             AI-Powered Wedding Planning
           </div>
 
-          {/* Description */}
+          {/* Feature pills - matching primaryButton style */}
           <div
             style={{
-              fontSize: '18px',
-              color: '#78716c',
-              textAlign: 'center',
-              maxWidth: '600px',
-              lineHeight: 1.6,
-              marginTop: '12px',
+              display: 'flex',
+              gap: '12px',
+              marginTop: '16px',
             }}
           >
-            The modern wedding planner's command centre. Manage couples, curate vendors, and share beautiful portals.
+            {['Manage Couples', 'Curate Vendors', 'Share Portals'].map((label) => (
+              <div
+                key={label}
+                style={{
+                  background: primary,
+                  color: 'white',
+                  padding: '10px 24px',
+                  borderRadius: '12px',
+                  fontSize: '16px',
+                  fontWeight: 500,
+                }}
+              >
+                {label}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -105,7 +151,7 @@ export default async function Image() {
             alignItems: 'center',
             gap: '8px',
             fontSize: '14px',
-            color: '#a8a29e',
+            color: textMuted,
             letterSpacing: '0.1em',
           }}
         >
