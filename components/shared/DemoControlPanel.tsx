@@ -52,39 +52,41 @@ function TourSpotlight({
   const padding = 8
   const radius = 10
 
-  const cutoutTop = targetRect.top - padding
-  const cutoutLeft = targetRect.left - padding
+  const cutoutTop = Math.max(0, targetRect.top - padding)
+  const cutoutLeft = Math.max(0, targetRect.left - padding)
   const cutoutWidth = targetRect.width + padding * 2
   const cutoutHeight = targetRect.height + padding * 2
 
   // Position the arrow relative to the cutout (viewport-relative, since fixed)
-  let arrowStyle: React.CSSProperties = {}
+  const arrowSize = 44 // pill diameter
+  const gap = 12
+  let arrowTop = 0
+  let arrowLeft = 0
+
   if (arrowDirection === 'right') {
-    arrowStyle = {
-      position: 'fixed',
-      top: cutoutTop + cutoutHeight / 2 - 22,
-      left: cutoutLeft - 56,
-    }
+    arrowTop = cutoutTop + cutoutHeight / 2 - arrowSize / 2
+    arrowLeft = cutoutLeft - gap - arrowSize
   } else if (arrowDirection === 'left') {
-    arrowStyle = {
-      position: 'fixed',
-      top: cutoutTop + cutoutHeight / 2 - 22,
-      left: cutoutLeft + cutoutWidth + 12,
-    }
+    arrowTop = cutoutTop + cutoutHeight / 2 - arrowSize / 2
+    arrowLeft = cutoutLeft + cutoutWidth + gap
   } else if (arrowDirection === 'up') {
-    // Arrow sits below the element, pointing up
-    arrowStyle = {
-      position: 'fixed',
-      top: cutoutTop + cutoutHeight + 12,
-      left: cutoutLeft + cutoutWidth / 2 - 22,
-    }
+    arrowTop = cutoutTop + cutoutHeight + gap
+    arrowLeft = cutoutLeft + cutoutWidth / 2 - arrowSize / 2
   } else {
-    // down - arrow sits above the element
-    arrowStyle = {
-      position: 'fixed',
-      top: cutoutTop - 56,
-      left: cutoutLeft + cutoutWidth / 2 - 22,
-    }
+    arrowTop = cutoutTop - gap - arrowSize
+    arrowLeft = cutoutLeft + cutoutWidth / 2 - arrowSize / 2
+  }
+
+  // Clamp arrow within viewport
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 400
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 800
+  arrowLeft = Math.max(8, Math.min(arrowLeft, vw - arrowSize - 8))
+  arrowTop = Math.max(8, Math.min(arrowTop, vh - arrowSize - 8))
+
+  const arrowStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: arrowTop,
+    left: arrowLeft,
   }
 
   return (

@@ -368,6 +368,7 @@ export default function VendorsTab() {
                 <span>Add</span>
               </button>
               <button
+                id="tour-ask-bridezilla-vendors-couples-mobile"
                 onClick={() => setShowBulkImport(true)}
                 className={`flex items-center justify-center gap-2 px-3 py-2 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors flex-1 min-w-0`}
               >
