@@ -9,6 +9,7 @@ import VendorsTab from './admin/VendorsTab'
 import SettingsTab from './admin/SettingsTab'
 import DemoControlPanel from '@/components/shared/DemoControlPanel'
 import { COUPLES_TOUR_STEPS } from '@/lib/demo-tour-steps'
+import { useDemoTour } from '@/hooks/useDemoTour'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 
 type AdminView = 'dashboard' | 'rsvp' | 'vendors' | 'settings'
@@ -16,6 +17,15 @@ type AdminView = 'dashboard' | 'rsvp' | 'vendors' | 'settings'
 export default function AdminDashboard() {
   const [currentView, setCurrentView] = useState<AdminView>('dashboard')
   const theme = useThemeStyles()
+
+  const {
+    isOpen: tourIsOpen,
+    currentStep: tourStep,
+    advanceStep,
+    goBack,
+    dismissTour,
+    startTour,
+  } = useDemoTour('bridezilla_demo_tour_couples', COUPLES_TOUR_STEPS.length)
 
   useEffect(() => {
     // Read view from URL query parameter
@@ -58,18 +68,53 @@ export default function AdminDashboard() {
     }
   }
 
+  // Ensure the right view for a given tour step
+  const ensureStepView = useCallback((stepIndex: number) => {
+    switch (stepIndex) {
+      case 0: // Welcome
+      case 1: // Your Dashboard
+        handleViewChange('dashboard')
+        break
+      case 2: // RSVP Tracking (nav highlight)
+        handleViewChange('dashboard')
+        break
+      case 3: // Your Vendor Team (nav highlight)
+        handleViewChange('dashboard')
+        break
+      case 4: // Add Vendors with AI
+        handleViewChange('vendors')
+        break
+      case 5: // All Set
+        handleViewChange('dashboard')
+        break
+    }
+  }, [])
+
+  // Custom back handler with page navigation
+  const handleTourBack = useCallback(() => {
+    const targetStep = tourStep - 1
+    if (targetStep < 0) return
+    goBack()
+    ensureStepView(targetStep)
+  }, [tourStep, goBack, ensureStepView])
+
   const handleCouplesStepActivate = useCallback((stepIndex: number) => {
     switch (stepIndex) {
       case 1:
         handleViewChange('dashboard')
         break
       case 2:
-        handleViewChange('rsvp')
+        // RSVP nav highlight - stay on dashboard so nav is visible
+        handleViewChange('dashboard')
         break
       case 3:
-        handleViewChange('vendors')
+        // Vendor nav highlight - stay on dashboard so nav is visible
+        handleViewChange('dashboard')
         break
       case 4:
+        handleViewChange('vendors')
+        break
+      case 5:
         handleViewChange('dashboard')
         break
     }
@@ -82,6 +127,7 @@ export default function AdminDashboard() {
         currentView={currentView}
         onViewChange={handleViewChange}
         onLogout={handleLogout}
+        onStartTour={startTour}
       />
 
       <div className="relative z-10 pb-12">
@@ -119,6 +165,11 @@ export default function AdminDashboard() {
       <DemoControlPanel
         steps={COUPLES_TOUR_STEPS}
         storageKey="bridezilla_demo_tour_couples"
+        isOpen={tourIsOpen}
+        currentStep={tourStep}
+        onAdvance={advanceStep}
+        onBack={handleTourBack}
+        onDismiss={dismissTour}
         onStepActivate={handleCouplesStepActivate}
       />
     </div>

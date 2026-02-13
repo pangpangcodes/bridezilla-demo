@@ -179,3 +179,46 @@
 .animate-slide-in-from-bottom {
   animation: slideInFromBottom 0.4s ease-out;
 }
+
+/* Tour arrow nudge animations */
+@keyframes nudge-right {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(12px); }
+}
+
+@keyframes nudge-left {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-12px); }
+}
+
+@keyframes nudge-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(12px); }
+}
+
+.animate-nudge-right {
+  animation: nudge-right 1.2s ease-in-out infinite;
+}
+
+.animate-nudge-left {
+  animation: nudge-left 1.2s ease-in-out infinite;
+}
+
+.animate-nudge-down {
+  animation: nudge-down 1.2s ease-in-out infinite;
+}
+
+@keyframes nudge-up {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.animate-nudge-up {
+  animation: nudge-up 1.2s ease-in-out infinite;
+}
+
+/* Tour spotlight pulse ring */
+@keyframes spotlight-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(0,0,0,0.1); }
+}

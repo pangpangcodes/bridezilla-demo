@@ -32,6 +32,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 import DemoControlPanel from '@/components/shared/DemoControlPanel'
 import { PLANNER_TOUR_STEPS } from '@/lib/demo-tour-steps'
+import { useDemoTour } from '@/hooks/useDemoTour'
 import { StatCard } from '@/components/ui/StatCard'
 import VendorCard from '../VendorCard'
 import SearchableMultiSelect from '../SearchableMultiSelect'
@@ -73,23 +74,16 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
   const [showEditModal, setShowEditModal] = useState(false)
   const [aiInsight, setAiInsight] = useState<string | null>(null)
   const [aiInsightLoading, setAiInsightLoading] = useState(false)
-  const [tourHighlightInsight, setTourHighlightInsight] = useState(false)
 
-  // Highlight AI insight banner when tour is on "Inside a Couple's File" step
-  useEffect(() => {
-    try {
-      const tourState = localStorage.getItem('bridezilla_demo_tour_planner')
-      if (tourState) {
-        const parsed = JSON.parse(tourState)
-        // completedUpTo === 1 means step 2 ("Inside a Couple's File") is current
-        if (!parsed.allCompleted && parsed.completedUpTo === 1) {
-          setTourHighlightInsight(true)
-          const timer = setTimeout(() => setTourHighlightInsight(false), 6000)
-          return () => clearTimeout(timer)
-        }
-      }
-    } catch {}
-  }, [])
+  // Tour state
+  const {
+    isOpen: tourIsOpen,
+    currentStep: tourStep,
+    advanceStep,
+    goBack,
+    dismissTour,
+    startTour,
+  } = useDemoTour('bridezilla_demo_tour_planner', PLANNER_TOUR_STEPS.length)
 
   useEffect(() => {
     fetchData()
@@ -250,12 +244,23 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
     }
   }
 
+  // Custom back handler: navigate to planner dashboard for earlier steps
+  const handleTourBack = useCallback(() => {
+    const targetStep = tourStep - 1
+    if (targetStep < 0) return
+    goBack()
+    // Steps 0-2 are on the planner dashboard
+    if (targetStep <= 2) {
+      router.push('/planners?view=couples')
+    }
+  }, [tourStep, goBack, router])
+
   const handleCoupleDetailStepActivate = useCallback((stepIndex: number) => {
     switch (stepIndex) {
       case 4:
         router.push('/planners?view=vendors')
         break
-      case 5:
+      case 6:
         router.push('/planners?view=couples')
         break
     }
@@ -659,6 +664,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                   <Copy size={16} /> Copy Link
                 </button>
                 <button
+                  id="tour-preview-portal"
                   onClick={() => window.open(`/s/${couple.share_link_id}`, '_blank')}
                   className={`flex-1 py-2.5 ${theme.primaryButton} ${theme.textOnPrimary} rounded-lg text-sm font-medium ${theme.primaryButtonHover} flex items-center justify-center gap-2 shadow-sm transition-all`}
                 >
@@ -671,7 +677,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
             <div className="lg:col-span-2 space-y-6">
 
               {/* AI Insight Banner */}
-              <div className={`${theme.cardBackground} rounded-2xl p-5 ${theme.border} ${theme.borderWidth} shadow-sm relative overflow-hidden transition-all duration-700 ${tourHighlightInsight ? `ring-2 ${currentTheme === 'pop' ? 'ring-pink-400' : 'ring-emerald-400'} animate-pulse` : ''}`}>
+              <div className={`${theme.cardBackground} rounded-2xl p-5 ${theme.border} ${theme.borderWidth} shadow-sm relative overflow-hidden`}>
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-2">
                     <Image
@@ -1208,6 +1214,11 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
       <DemoControlPanel
         steps={PLANNER_TOUR_STEPS}
         storageKey="bridezilla_demo_tour_planner"
+        isOpen={tourIsOpen}
+        currentStep={tourStep}
+        onAdvance={advanceStep}
+        onBack={handleTourBack}
+        onDismiss={dismissTour}
         onStepActivate={handleCoupleDetailStepActivate}
       />
     </div>

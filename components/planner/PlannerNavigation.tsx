@@ -2,16 +2,17 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, Compass } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 
 interface PlannerNavigationProps {
   currentView: 'couples' | 'vendors' | 'settings'
   onViewChange: (view: 'couples' | 'vendors' | 'settings') => void
+  onStartTour?: () => void
 }
 
-export default function PlannerNavigation({ currentView, onViewChange }: PlannerNavigationProps) {
+export default function PlannerNavigation({ currentView, onViewChange, onStartTour }: PlannerNavigationProps) {
   const { theme: currentTheme } = useTheme()
   const theme = useThemeStyles()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -51,6 +52,15 @@ export default function PlannerNavigation({ currentView, onViewChange }: Planner
         <div className="flex items-center gap-3 md:gap-8">
           {/* Desktop Navigation */}
           <div className="hidden md:flex gap-8 text-sm font-medium">
+            {onStartTour && (
+              <button
+                onClick={onStartTour}
+                className={`flex items-center gap-1.5 transition-colors ${theme.textSecondary} hover:${theme.textPrimary}`}
+              >
+                <Compass size={15} />
+                Tour
+              </button>
+            )}
             <a
               href="/planners?view=couples"
               onClick={(e) => {
@@ -66,6 +76,7 @@ export default function PlannerNavigation({ currentView, onViewChange }: Planner
               Couples
             </a>
             <a
+              id="tour-nav-vendors"
               href="/planners?view=vendors"
               onClick={(e) => {
                 e.preventDefault()
@@ -110,6 +121,18 @@ export default function PlannerNavigation({ currentView, onViewChange }: Planner
       {mobileMenuOpen && (
         <div className={`md:hidden border-t ${theme.border} ${theme.cardBackground}`}>
           <div className="px-4 py-2 space-y-1">
+            {onStartTour && (
+              <button
+                onClick={() => {
+                  onStartTour()
+                  setMobileMenuOpen(false)
+                }}
+                className={`flex items-center gap-2 w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${theme.textSecondary} hover:bg-stone-50 hover:${theme.textPrimary}`}
+              >
+                <Compass size={15} />
+                Tour
+              </button>
+            )}
             <a
               href="/planners?view=couples"
               onClick={(e) => {

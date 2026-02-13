@@ -439,6 +439,7 @@ export default function VendorsTab() {
               <span className="hidden sm:inline">Add Manually</span>
             </button>
             <button
+              id="tour-ask-bridezilla-vendors-couples"
               onClick={() => setShowBulkImport(true)}
               className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors min-w-[44px]`}
             >

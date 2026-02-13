@@ -72,7 +72,16 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
         .eq('is_active', true)
         .single()
 
-      if (coupleError || !coupleData) {
+      if (coupleError) {
+        // PGRST116 = "not found" from .single() — means the link truly doesn't exist
+        if (coupleError.code === 'PGRST116') {
+          setError('This link is invalid or has expired.')
+        } else {
+          setError('Could not load this page. Please try refreshing.')
+        }
+        return
+      }
+      if (!coupleData) {
         setError('This link is invalid or has expired.')
         return
       }
@@ -95,7 +104,7 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
       }
     } catch (err) {
       console.error('Failed to fetch workspace:', err)
-      setError('Failed to load vendor recommendations.')
+      setError('Could not load this page. Please try refreshing.')
     } finally {
       setLoading(false)
     }
@@ -168,12 +177,12 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
         <div className="py-12 relative z-10">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
-              <div className="bg-red-50 border border-red-200 rounded-2xl p-8">
+              <div className={`${theme.error.bg} border ${theme.border} rounded-2xl p-8`}>
                 <div className="flex items-start gap-4">
-                  <AlertCircle className="text-red-500 flex-shrink-0" size={24} />
+                  <AlertCircle className={`${theme.error.text} flex-shrink-0`} size={24} />
                   <div>
-                    <h3 className="text-xl font-semibold text-red-900 mb-2">Unable to Load</h3>
-                    <p className="text-red-700">{error || 'This link is invalid or has expired.'}</p>
+                    <h3 className={`text-xl font-semibold ${theme.textPrimary} mb-2`}>Unable to Load</h3>
+                    <p className={theme.error.text}>{error || 'This link is invalid or has expired.'}</p>
                   </div>
                 </div>
               </div>

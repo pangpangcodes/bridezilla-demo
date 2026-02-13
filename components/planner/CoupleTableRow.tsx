@@ -29,6 +29,7 @@ interface CoupleTableRowProps {
   onDelete: (coupleId: string) => void
   onRefresh: () => void
   sharedVendorsCounts?: Record<string, {total: number, bookedCategories: number, totalCategories: number}>
+  tourId?: string
 }
 
 export default function CoupleTableRow({
@@ -36,7 +37,8 @@ export default function CoupleTableRow({
   onEdit,
   onDelete,
   onRefresh,
-  sharedVendorsCounts
+  sharedVendorsCounts,
+  tourId
 }: CoupleTableRowProps) {
   const theme = useThemeStyles()
   const router = useRouter()
@@ -266,7 +268,7 @@ export default function CoupleTableRow({
       >
         {/* Couple Names */}
         <td className="px-4 py-4">
-          <span className={`text-sm font-medium ${theme.textPrimary} group-hover:underline group-hover:text-stone-900 transition-all`}>
+          <span id={tourId} className={`text-sm font-medium ${theme.textPrimary} group-hover:underline group-hover:text-stone-900 transition-all`}>
             {couple.couple_names}
           </span>
         </td>

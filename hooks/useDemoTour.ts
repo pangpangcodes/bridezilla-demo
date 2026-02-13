@@ -35,7 +35,7 @@ export function useDemoTour(storageKey: string, totalSteps: number) {
 
     if (isDev) {
       // Dev mode: always show. Read saved position for cross-page
-      // continuity (e.g. PlannerDashboard → CoupleDetail), but
+      // continuity (e.g. PlannerDashboard -> CoupleDetail), but
       // ignore allCompleted so the tour always appears.
       if (saved && saved.completedUpTo >= 0 && !saved.allCompleted) {
         const resumeAt = saved.completedUpTo + 1
@@ -88,9 +88,22 @@ export function useDemoTour(storageKey: string, totalSteps: number) {
     }
   }, [currentStep, totalSteps, storageKey])
 
+  const goBack = useCallback(() => {
+    if (currentStep <= 0) return
+    const prevStep = currentStep - 1
+    writeState(storageKey, { completedUpTo: Math.max(prevStep - 1, -1), allCompleted: false })
+    setCurrentStep(prevStep)
+  }, [currentStep, storageKey])
+
   const dismissTour = useCallback(() => {
     setIsOpen(false)
   }, [])
+
+  const startTour = useCallback(() => {
+    writeState(storageKey, { completedUpTo: -1, allCompleted: false })
+    setCurrentStep(0)
+    setIsOpen(true)
+  }, [storageKey])
 
   const resetTour = useCallback(() => {
     if (typeof window === 'undefined') return
@@ -103,7 +116,9 @@ export function useDemoTour(storageKey: string, totalSteps: number) {
     isOpen,
     currentStep,
     advanceStep,
+    goBack,
     dismissTour,
+    startTour,
     resetTour,
   }
 }

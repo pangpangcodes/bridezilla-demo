@@ -151,8 +151,14 @@ export default function DashboardTab() {
 
   if (error || !data) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-        <p className="text-sm text-red-900">{error || 'Failed to load dashboard'}</p>
+      <div className={`${theme.error.bg} border ${theme.border} rounded-2xl p-8`}>
+        <div className="flex items-start gap-4">
+          <AlertCircle className={`${theme.error.text} flex-shrink-0`} size={24} />
+          <div>
+            <h3 className={`text-lg font-semibold ${theme.textPrimary} mb-1`}>Unable to Load</h3>
+            <p className={`text-sm ${theme.error.text}`}>{error || 'Failed to load dashboard'}</p>
+          </div>
+        </div>
       </div>
     )
   }

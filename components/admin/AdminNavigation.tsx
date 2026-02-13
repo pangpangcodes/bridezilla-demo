@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { Menu, X, ExternalLink } from 'lucide-react'
+import { Menu, X, ExternalLink, Compass } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 
@@ -10,9 +10,10 @@ interface AdminNavigationProps {
   currentView: 'dashboard' | 'rsvp' | 'vendors' | 'settings'
   onViewChange: (view: 'dashboard' | 'rsvp' | 'vendors' | 'settings') => void
   onLogout: () => void
+  onStartTour?: () => void
 }
 
-export default function AdminNavigation({ currentView, onViewChange, onLogout }: AdminNavigationProps) {
+export default function AdminNavigation({ currentView, onViewChange, onLogout, onStartTour }: AdminNavigationProps) {
   const { theme: currentTheme } = useTheme()
   const theme = useThemeStyles()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -50,6 +51,15 @@ export default function AdminNavigation({ currentView, onViewChange, onLogout }:
         <div className="flex items-center gap-3 md:gap-8">
           {/* Desktop Navigation */}
           <div className="hidden md:flex gap-8 text-sm font-medium">
+            {onStartTour && (
+              <button
+                onClick={onStartTour}
+                className={`flex items-center gap-1.5 transition-colors ${theme.navInactive} ${theme.navHover}`}
+              >
+                <Compass className="w-4 h-4" />
+                Tour
+              </button>
+            )}
             <a
               href="/couples?view=dashboard"
               onClick={(e) => {
@@ -65,6 +75,7 @@ export default function AdminNavigation({ currentView, onViewChange, onLogout }:
               Dashboard
             </a>
             <a
+              id="tour-nav-rsvp"
               href="/couples?view=rsvp"
               onClick={(e) => {
                 e.preventDefault()
@@ -79,6 +90,7 @@ export default function AdminNavigation({ currentView, onViewChange, onLogout }:
               RSVP Tracking
             </a>
             <a
+              id="tour-nav-vendors-couples"
               href="/couples?view=vendors"
               onClick={(e) => {
                 e.preventDefault()
@@ -107,6 +119,7 @@ export default function AdminNavigation({ currentView, onViewChange, onLogout }:
               Settings
             </a>
             <a
+              id="tour-nav-view-website"
               href="/demo"
               target="_blank"
               rel="noopener noreferrer"
@@ -140,6 +153,18 @@ export default function AdminNavigation({ currentView, onViewChange, onLogout }:
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-stone-200 bg-white">
           <div className="px-4 py-2 space-y-1">
+            {onStartTour && (
+              <button
+                onClick={() => {
+                  onStartTour()
+                  setMobileMenuOpen(false)
+                }}
+                className={`flex items-center gap-2 w-full text-left px-4 py-3 rounded-lg text-sm font-medium ${theme.textSecondary} hover:bg-stone-50 transition-colors`}
+              >
+                <Compass className="w-4 h-4" />
+                Tour
+              </button>
+            )}
             <a
               href="/couples?view=dashboard"
               onClick={(e) => {

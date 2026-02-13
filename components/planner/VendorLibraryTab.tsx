@@ -415,6 +415,7 @@ export default function VendorLibraryTab() {
 
           {/* Ask Bridezilla Button */}
           <button
+            id="tour-ask-bridezilla-vendors"
             onClick={() => setShowAddModal(true)}
             className={`flex items-center gap-2 px-6 py-2.5 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors`}
           >

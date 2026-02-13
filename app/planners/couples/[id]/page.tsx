@@ -1,16 +1,26 @@
 'use client'
 
-import { use, useEffect } from 'react'
+import { use, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import CoupleDetail from '@/components/planner/CoupleDetail'
 import PlannerNavigation from '@/components/planner/PlannerNavigation'
 import AnimatedHearts from '@/components/AnimatedHearts'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
+import { useDemoTour } from '@/hooks/useDemoTour'
+import { PLANNER_TOUR_STEPS } from '@/lib/demo-tour-steps'
 
 function CoupleDetailContent({ id }: { id: string }) {
   const router = useRouter()
   const theme = useThemeStyles()
+
+  const { startTour } = useDemoTour('bridezilla_demo_tour_planner', PLANNER_TOUR_STEPS.length)
+
+  const handleStartTour = useCallback(() => {
+    // Go back to planner dashboard and start tour from step 0
+    startTour()
+    router.push('/planners?view=couples')
+  }, [startTour, router])
 
   useEffect(() => {
     // Disable browser scroll restoration
@@ -38,6 +48,7 @@ function CoupleDetailContent({ id }: { id: string }) {
       <PlannerNavigation
         currentView="couples"
         onViewChange={handleViewChange}
+        onStartTour={handleStartTour}
       />
       <main className={`${theme.pageBackground} relative min-h-screen overflow-x-hidden`}>
         <AnimatedHearts />
