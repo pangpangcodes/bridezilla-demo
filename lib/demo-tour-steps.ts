@@ -22,7 +22,7 @@ export const PLANNER_TOUR_STEPS: DemoStep[] = [
   {
     title: 'The Shared Portal',
     description:
-      'This is what makes Bridezilla special. Share a branded portal with your couples - they can review vendors, leave feedback, and approve recommendations without needing a login. Try "Preview Portal" below.',
+      'This is what makes Bridezilla special. Share a branded portal with your couples - they can review vendors, leave feedback, and approve recommendations without needing a login. Try "Preview Portal" on the left.',
   },
   {
     title: 'Your Vendor Library',
