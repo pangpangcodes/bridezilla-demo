@@ -28,26 +28,24 @@ export default function AdminNavigation({ currentView, onViewChange, onLogout }:
   return (
     <nav className="bg-white sticky top-0 z-40 border-b border-stone-200">
       <div className="px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-        <div className="flex items-center gap-3 md:gap-6">
-          <div className="flex items-center gap-2 md:gap-3">
-            <Image
-              src={logoSrc}
-              alt="Bridezilla"
-              width={32}
-              height={32}
-              className="object-contain md:w-[40px] md:h-[40px]"
-            />
-            <div className="flex items-baseline gap-2">
-              <span className={`font-heading text-base sm:text-xl md:text-2xl lg:text-3xl tracking-[0.2em] sm:tracking-[0.3em] uppercase ${theme.textPrimary}`}>
-                BRIDEZILLA
-              </span>
-              <span className={`${theme.textMuted} text-xs md:text-sm`}>|</span>
-              <span className={`font-heading text-xs md:text-sm uppercase tracking-wider ${theme.textSecondary}`}>
-                Couples
-              </span>
-            </div>
+        <a href="https://bridezilla-demo.vercel.app/" className="flex items-center gap-2 md:gap-3">
+          <Image
+            src={logoSrc}
+            alt="Bridezilla"
+            width={32}
+            height={32}
+            className="object-contain md:w-[40px] md:h-[40px]"
+          />
+          <div className="flex items-baseline gap-2">
+            <span className={`font-heading text-base sm:text-xl md:text-2xl lg:text-3xl tracking-[0.2em] sm:tracking-[0.3em] uppercase ${theme.textPrimary}`}>
+              BRIDEZILLA
+            </span>
+            <span className={`${theme.textMuted} text-xs md:text-sm`}>|</span>
+            <span className={`font-heading text-xs md:text-sm uppercase tracking-wider ${theme.textSecondary}`}>
+              Couples
+            </span>
           </div>
-        </div>
+        </a>
 
         <div className="flex items-center gap-3 md:gap-8">
           {/* Desktop Navigation */}

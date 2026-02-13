@@ -163,3 +163,19 @@
 .animate-slide-in-right {
   animation: slideInRight 0.3s ease-out;
 }
+
+/* Demo tour slide in from bottom */
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-from-bottom {
+  animation: slideInFromBottom 0.4s ease-out;
+}

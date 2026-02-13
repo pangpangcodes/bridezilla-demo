@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
+  AlertCircle,
   Calendar,
   MapPin,
   Mail,
@@ -29,6 +30,8 @@ import {
 import { supabase } from '@/lib/supabase-client'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
+import DemoControlPanel from '@/components/shared/DemoControlPanel'
+import { PLANNER_TOUR_STEPS } from '@/lib/demo-tour-steps'
 import { StatCard } from '@/components/ui/StatCard'
 import VendorCard from '../VendorCard'
 import SearchableMultiSelect from '../SearchableMultiSelect'
@@ -50,6 +53,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
   const [couple, setCouple] = useState<PlannerCouple | null>(null)
   const [vendors, setVendors] = useState<SharedVendor[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'vendors'>('overview')
   const [selectedCategory, setSelectedCategory] = useState<string>('All')
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string[]>([])
@@ -76,6 +80,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
 
   const fetchData = async () => {
     try {
+      setError(null)
       setLoading(true)
       const token = sessionStorage.getItem('planner_auth')
 
@@ -84,27 +89,31 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const coupleData = await coupleResponse.json()
-      if (coupleData.success) {
-        setCouple(coupleData.data)
-        document.title = `${coupleData.data.couple_names} | Bridezilla`
+      if (!coupleData.success) {
+        setError('Could not load couple details. Please try refreshing the page.')
+        return
+      }
 
-        // Fetch vendors with library vendor details using the couple's UUID
-        const { data: vendorsData, error: vendorsError } = await supabase
-          .from('shared_vendors')
-          .select('*, vendor_library:planner_vendor_library!vendor_library_id(*)')
-          .eq('planner_couple_id', coupleData.data.id)
-          .order('vendor_type', { ascending: true })
+      setCouple(coupleData.data)
+      document.title = `${coupleData.data.couple_names} | Bridezilla`
 
-        if (vendorsError) {
-          console.error('Vendors fetch error:', vendorsError)
-        } else {
-          const vList = vendorsData || []
-          setVendors(vList)
-          fetchInsight(coupleData.data, vList)
-        }
+      // Fetch vendors with library vendor details using the couple's UUID
+      const { data: vendorsData, error: vendorsError } = await supabase
+        .from('shared_vendors')
+        .select('*, vendor_library:planner_vendor_library!vendor_library_id(*)')
+        .eq('planner_couple_id', coupleData.data.id)
+        .order('vendor_type', { ascending: true })
+
+      if (vendorsError) {
+        console.error('Vendors fetch error:', vendorsError)
+      } else {
+        const vList = vendorsData || []
+        setVendors(vList)
+        fetchInsight(coupleData.data, vList)
       }
     } catch (error) {
       console.error('Failed to fetch data:', error)
+      setError('Could not load couple details. Please try refreshing the page.')
     } finally {
       setLoading(false)
     }
@@ -223,6 +232,17 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
       navigator.clipboard.writeText(link)
     }
   }
+
+  const handleCoupleDetailStepActivate = useCallback((stepIndex: number) => {
+    switch (stepIndex) {
+      case 4:
+        router.push('/planners?view=vendors')
+        break
+      case 5:
+        router.push('/planners?view=couples')
+        break
+    }
+  }, [router])
 
   const handleShareVendors = async () => {
     if (!couple) return
@@ -363,6 +383,22 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
         message: error.message || 'Please try again.'
       })
     }
+  }
+
+  if (error && !loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className={`${theme.error.bg} border ${theme.border} rounded-2xl p-8`}>
+          <div className="flex items-start gap-4">
+            <AlertCircle className={`${theme.error.text} flex-shrink-0`} size={24} />
+            <div>
+              <h3 className={`text-lg font-semibold ${theme.textPrimary} mb-1`}>Unable to Load</h3>
+              <p className={`text-sm ${theme.error.text}`}>{error}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (loading || !couple) {
@@ -1151,6 +1187,12 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
           onClose={() => setNotification(null)}
         />
       )}
+
+      <DemoControlPanel
+        steps={PLANNER_TOUR_STEPS}
+        storageKey="bridezilla_demo_tour_planner"
+        onStepActivate={handleCoupleDetailStepActivate}
+      />
     </div>
   )
 }

@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import AnimatedHearts from './AnimatedHearts'
 import AdminNavigation from './admin/AdminNavigation'
 import DashboardTab from './admin/DashboardTab'
 import RSVPTab from './admin/RSVPTab'
 import VendorsTab from './admin/VendorsTab'
 import SettingsTab from './admin/SettingsTab'
+import DemoControlPanel from '@/components/shared/DemoControlPanel'
+import { COUPLES_TOUR_STEPS } from '@/lib/demo-tour-steps'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 
 type AdminView = 'dashboard' | 'rsvp' | 'vendors' | 'settings'
@@ -56,6 +58,23 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleCouplesStepActivate = useCallback((stepIndex: number) => {
+    switch (stepIndex) {
+      case 1:
+        handleViewChange('dashboard')
+        break
+      case 2:
+        handleViewChange('rsvp')
+        break
+      case 3:
+        handleViewChange('vendors')
+        break
+      case 4:
+        handleViewChange('dashboard')
+        break
+    }
+  }, [])
+
   return (
     <div className={`min-h-screen ${theme.pageBackground} relative`}>
       <AnimatedHearts />
@@ -96,6 +115,12 @@ export default function AdminDashboard() {
           </div>
         </section>
       </div>
+
+      <DemoControlPanel
+        steps={COUPLES_TOUR_STEPS}
+        storageKey="bridezilla_demo_tour_couples"
+        onStepActivate={handleCouplesStepActivate}
+      />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 # Bridezilla Design System (v3.0 - Optimized for Claude Code)
 
 **Last Updated:** February 11, 2026
-**Version:** 3.0 (Optimized for LLM consumption)
+**Version:** 3.3
 
 ---
 
@@ -1109,7 +1109,94 @@ Therefore:
 
 ---
 
+## 🎓 DemoControlPanel (Guided Tour)
+
+**Files:**
+- Component: `components/shared/DemoControlPanel.tsx`
+- Hook: `hooks/useDemoTour.ts`
+- Steps: `lib/demo-tour-steps.ts`
+
+### Overview
+
+A floating guided tour panel that auto-shows on first visit, walks users through key navigation areas, and resumes on return visits if the user engaged with at least 2 steps. Rendered via `createPortal` for z-index safety.
+
+### Props
+
+```tsx
+interface DemoControlPanelProps {
+  steps: DemoStep[]           // { title: string, description: string }
+  storageKey: string           // localStorage key for persistence
+  onStepActivate?: (stepIndex: number) => void  // parent handles navigation
+}
+```
+
+### localStorage Schema
+
+Two independent keys:
+- `bridezilla_demo_tour_planner` — planner portal
+- `bridezilla_demo_tour_couples` — couples portal
+
+```ts
+interface TourState {
+  completedUpTo: number  // -1 = never started
+  allCompleted: boolean
+}
+```
+
+### Auto-Show Logic
+
+| Condition | Behaviour |
+|-----------|-----------|
+| No key in localStorage | First visit — show at step 0 |
+| `allCompleted === true` | Don't show |
+| `completedUpTo >= 1` and `!allCompleted` | Resume at `completedUpTo + 1` |
+| `completedUpTo < 1` | Don't show |
+
+### Theme Tokens Used
+
+- `theme.cardBackground` — panel background
+- `theme.border` + `theme.borderWidth` — panel border
+- `theme.primaryButton` — progress bar fill + "Next Step" button
+- `theme.primaryButtonHover` — button hover
+- `theme.textOnPrimary` — button text
+- `theme.textPrimary` — title
+- `theme.textSecondary` — description
+- `theme.textMuted` — step badge + "Skip Tour"
+
+Progress bar track: `bg-stone-100` (semantic neutral, consistent across themes).
+
+### Responsive
+
+- Desktop: `fixed bottom-6 right-6 w-96` with `rounded-2xl`
+- Mobile: `fixed bottom-0 left-0 right-0 w-full` with `rounded-t-2xl`
+
+### Usage
+
+```tsx
+import DemoControlPanel from '@/components/shared/DemoControlPanel'
+import { PLANNER_TOUR_STEPS } from '@/lib/demo-tour-steps'
+
+<DemoControlPanel
+  steps={PLANNER_TOUR_STEPS}
+  storageKey="bridezilla_demo_tour_planner"
+  onStepActivate={(stepIndex) => { /* navigate */ }}
+/>
+```
+
+### Cross-Page Continuity (Planner Tour)
+
+The planner tour spans PlannerDashboard and CoupleDetail. Both mount `DemoControlPanel` with the same `storageKey`. When step 2 navigates to CoupleDetail, the panel on PlannerDashboard unmounts; CoupleDetail reads `completedUpTo` from localStorage and resumes at the correct step.
+
+---
+
 ## 📝 Changelog
+
+**v3.3 (Feb 12, 2026)** - DemoControlPanel (Guided Tour)
+- Added DemoControlPanel component with portal rendering
+- Added useDemoTour hook with localStorage persistence and auto-show logic
+- Added tour step definitions for planner (6 steps) and couples (5 steps)
+- Documented cross-page continuity for planner tour
+- Added slideInFromBottom animation to globals.css
 
 **v3.2 (Feb 11, 2026)** - Mobile & Responsive Design
 - Added comprehensive Mobile & Responsive Design section

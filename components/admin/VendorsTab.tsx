@@ -19,6 +19,7 @@ export default function VendorsTab() {
   const { theme: currentTheme } = useTheme()
   const theme = useThemeStyles()
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [stats, setStats] = useState<VendorStats | null>(null)
   const [typeFilter, setTypeFilter] = useState<string[]>([])
@@ -68,9 +69,15 @@ export default function VendorsTab() {
   }, [vendors, loading, scrollToVendorId])
 
   const fetchVendors = async () => {
+    setError(null)
     setLoading(true)
     try {
-      const { data: rawVendors } = await supabase.from('vendors').select('*')
+      const { data: rawVendors, error: supabaseError } = await supabase.from('vendors').select('*')
+
+      if (supabaseError || !rawVendors) {
+        setError('Could not load vendors. Please try refreshing the page.')
+        return
+      }
 
       // Map database fields to component expected fields
       const allVendors = (rawVendors || []).map((v: any) => ({
@@ -101,6 +108,7 @@ export default function VendorsTab() {
       setStats(stats)
     } catch (err) {
       console.error('Fetch error:', err)
+      setError('Could not load vendors. Please try refreshing the page.')
     } finally {
       setLoading(false)
     }
@@ -299,68 +307,73 @@ export default function VendorsTab() {
         {/* Mobile: Stacked layout with inline dropdown */}
         <div className="lg:hidden">
           <div className="flex flex-col gap-2">
-            <SearchableMultiSelect
-              options={VENDOR_TYPES.map(type => ({ value: type, label: type }))}
-              selectedValues={typeFilter}
-              onChange={handleTypeFilterChange}
-              placeholder="Filter by type..."
-              allLabel="All Types"
-              className="w-full"
-              inlineOnMobile={true}
-            />
-            <div className="flex gap-2 items-center overflow-x-auto pb-1">
-            <div className={`flex items-center gap-1.5 px-2 py-2 ${theme.border} ${theme.borderWidth} rounded-xl ${theme.cardBackground} flex-shrink-0`}>
-              <label className="flex items-center gap-1 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={currencyDisplay === 'eur' || currencyDisplay === 'both'}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setCurrencyDisplay(currencyDisplay === 'cad' ? 'both' : 'eur')
-                    } else {
-                      setCurrencyDisplay('cad')
-                    }
-                  }}
-                  className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
-                />
-                <span className={`text-xs font-medium ${theme.textPrimary}`}>EUR</span>
-              </label>
-              <label className="flex items-center gap-1 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={currencyDisplay === 'cad' || currencyDisplay === 'both'}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setCurrencyDisplay(currencyDisplay === 'eur' ? 'both' : 'cad')
-                    } else {
-                      setCurrencyDisplay('eur')
-                    }
-                  }}
-                  className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
-                />
-                <span className={`text-xs font-medium ${theme.textPrimary}`}>USD</span>
-              </label>
+            {/* Top row: Type filter + Currency toggles */}
+            <div className="flex gap-2 items-center">
+              <SearchableMultiSelect
+                options={VENDOR_TYPES.map(type => ({ value: type, label: type }))}
+                selectedValues={typeFilter}
+                onChange={handleTypeFilterChange}
+                placeholder="Filter by type..."
+                allLabel="All Types"
+                className="flex-1 min-w-0"
+                inlineOnMobile={true}
+              />
+              <div className={`flex items-center gap-1.5 px-2 py-2 ${theme.border} ${theme.borderWidth} rounded-xl ${theme.cardBackground} flex-shrink-0`}>
+                <label className="flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={currencyDisplay === 'eur' || currencyDisplay === 'both'}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setCurrencyDisplay(currencyDisplay === 'cad' ? 'both' : 'eur')
+                      } else {
+                        setCurrencyDisplay('cad')
+                      }
+                    }}
+                    className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                  />
+                  <span className={`text-xs font-medium ${theme.textPrimary}`}>EUR</span>
+                </label>
+                <label className="flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={currencyDisplay === 'cad' || currencyDisplay === 'both'}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setCurrencyDisplay(currencyDisplay === 'eur' ? 'both' : 'cad')
+                      } else {
+                        setCurrencyDisplay('eur')
+                      }
+                    }}
+                    className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                  />
+                  <span className={`text-xs font-medium ${theme.textPrimary}`}>USD</span>
+                </label>
+              </div>
             </div>
-            <button
-              onClick={handleExportCSV}
-              className={`flex items-center justify-center gap-2 px-3 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors min-w-[44px] flex-shrink-0`}
-            >
-              <Download className="w-4 h-4" />
-            </button>
-            <div className="flex gap-2 ml-auto flex-shrink-0">
+
+            {/* Bottom row: Export + Add + Ask Bridezilla */}
+            <div className="flex gap-2">
+              <button
+                onClick={handleExportCSV}
+                className={`flex items-center justify-center px-3 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors`}
+              >
+                <Download className="w-4 h-4" />
+              </button>
               <button
                 onClick={handleAddVendor}
-                className={`flex items-center justify-center gap-2 px-3 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors`}
+                className={`flex items-center justify-center gap-2 px-3 py-2 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors flex-shrink-0`}
               >
-                <Plus className="w-4 h-4" /> Add
+                <Plus className="w-4 h-4" />
+                <span>Add</span>
               </button>
               <button
                 onClick={() => setShowBulkImport(true)}
-                className={`flex items-center justify-center gap-2 px-3 py-2 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors`}
+                className={`flex items-center justify-center gap-2 px-3 py-2 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors flex-1 min-w-0`}
               >
-                <img src={currentTheme === 'pop' ? '/images/bridezilla-logo-circle.svg' : '/images/bridezilla-logo-simple.svg'} alt="Bridezilla" className="w-5 h-5 object-contain" /> Ask Bridezilla
+                <img src={currentTheme === 'pop' ? '/images/bridezilla-logo-circle.svg' : '/images/bridezilla-logo-simple.svg'} alt="Bridezilla" className="w-5 h-5 object-contain flex-shrink-0" />
+                <span className="truncate">Ask Bridezilla</span>
               </button>
-            </div>
             </div>
           </div>
         </div>
@@ -741,6 +754,20 @@ export default function VendorsTab() {
                 <tr>
                   <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
                     Loading...
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={9} className="px-4 py-8">
+                    <div className={`${theme.error.bg} border ${theme.border} rounded-2xl p-8`}>
+                      <div className="flex items-start gap-4">
+                        <AlertCircle className={`${theme.error.text} flex-shrink-0`} size={24} />
+                        <div>
+                          <h3 className={`text-lg font-semibold ${theme.textPrimary} mb-1`}>Unable to Load</h3>
+                          <p className={`text-sm ${theme.error.text}`}>{error}</p>
+                        </div>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ) : vendors.length === 0 ? (

@@ -1,16 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import AnimatedHearts from '@/components/AnimatedHearts'
 import PlannerNavigation from './PlannerNavigation'
 import CouplesCalendarView from './CouplesCalendarView'
 import VendorLibraryTab from './VendorLibraryTab'
 import SettingsTab from './SettingsTab'
+import DemoControlPanel from '@/components/shared/DemoControlPanel'
+import { PLANNER_TOUR_STEPS } from '@/lib/demo-tour-steps'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 
 export default function PlannerDashboard() {
   const theme = useThemeStyles()
+  const router = useRouter()
   const [currentView, setCurrentView] = useState<'couples' | 'vendors' | 'settings'>('couples')
+  const [firstCoupleId, setFirstCoupleId] = useState<string | null>(null)
 
   // Listen for view changes from URL
   useEffect(() => {
@@ -43,6 +48,26 @@ export default function PlannerDashboard() {
   }, [])
 
 
+  // Fetch first couple ID for tour navigation
+  useEffect(() => {
+    const fetchFirstCouple = async () => {
+      try {
+        const token = sessionStorage.getItem('planner_auth')
+        if (!token) return
+        const res = await fetch('/api/planner/couples', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        })
+        const data = await res.json()
+        if (data.success && data.data?.length > 0) {
+          setFirstCoupleId(data.data[0].id)
+        }
+      } catch {
+        // Silently fail — tour will fall back
+      }
+    }
+    fetchFirstCouple()
+  }, [])
+
   const handleViewChange = (view: 'couples' | 'vendors' | 'settings') => {
     setCurrentView(view)
     if (typeof window !== 'undefined') {
@@ -51,6 +76,27 @@ export default function PlannerDashboard() {
       window.history.pushState({}, '', url)
     }
   }
+
+  const handlePlannerStepActivate = useCallback((stepIndex: number) => {
+    switch (stepIndex) {
+      case 1:
+        handleViewChange('couples')
+        break
+      case 2:
+        if (firstCoupleId) {
+          router.push(`/planners/couples/${firstCoupleId}`)
+        } else {
+          handleViewChange('couples')
+        }
+        break
+      case 4:
+        handleViewChange('vendors')
+        break
+      case 5:
+        handleViewChange('couples')
+        break
+    }
+  }, [firstCoupleId, router])
 
   // Show dashboard
   return (
@@ -89,6 +135,12 @@ export default function PlannerDashboard() {
           </div>
         </section>
       </div>
+
+      <DemoControlPanel
+        steps={PLANNER_TOUR_STEPS}
+        storageKey="bridezilla_demo_tour_planner"
+        onStepActivate={handlePlannerStepActivate}
+      />
     </div>
   )
 }

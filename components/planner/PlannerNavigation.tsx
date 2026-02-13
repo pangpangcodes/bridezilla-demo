@@ -29,7 +29,7 @@ export default function PlannerNavigation({ currentView, onViewChange }: Planner
   return (
     <nav className={`${theme.cardBackground} sticky top-0 z-40 border-b ${theme.border}`}>
       <div className="px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-        <div className="flex items-center gap-2 md:gap-3">
+        <a href="https://bridezilla-demo.vercel.app/" className="flex items-center gap-2 md:gap-3">
           <Image
             src={logoSrc}
             alt="Bridezilla"
@@ -46,7 +46,7 @@ export default function PlannerNavigation({ currentView, onViewChange }: Planner
               Planners
             </span>
           </div>
-        </div>
+        </a>
 
         <div className="flex items-center gap-3 md:gap-8">
           {/* Desktop Navigation */}

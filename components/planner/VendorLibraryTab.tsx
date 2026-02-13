@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { Plus, Users, Package, Clock, Search } from 'lucide-react'
+import { Plus, Users, Package, Clock, Search, AlertCircle } from 'lucide-react'
 import { VendorLibrary, TagWithCount } from '@/types/planner'
 import { VENDOR_TYPES } from '@/lib/vendorTypes'
 import VendorLibraryCard from './VendorLibraryCard'
@@ -20,6 +20,7 @@ export default function VendorLibraryTab() {
   const [vendors, setVendors] = useState<VendorLibrary[]>([])
   const [filteredVendors, setFilteredVendors] = useState<VendorLibrary[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showManualAdd, setShowManualAdd] = useState(false)
 
@@ -67,6 +68,7 @@ export default function VendorLibraryTab() {
   }, [vendors, searchQuery, selectedType, selectedTag])
 
   const fetchVendors = async () => {
+    setError(null)
     setLoading(true)
     try {
       const token = sessionStorage.getItem('planner_auth')
@@ -82,9 +84,12 @@ export default function VendorLibraryTab() {
       if (data.success) {
         setVendors(data.data)
         calculateStats(data.data)
+      } else {
+        setError('Could not load your vendor library. Please try refreshing the page.')
       }
     } catch (error) {
       console.error('Failed to fetch vendors:', error)
+      setError('Could not load your vendor library. Please try refreshing the page.')
     } finally {
       setLoading(false)
     }
@@ -314,25 +319,25 @@ export default function VendorLibraryTab() {
             {/* Add Manually Button */}
             <button
               onClick={() => setShowManualAdd(true)}
-              className={`flex items-center justify-center gap-2 px-4 py-2.5 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors flex-1`}
+              className={`flex items-center justify-center gap-2 px-3 py-2.5 ${theme.secondaryButton} rounded-xl text-sm font-medium ${theme.secondaryButtonHover} transition-colors flex-1 min-w-0`}
             >
-              <Plus className="w-4 h-4" />
-              <span>Add Manually</span>
+              <Plus className="w-4 h-4 flex-shrink-0" />
+              <span>Add</span>
             </button>
 
             {/* Ask Bridezilla Button */}
             <button
               onClick={() => setShowAddModal(true)}
-              className={`flex items-center justify-center gap-2 px-4 py-2.5 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors flex-1`}
+              className={`flex items-center justify-center gap-2 px-3 py-2.5 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-xl text-sm font-medium transition-colors flex-1 min-w-0`}
             >
               <Image
-                src="/images/bridezilla-logo-green.png"
+                src={currentTheme === 'pop' ? '/images/bridezilla-logo-circle.svg' : '/images/bridezilla-logo-simple.svg'}
                 alt="Bridezilla"
                 width={20}
                 height={20}
-                className="object-contain"
+                className="object-contain flex-shrink-0"
               />
-              <span>Ask Bridezilla</span>
+              <span className="truncate">Ask Bridezilla</span>
             </button>
           </div>
         </div>
@@ -426,7 +431,17 @@ export default function VendorLibraryTab() {
       </div>
 
       {/* Vendor Grid */}
-      {loading ? (
+      {error && !loading ? (
+        <div className={`${theme.error.bg} border ${theme.border} rounded-2xl p-8`}>
+          <div className="flex items-start gap-4">
+            <AlertCircle className={`${theme.error.text} flex-shrink-0`} size={24} />
+            <div>
+              <h3 className={`text-lg font-semibold ${theme.textPrimary} mb-1`}>Unable to Load</h3>
+              <p className={`text-sm ${theme.error.text}`}>{error}</p>
+            </div>
+          </div>
+        </div>
+      ) : loading ? (
         <div className={`flex items-center justify-center py-12 ${theme.textMuted}`}>
           Loading vendors...
         </div>
