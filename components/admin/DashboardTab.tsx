@@ -281,8 +281,9 @@ export default function DashboardTab() {
                   `Due in ${reminder.days_until_due}d`
 
                 return (
-                  <div key={i} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 p-3 rounded-lg border ${bgColor}`}>
-                    <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                  <div key={i} className={`flex flex-col gap-1.5 sm:gap-0 p-3 rounded-lg border ${bgColor}`}>
+                    {/* Row 1: Date badge + Vendor name */}
+                    <div className="flex items-center gap-2 md:gap-3">
                       <div className="flex-shrink-0">
                         <div className={`text-xs font-semibold px-2 py-1 rounded ${badgeColor}`}>
                           {(() => {
@@ -292,16 +293,25 @@ export default function DashboardTab() {
                           })()}
                         </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className={`text-sm font-medium ${textColor} truncate`}>
-                          {reminder.vendor_name || reminder.vendor_type}
-                        </p>
-                        <p className={`text-xs ${theme.textSecondary} truncate`}>
-                          {reminder.payment_description}
-                        </p>
+                      <p className={`text-sm font-medium ${textColor} truncate min-w-0 flex-1`}>
+                        {reminder.vendor_name || reminder.vendor_type}
+                      </p>
+                      {/* Desktop: amount + status inline */}
+                      <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
+                        <span className={`text-sm font-semibold ${textColor}`}>
+                          {formatCurrency(reminder.amount, reminder.currency)} {reminder.currency}
+                        </span>
+                        <span className={`text-xs font-semibold px-2 py-1 rounded ${badgeColor}`}>
+                          {statusText}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-shrink-0 pl-10 sm:pl-0">
+                    {/* Row 2: Payment description */}
+                    <p className={`text-xs ${theme.textSecondary} truncate pl-10 sm:pl-11`}>
+                      {reminder.payment_description}
+                    </p>
+                    {/* Row 3 (mobile only): Amount + status */}
+                    <div className="flex sm:hidden items-center justify-between pl-10">
                       <span className={`text-sm font-semibold ${textColor}`}>
                         {formatCurrency(reminder.amount, reminder.currency)} {reminder.currency}
                       </span>
