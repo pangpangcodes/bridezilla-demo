@@ -50,21 +50,21 @@ const montserrat = Montserrat({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://bridezilla-demo.vercel.app'),
+  metadataBase: new URL('https://ksmt-demo.vercel.app'),
   title: {
-    default: 'Bridezilla - The AI Powered Workspace for Modern Wedding Planning',
-    template: '%s | Bridezilla',
+    default: 'ksmt - The AI Powered Workspace for Modern Wedding Planning',
+    template: '%s | ksmt',
   },
   description: 'The AI powered workspace for modern wedding planning. For planners and couples.',
   openGraph: {
-    title: 'Bridezilla - The AI Powered Workspace for Modern Wedding Planning',
+    title: 'ksmt - The AI Powered Workspace for Modern Wedding Planning',
     description: 'The AI powered workspace for modern wedding planning. For planners and couples.',
-    siteName: 'Bridezilla',
+    siteName: 'ksmt',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Bridezilla - The AI Powered Workspace for Modern Wedding Planning',
+    title: 'ksmt - The AI Powered Workspace for Modern Wedding Planning',
     description: 'The AI powered workspace for modern wedding planning. For planners and couples.',
   },
 }

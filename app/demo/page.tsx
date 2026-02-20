@@ -8,8 +8,8 @@ import FAQ from '@/components/FAQ'
 import Footer from '@/components/Footer'
 
 export const metadata = {
-  title: 'Bella & Edward | Bridezilla Wedding Website',
-  description: 'Bella and Edward\'s wedding website - powered by Bridezilla.',
+  title: 'Bella & Edward | ksmt Wedding Website',
+  description: 'Bella and Edward\'s wedding website - powered by ksmt.',
 }
 
 export default function Home() {

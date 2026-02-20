@@ -29,10 +29,10 @@ export default function Footer() {
             </p>
 
             <div className="flex items-center justify-center gap-2">
-              <p className="text-xs text-gray-500">Made with love by Bridezilla</p>
+              <p className="text-xs text-gray-500">Made with love by ksmt</p>
               <Image
-                src="/images/bridezilla-logo-circle.svg"
-                alt="Bridezilla"
+                src="/images/ksmt-logo-circle.svg"
+                alt="ksmt"
                 width={20}
                 height={20}
                 className="object-contain"

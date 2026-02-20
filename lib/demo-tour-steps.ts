@@ -14,8 +14,8 @@ export const PLANNER_TOUR_STEPS: DemoStep[] = [
   {
     title: 'Your Couples Database',
     description:
-      'All your couples at a glance. Try "Ask Bridezilla" to add a new couple - just paste their details and our AI organizes everything for you.',
-    highlightId: 'tour-ask-bridezilla-couples',
+      'All your couples at a glance. Try "Ask AI" to add a new couple - just paste their details and our AI organizes everything for you.',
+    highlightId: 'tour-ask-ksmt-couples',
   },
   {
     title: 'Inside a Couple\'s File',
@@ -27,7 +27,7 @@ export const PLANNER_TOUR_STEPS: DemoStep[] = [
   {
     title: 'The Shared Portal',
     description:
-      'This is what makes Bridezilla special. Click "Preview Portal" to see what your couple sees - they can review vendors and approve recommendations without needing a login.',
+      'This is what makes ksmt special. Click "Preview Portal" to see what your couple sees - they can review vendors and approve recommendations without needing a login.',
     highlightId: 'tour-preview-portal',
     actionRequired: true,
   },
@@ -41,8 +41,8 @@ export const PLANNER_TOUR_STEPS: DemoStep[] = [
   {
     title: 'Add Vendors with AI',
     description:
-      'Hit "Ask Bridezilla" to add vendors instantly - upload any PDF files or input any text and AI does the rest.',
-    highlightId: 'tour-ask-bridezilla-vendors',
+      'Hit "Ask AI" to add vendors instantly - upload any PDF files or input any text and AI does the rest.',
+    highlightId: 'tour-ask-ksmt-vendors',
   },
   {
     title: 'You\'re All Set!',
@@ -79,8 +79,8 @@ export const COUPLES_TOUR_STEPS: DemoStep[] = [
   {
     title: 'Add Vendors with AI',
     description:
-      'Hit "Ask Bridezilla" to add vendors instantly - just paste your vendor details and AI organizes everything for you.',
-    highlightId: 'tour-ask-bridezilla-vendors-couples',
+      'Hit "Ask AI" to add vendors instantly - just paste your vendor details and AI organizes everything for you.',
+    highlightId: 'tour-ask-ksmt-vendors-couples',
   },
   {
     title: 'You\'re All Set!',

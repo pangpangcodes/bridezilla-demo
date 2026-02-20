@@ -27,7 +27,7 @@ export default function PlannerDashboard() {
     goBack,
     dismissTour,
     startTour,
-  } = useDemoTour('bridezilla_demo_tour_planner', PLANNER_TOUR_STEPS.length)
+  } = useDemoTour('ksmt_demo_tour_planner', PLANNER_TOUR_STEPS.length)
 
   // Listen for view changes from URL
   useEffect(() => {
@@ -179,7 +179,7 @@ export default function PlannerDashboard() {
 
       <DemoControlPanel
         steps={PLANNER_TOUR_STEPS}
-        storageKey="bridezilla_demo_tour_planner"
+        storageKey="ksmt_demo_tour_planner"
         isOpen={tourIsOpen}
         currentStep={tourStep}
         onAdvance={advanceStep}

@@ -14,7 +14,7 @@ function CoupleDetailContent({ id }: { id: string }) {
   const router = useRouter()
   const theme = useThemeStyles()
 
-  const { startTour } = useDemoTour('bridezilla_demo_tour_planner', PLANNER_TOUR_STEPS.length)
+  const { startTour } = useDemoTour('ksmt_demo_tour_planner', PLANNER_TOUR_STEPS.length)
 
   const handleStartTour = useCallback(() => {
     // Go back to planner dashboard and start tour from step 0

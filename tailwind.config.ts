@@ -15,7 +15,7 @@ const config: Config = {
     'text-white/60',
     'hover:text-white',
     // Pop theme navigation colors
-    'text-bridezilla-orange',
+    'text-ksmt-orange',
     // Heirloom theme button colors
     'bg-ksmt-brown',
     'hover:bg-ksmt-brown-hover',
@@ -26,9 +26,9 @@ const config: Config = {
       colors: {
         'bridezilla-blue': '#5B9BD5',
         'bridezilla-pink': '#ec4899',
-        'bridezilla-orange': '#f97316',
-        'bridezilla-light-pink': '#FDE6F1',
-        'bridezilla-light-blue': '#E3F2FD',
+        'ksmt-orange': '#f97316',
+        'ksmt-light-pink': '#FDE6F1',
+        'ksmt-light-blue': '#E3F2FD',
         'ksmt': {
           brown:          '#2b2421',
           'brown-hover':  '#3d342e',

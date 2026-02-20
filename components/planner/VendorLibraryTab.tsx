@@ -6,7 +6,7 @@ import { Plus, Users, Package, Clock, Search, AlertCircle } from 'lucide-react'
 import { VendorLibrary, TagWithCount } from '@/types/planner'
 import { VENDOR_TYPES } from '@/lib/vendorTypes'
 import VendorLibraryCard from './VendorLibraryCard'
-import AskBridezillaVendorModal from './AskBridezillaVendorModal'
+import AskAIVendorModal from './AskAIVendorModal'
 import AddVendorModal from './AddVendorModal'
 import Notification from './Notification'
 import SearchableMultiSelect from '../SearchableMultiSelect'
@@ -327,7 +327,7 @@ export default function VendorLibraryTab() {
 
             {/* Ask AI Button */}
             <button
-              id="tour-ask-bridezilla-vendors-mobile"
+              id="tour-ask-ksmt-vendors-mobile"
               onClick={() => setShowAddModal(true)}
               className="flex items-center justify-center gap-2 px-3 py-[7px] bg-ksmt-crimson hover:bg-[#7a2520] text-white rounded-xl text-sm font-medium transition-colors flex-1 min-w-0"
             >
@@ -416,7 +416,7 @@ export default function VendorLibraryTab() {
 
           {/* Ask AI Button */}
           <button
-            id="tour-ask-bridezilla-vendors"
+            id="tour-ask-ksmt-vendors"
             onClick={() => setShowAddModal(true)}
             className="flex items-center gap-2 px-6 py-[7px] bg-ksmt-crimson hover:bg-[#7a2520] text-white rounded-xl text-sm font-medium transition-colors"
           >
@@ -500,7 +500,7 @@ export default function VendorLibraryTab() {
 
       {/* Ask AI Modal */}
       {showAddModal && (
-        <AskBridezillaVendorModal
+        <AskAIVendorModal
           existingVendors={vendors}
           onClose={() => setShowAddModal(false)}
           onSuccess={() => {

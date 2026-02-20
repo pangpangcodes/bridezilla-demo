@@ -28,14 +28,14 @@ export default function VendorInviteEmailTemplate({
       <div className="p-6" style={{ backgroundColor: '#1b3b2b' }}>
         <div className="flex items-center gap-3">
           <Image
-            src="/images/bridezilla-logo-simple.svg"
-            alt="Bridezilla"
+            src="/images/ksmt-logo-simple.svg"
+            alt="ksmt"
             width={40}
             height={40}
             className="object-contain"
           />
           <span style={{ fontSize: '1.5rem', fontFamily: '"Playfair Display", Georgia, serif', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'white' }}>
-            BRIDEZILLA
+            KSMT
           </span>
         </div>
       </div>

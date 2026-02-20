@@ -368,7 +368,7 @@ export default function VendorsTab() {
                 <span>Add</span>
               </button>
               <button
-                id="tour-ask-bridezilla-vendors-couples-mobile"
+                id="tour-ask-ksmt-vendors-couples-mobile"
                 onClick={() => setShowBulkImport(true)}
                 className="flex items-center justify-center gap-2 px-3 py-[5px] bg-ksmt-crimson hover:bg-[#7a2520] text-white rounded-xl text-sm font-medium transition-colors flex-1 min-w-0"
               >
@@ -440,7 +440,7 @@ export default function VendorsTab() {
               <span className="hidden sm:inline">Add Manually</span>
             </button>
             <button
-              id="tour-ask-bridezilla-vendors-couples"
+              id="tour-ask-ksmt-vendors-couples"
               onClick={() => setShowBulkImport(true)}
               className="flex items-center justify-center gap-2 px-3 md:px-4 py-[5px] bg-ksmt-crimson hover:bg-[#7a2520] text-white rounded-xl text-sm font-medium transition-colors min-w-[44px]"
             >

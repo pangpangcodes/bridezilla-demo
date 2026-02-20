@@ -38,7 +38,7 @@ import VendorCard from '../VendorCard'
 import SearchableMultiSelect from '../SearchableMultiSelect'
 import SelectVendorsModal from './SelectVendorsModal'
 import EmailPreviewModal from './EmailPreviewModal'
-import AskBridezillaVendorModal from './AskBridezillaVendorModal'
+import AskAIVendorModal from './AskAIVendorModal'
 import InviteCoupleModal from './InviteCoupleModal'
 import Notification from './Notification'
 import type { PlannerCouple, SharedVendor, VendorStatus, VendorLibrary } from '@/types/planner'
@@ -70,7 +70,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
   const [selectedVendors, setSelectedVendors] = useState<{vendorIds: string[], customMessage: string}>({vendorIds: [], customMessage: ''})
   const [loadingVendors, setLoadingVendors] = useState(false)
   const [notification, setNotification] = useState<{type: 'success' | 'error' | 'warning', title: string, message: string} | null>(null)
-  const [showAskBridezillaModal, setShowAskBridezillaModal] = useState(false)
+  const [showAskAIModal, setShowAskAIModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [aiInsight, setAiInsight] = useState<string | null>(null)
   const [aiInsightLoading, setAiInsightLoading] = useState(false)
@@ -83,7 +83,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
     goBack,
     dismissTour,
     startTour,
-  } = useDemoTour('bridezilla_demo_tour_planner', PLANNER_TOUR_STEPS.length)
+  } = useDemoTour('ksmt_demo_tour_planner', PLANNER_TOUR_STEPS.length)
 
   useEffect(() => {
     fetchData()
@@ -106,7 +106,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
       }
 
       setCouple(coupleData.data)
-      document.title = `${coupleData.data.couple_names} | Bridezilla`
+      document.title = `${coupleData.data.couple_names} | ksmt`
 
       // Fetch vendors with library vendor details using the couple's UUID
       const { data: vendorsData, error: vendorsError } = await supabase
@@ -139,7 +139,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
   }
 
   const fetchInsight = async (coupleData: PlannerCouple, vendorList: SharedVendor[]) => {
-    const cacheKey = `bridezilla-insight-${coupleData.id}`
+    const cacheKey = `ksmt-insight-${coupleData.id}`
     const hash = computeInsightHash(coupleData, vendorList)
 
     // Check cache (production only)
@@ -681,13 +681,13 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-2">
                     <Image
-                      src="/bridezilla-logo-circle-green.svg"
-                      alt="Bridezilla"
+                      src="/ksmt-logo-circle-green.svg"
+                      alt="ksmt"
                       width={28}
                       height={28}
                       className="object-contain"
                     />
-                    <span className={`text-sm font-semibold ${theme.textPrimary}`}>Bridezilla Assistance</span>
+                    <span className={`text-sm font-semibold ${theme.textPrimary}`}>ksmt Assistance</span>
                     <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600`}>
                       AI Insight
                     </span>
@@ -707,7 +707,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                 {/* Decorative faded logo */}
                 <div className="absolute -right-4 -bottom-4 opacity-[0.06]">
                   <Image
-                    src="/bridezilla-logo-circle-green.svg"
+                    src="/ksmt-logo-circle-green.svg"
                     alt=""
                     width={120}
                     height={120}
@@ -867,12 +867,12 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
 
                   {/* Ask AI Button */}
                   <button
-                    onClick={() => setShowAskBridezillaModal(true)}
+                    onClick={() => setShowAskAIModal(true)}
                     className="flex items-center gap-2 px-6 py-[7px] bg-ksmt-crimson hover:bg-[#7a2520] text-white rounded-xl text-sm font-medium transition-colors"
                   >
                     <Image
                       src="/ksmt-logo.svg"
-                      alt="Bridezilla"
+                      alt="ksmt"
                       width={26}
                       height={26}
                       className="object-contain"
@@ -955,12 +955,12 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                       </button>
 
                       <button
-                        onClick={() => setShowAskBridezillaModal(true)}
+                        onClick={() => setShowAskAIModal(true)}
                         className="flex-1 flex items-center justify-center gap-2 px-4 py-[7px] bg-ksmt-crimson hover:bg-[#7a2520] text-white rounded-xl text-sm font-medium transition-colors"
                       >
                         <Image
                           src="/ksmt-logo.svg"
-                          alt="Bridezilla"
+                          alt="ksmt"
                           width={26}
                           height={26}
                           className="object-contain"
@@ -1172,12 +1172,12 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
       })()}
 
       {/* Ask AI Modal */}
-      {showAskBridezillaModal && (
-        <AskBridezillaVendorModal
+      {showAskAIModal && (
+        <AskAIVendorModal
           existingVendors={vendorLibrary}
-          onClose={() => setShowAskBridezillaModal(false)}
+          onClose={() => setShowAskAIModal(false)}
           onSuccess={() => {
-            setShowAskBridezillaModal(false)
+            setShowAskAIModal(false)
             fetchData() // Refresh vendor data
             setNotification({
               type: 'success',
@@ -1213,7 +1213,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
 
       <DemoControlPanel
         steps={PLANNER_TOUR_STEPS}
-        storageKey="bridezilla_demo_tour_planner"
+        storageKey="ksmt_demo_tour_planner"
         isOpen={tourIsOpen}
         currentStep={tourStep}
         onAdvance={advanceStep}

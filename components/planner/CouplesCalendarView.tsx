@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 import { StatCard } from '@/components/ui/StatCard'
-import AskBridezillaCoupleModal from './AskBridezillaCoupleModal'
+import AskAICoupleModal from './AskAICoupleModal'
 import InviteCoupleModal from './InviteCoupleModal'
 import CoupleTableRow from './CoupleTableRow'
 import SearchableMultiSelect from '../SearchableMultiSelect'
@@ -591,7 +591,7 @@ export default function CouplesCalendarView({ setDisplayModeRef }: CouplesCalend
             <button onClick={() => setShowManualInvite(true)} className={`flex items-center justify-center gap-2 px-3 py-2.5 ${theme.cardBackground} border ${theme.border} rounded-xl text-sm font-medium hover:bg-stone-50 transition-colors flex-1`}>
               <Plus className="w-4 h-4" /> Add
             </button>
-            <button id="tour-ask-bridezilla-couples-mobile" onClick={() => setShowAddModal(true)} className="flex items-center justify-center gap-2 px-3 py-[7px] bg-ksmt-crimson hover:bg-[#7a2520] text-white rounded-xl text-sm font-medium transition-colors flex-1">
+            <button id="tour-ask-ksmt-couples-mobile" onClick={() => setShowAddModal(true)} className="flex items-center justify-center gap-2 px-3 py-[7px] bg-ksmt-crimson hover:bg-[#7a2520] text-white rounded-xl text-sm font-medium transition-colors flex-1">
               <Image src="/ksmt-logo.svg" alt="ksmt" width={26} height={26} className="object-contain" /> Ask AI
             </button>
           </div>
@@ -648,7 +648,7 @@ export default function CouplesCalendarView({ setDisplayModeRef }: CouplesCalend
               <Plus className="w-4 h-4" />
               <span>Add Manually</span>
             </button>
-            <button id="tour-ask-bridezilla-couples" onClick={() => setShowAddModal(true)} className="flex items-center gap-2 px-6 py-[7px] bg-ksmt-crimson hover:bg-[#7a2520] text-white rounded-xl text-sm font-medium transition-colors">
+            <button id="tour-ask-ksmt-couples" onClick={() => setShowAddModal(true)} className="flex items-center gap-2 px-6 py-[7px] bg-ksmt-crimson hover:bg-[#7a2520] text-white rounded-xl text-sm font-medium transition-colors">
               <Image src="/ksmt-logo.svg" alt="ksmt" width={26} height={26} className="object-contain" />
               <span>Ask AI</span>
             </button>
@@ -948,7 +948,7 @@ export default function CouplesCalendarView({ setDisplayModeRef }: CouplesCalend
 
       {/* Ask AI Modal */}
       {showAddModal && (
-        <AskBridezillaCoupleModal
+        <AskAICoupleModal
           existingCouples={couples}
           onClose={() => setShowAddModal(false)}
           onSuccess={() => {

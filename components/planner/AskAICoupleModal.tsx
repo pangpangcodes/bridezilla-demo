@@ -8,17 +8,17 @@ import { PlannerCouple, ParsedCoupleOperation, CoupleParseResult } from '@/types
 import { v4 as uuidv4 } from 'uuid'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 
-interface AskBridezillaCoupleModalProps {
+interface AskAICoupleModalProps {
   existingCouples: PlannerCouple[]
   onClose: () => void
   onSuccess: () => void
 }
 
-export default function AskBridezillaCoupleModal({
+export default function AskAICoupleModal({
   existingCouples,
   onClose,
   onSuccess
-}: AskBridezillaCoupleModalProps) {
+}: AskAICoupleModalProps) {
   const theme = useThemeStyles()
   const [textInput, setTextInput] = useState('')
   const [operations, setOperations] = useState<ParsedCoupleOperation[]>([])

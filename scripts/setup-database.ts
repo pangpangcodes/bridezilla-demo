@@ -23,7 +23,7 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 async function setupDatabase() {
-  console.log('🚀 Setting up Bridezilla database...\n')
+  console.log('🚀 Setting up ksmt database...\n')
 
   try {
     // Step 1: Check if tables exist

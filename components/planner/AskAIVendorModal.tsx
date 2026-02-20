@@ -8,17 +8,17 @@ import { VendorLibrary, ParsedVendorLibraryOperation, VendorParseResult } from '
 import VendorLibraryOperationCard from './VendorLibraryOperationCard'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 
-interface AskBridezillaVendorModalProps {
+interface AskAIVendorModalProps {
   existingVendors: VendorLibrary[]
   onClose: () => void
   onSuccess: () => void
 }
 
-export default function AskBridezillaVendorModal({
+export default function AskAIVendorModal({
   existingVendors,
   onClose,
   onSuccess
-}: AskBridezillaVendorModalProps) {
+}: AskAIVendorModalProps) {
   const theme = useThemeStyles()
   const [inputMode, setInputMode] = useState<'text' | 'pdf' | null>(null)
   const [textInput, setTextInput] = useState('')

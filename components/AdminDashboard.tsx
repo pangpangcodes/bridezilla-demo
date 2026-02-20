@@ -25,7 +25,7 @@ export default function AdminDashboard() {
     goBack,
     dismissTour,
     startTour,
-  } = useDemoTour('bridezilla_demo_tour_couples', COUPLES_TOUR_STEPS.length)
+  } = useDemoTour('ksmt_demo_tour_couples', COUPLES_TOUR_STEPS.length)
 
   useEffect(() => {
     // Read view from URL query parameter
@@ -162,7 +162,7 @@ export default function AdminDashboard() {
 
       <DemoControlPanel
         steps={COUPLES_TOUR_STEPS}
-        storageKey="bridezilla_demo_tour_couples"
+        storageKey="ksmt_demo_tour_couples"
         isOpen={tourIsOpen}
         currentStep={tourStep}
         onAdvance={advanceStep}

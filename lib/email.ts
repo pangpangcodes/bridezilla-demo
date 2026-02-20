@@ -24,7 +24,7 @@ export async function sendSharedWorkspaceInvitation(
 
     const emailFrom = process.env.GMAIL_USER || 'noreply@example.com'
 
-    // Bridezilla-branded HTML email
+    // ksmt-branded HTML email
     const emailHtml = `<!DOCTYPE html>
 <html>
 <head>
@@ -34,7 +34,7 @@ export async function sendSharedWorkspaceInvitation(
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #fdf2f8; margin: 0; padding: 20px;">
 <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
 <div style="background: linear-gradient(135deg, #ec4899 0%, #f97316 100%); padding: 30px; text-align: center;">
-<h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">💕 Bridezilla</h1>
+<h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">💕 ksmt</h1>
 <p style="color: rgba(255, 255, 255, 0.9); margin: 8px 0 0 0; font-size: 14px;">Your Wedding Planning Workspace</p>
 </div>
 <div style="padding: 30px;">
@@ -57,7 +57,7 @@ export async function sendSharedWorkspaceInvitation(
 </html>`
 
     await transporter.sendMail({
-      from: `"${plannerName} - Bridezilla" <${emailFrom}>`,
+      from: `"${plannerName} - ksmt" <${emailFrom}>`,
       to: toEmail,
       subject: `${coupleNames}: Your Wedding Vendor Recommendations 💕`,
       html: emailHtml,

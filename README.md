@@ -1,14 +1,14 @@
-# Bridezilla Demo - Wedding Planning Platform
+# ksmt Demo - Wedding Planning Platform
 
 A sophisticated, multi-tenant wedding planning platform showcasing AI-powered vendor management, guest RSVP tracking, and collaborative wedding coordination tools.
 
-**Live Demo**: [https://bridezilla-demo.vercel.app](https://bridezilla-demo.vercel.app)
+**Live Demo**: [https://ksmt-demo.vercel.app](https://ksmt-demo.vercel.app)
 
 ---
 
 ## Overview
 
-Bridezilla Demo is a comprehensive wedding planning solution built with Next.js, React, and Supabase. The platform serves three distinct user roles:
+ksmt Demo is a comprehensive wedding planning solution built with Next.js, React, and Supabase. The platform serves three distinct user roles:
 
 1. **Professional Planners** - Manage multiple couples, curate vendor libraries, and share recommendations
 2. **Couples (Admin)** - Plan their own wedding with vendor management, payment tracking, and RSVP tools
@@ -269,7 +269,7 @@ packages/demo/
 1. **Clone the repository**
 ```bash
 git clone <repository-url>
-cd bridezilla/packages/demo
+cd ksmt/packages/demo
 ```
 
 2. **Install dependencies**
@@ -563,7 +563,7 @@ Additional documentation available:
 
 ## License
 
-This project is part of the Bridezilla product demonstration.
+This project is part of the ksmt product demonstration.
 
 ---
 

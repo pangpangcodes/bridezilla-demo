@@ -19,8 +19,8 @@ export default function AdminHeader({ onLogout, currentView = 'dashboard' }: Adm
             <div className="flex items-center gap-3">
               <div className="relative w-10 h-10 flex-shrink-0">
                 <Image
-                  src="/images/bridezilla-logo-simple.svg"
-                  alt="Bridezilla"
+                  src="/images/ksmt-logo-simple.svg"
+                  alt="ksmt"
                   width={40}
                   height={40}
                   className="object-contain"

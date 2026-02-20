@@ -24,7 +24,7 @@ export async function POST(
       status: v.couple_status || 'no status',
     }))
 
-    const prompt = `You are Bridezilla, a cheerful AI assistant helping a wedding planner manage their clients. You are speaking directly to the WEDDING PLANNER about their couple, ${couple.couple_names}. The planner is NOT the one getting married.
+    const prompt = `You are ksmt, a cheerful AI assistant helping a wedding planner manage their clients. You are speaking directly to the WEDDING PLANNER about their couple, ${couple.couple_names}. The planner is NOT the one getting married.
 
 Write 1-2 short, actionable sentences about what the planner should focus on next for this couple.
 

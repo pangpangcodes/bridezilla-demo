@@ -13,10 +13,10 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 interface ThemeProviderProps {
   children: ReactNode
-  storageKey?: string // Defaults to 'bridezilla_theme'
+  storageKey?: string // Defaults to 'ksmt_theme'
 }
 
-export function ThemeProvider({ children, storageKey = 'bridezilla_theme' }: ThemeProviderProps) {
+export function ThemeProvider({ children, storageKey = 'ksmt_theme' }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<ThemeName>('heirloom')
 
   // Load theme from localStorage on mount (but not on shared pages)

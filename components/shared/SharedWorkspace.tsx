@@ -87,7 +87,7 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
       }
 
       setCouple(coupleData)
-      document.title = `${coupleData.couple_names} | Bridezilla Shared Workspace`
+      document.title = `${coupleData.couple_names} | ksmt Shared Workspace`
 
       // Fetch vendors for this couple with library vendor details
       const { data: vendorsData, error: vendorsError } = await supabase
@@ -111,7 +111,7 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
   }
 
   const fetchInsight = async (linkId: string, vendorList: SharedVendor[]) => {
-    const cacheKey = `bridezilla-couple-insight-${linkId}`
+    const cacheKey = `ksmt-couple-insight-${linkId}`
     const hash = vendorList
       .map(v => `${v.id}:${v.vendor_type}:${v.vendor_name}:${v.couple_status || ''}`)
       .sort()
@@ -223,12 +223,12 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
             {couple.couple_names}
           </h1>
 
-          {/* Bridezilla Assistance Card */}
+          {/* ksmt Assistance Card */}
           <div className={`relative ${theme.cardBackground} p-6 rounded-2xl shadow-sm ${theme.border} ${theme.borderWidth} mb-8`}>
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white px-2">
               <Image
-                src="/bridezilla-logo-circle-green.svg"
-                alt="Bridezilla"
+                src="/ksmt-logo-circle-green.svg"
+                alt="ksmt"
                 width={28}
                 height={28}
                 className="object-contain"
@@ -250,7 +250,7 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
               </p>
             )}
             <div className={`mt-3 text-[10px] font-bold ${theme.textMuted} uppercase tracking-widest`}>
-              Bridezilla Assistance
+              ksmt Assistance
             </div>
           </div>
 
@@ -382,13 +382,13 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
           <p className={`text-xs ${theme.textMuted}`}>
             The perfect wedding planned with{' '}
             <a
-              href="https://bridezilla-demo.vercel.app/"
+              href="https://ksmt-demo.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:underline"
               style={{ color: theme.primaryColor }}
             >
-              Bridezilla
+              ksmt
             </a>
           </p>
         </div>

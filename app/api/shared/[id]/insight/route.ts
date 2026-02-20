@@ -38,7 +38,7 @@ export async function POST(
     const approvedCount = vendorList.filter(v => v.couple_status === 'interested').length
     const pendingCount = vendorList.filter(v => !v.couple_status).length
 
-    const prompt = `You are Bridezilla, a cheerful and supportive AI wedding planning assistant. You are speaking directly to the COUPLE (the bride/groom), not a planner. Keep it warm, excited, and brief.
+    const prompt = `You are ksmt, a cheerful and supportive AI wedding planning assistant. You are speaking directly to the COUPLE (the bride/groom), not a planner. Keep it warm, excited, and brief.
 
 Write 1-2 short sentences about where they are in their vendor planning and what to focus on next. Be encouraging!
 

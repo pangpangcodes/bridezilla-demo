@@ -1,6 +1,6 @@
 import { MOCK_VENDORS, MOCK_RSVPS } from './mock-data'
 
-const STORAGE_KEY_PREFIX = 'bridezilla_demo_'
+const STORAGE_KEY_PREFIX = 'ksmt_demo_'
 
 export class DemoSupabaseClient {
   private getStorageKey(table: string): string {

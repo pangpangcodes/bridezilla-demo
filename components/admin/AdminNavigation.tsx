@@ -28,10 +28,10 @@ export default function AdminNavigation({ currentView, onViewChange, onLogout, o
   return (
     <nav className="bg-white sticky top-0 z-40 border-b border-stone-200">
       <div className="px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-        <a href="https://bridezilla-demo.vercel.app/" className="flex items-center gap-2 md:gap-3">
+        <a href="https://ksmt-demo.vercel.app/" className="flex items-center gap-2 md:gap-3">
           <Image
             src={logoSrc}
-            alt="Bridezilla"
+            alt="ksmt"
             width={32}
             height={32}
             className="object-contain md:w-[40px] md:h-[40px]"
