@@ -6,7 +6,7 @@ const LandingFooter: React.FC = () => {
     <footer className="py-8 px-6 border-t border-ksmt-slate/8">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 items-center gap-4 text-center md:text-left">
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-center md:justify-start gap-2.5">
           <div className="relative w-7 h-7 flex-shrink-0">
             <Image
               src="/ksmt-logo.svg"
