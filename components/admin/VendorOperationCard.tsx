@@ -221,23 +221,37 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
             {editedData.payments && Array.isArray(editedData.payments) && editedData.payments.length > 0 ? (
               <div className="space-y-3">
                 {[...editedData.payments].sort((a: any, b: any) => {
+                  const seqOrder = (desc: string) => {
+                    const d = (desc || '').toLowerCase()
+                    if (d.includes('final') || d.includes('balance')) return 90
+                    if (d.match(/\b3rd\b|\bthird\b/)) return 30
+                    if (d.match(/\b2nd\b|\bsecond\b/)) return 20
+                    if (d.match(/\b1st\b|\bdeposit\b|\bfirst\b/)) return 10
+                    return 50
+                  }
+                  const seqDiff = seqOrder(a.description) - seqOrder(b.description)
+                  if (seqDiff !== 0) return seqDiff
                   if (!a.due_date && !b.due_date) return 0
-                  if (!a.due_date) return 1
-                  if (!b.due_date) return -1
+                  if (!a.due_date) return -1
+                  if (!b.due_date) return 1
                   return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
-                }).map((payment: any, idx: number) => (
-                  <div key={payment.id || idx} className={`${theme.pageBackground} p-3 rounded-xl border ${theme.border}`}>
+                }).map((payment: any) => {
+                  const updatePayment = (fields: Record<string, any>) => {
+                    const newPayments = [...(editedData.payments || [])]
+                    const origIdx = newPayments.findIndex((p: any) => p.id === payment.id)
+                    if (origIdx === -1) return
+                    newPayments[origIdx] = { ...newPayments[origIdx], ...fields }
+                    setEditedData({ ...editedData, payments: newPayments })
+                  }
+                  return (
+                  <div key={payment.id} className={`${theme.pageBackground} p-3 rounded-xl border ${theme.border}`}>
                     <div className="space-y-2">
                       <div className="flex gap-2 items-center">
                         <span className={`text-xs ${theme.textSecondary} w-20`}>Description:</span>
                         <input
                           type="text"
                           value={payment.description || ''}
-                          onChange={(e) => {
-                            const newPayments = [...(editedData.payments || [])]
-                            newPayments[idx] = { ...newPayments[idx], description: e.target.value }
-                            setEditedData({ ...editedData, payments: newPayments })
-                          }}
+                          onChange={(e) => updatePayment({ description: e.target.value })}
                           className={inputClass}
                           placeholder="e.g., Deposit, 2nd payment"
                         />
@@ -248,11 +262,7 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                         <input
                           type="number"
                           value={payment.amount || 0}
-                          onChange={(e) => {
-                            const newPayments = [...(editedData.payments || [])]
-                            newPayments[idx] = { ...newPayments[idx], amount: parseFloat(e.target.value) || 0 }
-                            setEditedData({ ...editedData, payments: newPayments })
-                          }}
+                          onChange={(e) => updatePayment({ amount: parseFloat(e.target.value) || 0 })}
                           className={inputClass}
                         />
                       </div>
@@ -262,11 +272,7 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                         <input
                           type="number"
                           value={payment.amount_converted || ''}
-                          onChange={(e) => {
-                            const newPayments = [...(editedData.payments || [])]
-                            newPayments[idx] = { ...newPayments[idx], amount_converted: parseFloat(e.target.value) || undefined }
-                            setEditedData({ ...editedData, payments: newPayments })
-                          }}
+                          onChange={(e) => updatePayment({ amount_converted: parseFloat(e.target.value) || undefined })}
                           className={inputClass}
                           placeholder="Optional converted amount"
                         />
@@ -276,11 +282,7 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                         <span className={`text-xs ${theme.textSecondary} w-20`}>Payment Type:</span>
                         <select
                           value={payment.payment_type || 'bank_transfer'}
-                          onChange={(e) => {
-                            const newPayments = [...(editedData.payments || [])]
-                            newPayments[idx] = { ...newPayments[idx], payment_type: e.target.value as 'cash' | 'bank_transfer' }
-                            setEditedData({ ...editedData, payments: newPayments })
-                          }}
+                          onChange={(e) => updatePayment({ payment_type: e.target.value as 'cash' | 'bank_transfer' })}
                           className={`flex-1 px-2 py-1 text-xs border ${theme.border} ${theme.cardBackground} ${theme.textPrimary} rounded-lg`}
                         >
                           <option value="bank_transfer">Bank Transfer</option>
@@ -293,11 +295,7 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                         <input
                           type="date"
                           value={payment.due_date || ''}
-                          onChange={(e) => {
-                            const newPayments = [...(editedData.payments || [])]
-                            newPayments[idx] = { ...newPayments[idx], due_date: e.target.value }
-                            setEditedData({ ...editedData, payments: newPayments })
-                          }}
+                          onChange={(e) => updatePayment({ due_date: e.target.value })}
                           className={inputClass}
                         />
                       </div>
@@ -307,15 +305,10 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                           <input
                             type="checkbox"
                             checked={payment.paid || false}
-                            onChange={(e) => {
-                              const newPayments = [...(editedData.payments || [])]
-                              newPayments[idx] = {
-                                ...newPayments[idx],
-                                paid: e.target.checked,
-                                paid_date: e.target.checked ? (newPayments[idx].paid_date || new Date().toISOString().split('T')[0]) : undefined
-                              }
-                              setEditedData({ ...editedData, payments: newPayments })
-                            }}
+                            onChange={(e) => updatePayment({
+                              paid: e.target.checked,
+                              paid_date: e.target.checked ? (payment.paid_date || new Date().toISOString().split('T')[0]) : undefined
+                            })}
                             className="w-4 h-4"
                           />
                           Paid
@@ -327,11 +320,7 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                             <input
                               type="date"
                               value={payment.paid_date || ''}
-                              onChange={(e) => {
-                                const newPayments = [...(editedData.payments || [])]
-                                newPayments[idx] = { ...newPayments[idx], paid_date: e.target.value }
-                                setEditedData({ ...editedData, payments: newPayments })
-                              }}
+                              onChange={(e) => updatePayment({ paid_date: e.target.value })}
                               className={inputClass}
                             />
                           </div>
@@ -341,7 +330,7 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                       <button
                         type="button"
                         onClick={() => {
-                          const newPayments = (editedData.payments || []).filter((_: any, i: number) => i !== idx)
+                          const newPayments = (editedData.payments || []).filter((p: any) => p.id !== payment.id)
                           setEditedData({ ...editedData, payments: newPayments })
                         }}
                         className={`text-xs ${theme.error.text} font-medium`}
@@ -350,7 +339,8 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                       </button>
                     </div>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             ) : (
               <div className={`text-xs ${theme.textMuted} italic`}>No payments yet. Click &quot;+ Add Payment&quot; to create one.</div>

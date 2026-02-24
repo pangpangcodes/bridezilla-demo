@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 
 // Valid columns in the vendors table
 const VALID_VENDOR_COLUMNS = new Set([
-  'vendor_name', 'vendor_type', 'contact_name', 'email', 'phone',
+  'vendor_name', 'vendor_type', 'vendor_currency', 'contact_name', 'email', 'phone',
   'website', 'estimated_cost_eur', 'estimated_cost_cad',
   'contract_signed', 'contract_url', 'payments', 'notes'
 ])
