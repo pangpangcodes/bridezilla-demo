@@ -170,7 +170,7 @@ export default function AddVendorModal({ isOpen, onClose, onSuccess, coupleId, v
   if (typeof window === 'undefined') return null
 
   return createPortal(
-    <div className={`${overlayClass} bg-black/60 z-[9999] flex items-center justify-center p-4`}>
+    <div className={`${overlayClass} bg-black/65 z-[9999] flex items-center justify-center p-4`}>
       <div className={`bg-white rounded-2xl shadow-xl max-w-2xl w-full ${maxHClass} border border-stone-200 overflow-hidden flex flex-col`}>
         {/* Header */}
         <div ref={headerRef} className="bg-white border-b border-stone-200 px-8 py-6 flex justify-between items-center flex-shrink-0">

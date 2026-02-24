@@ -129,7 +129,7 @@ export default function SelectVendorsModal({
   const selectedCount = selectedVendorIds.size
 
   const modalContent = (
-    <div className={`${overlayClass} bg-black/60 z-[9999] flex items-center justify-center p-4`}>
+    <div className={`${overlayClass} bg-black/65 z-[9999] flex items-center justify-center p-4`}>
       <div className={`${theme.cardBackground} rounded-2xl shadow-xl max-w-2xl w-full ${maxHClass} flex flex-col border ${theme.border} ${theme.borderWidth} overflow-hidden`}>
         <div ref={headerRef}>
           {/* Header */}

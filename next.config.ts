@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Externalize canvas module for pdfjs-dist (server-side only, not used for text extraction)
-  serverExternalPackages: ['canvas', 'pdfjs-dist'],
+  // Externalize server-only packages that use Node.js native APIs
+  // pdf-parse uses fs/stream; canvas and pdfjs-dist are native bindings
+  serverExternalPackages: ['canvas', 'pdfjs-dist', 'pdf-parse'],
 
   // Turbopack config to specify correct workspace root
   turbopack: {

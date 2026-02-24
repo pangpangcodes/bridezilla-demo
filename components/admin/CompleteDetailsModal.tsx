@@ -227,7 +227,7 @@ export default function CompleteDetailsModal({ vendors, onClose, onComplete }: C
   }
 
   return createPortal(
-    <div className={`${overlayClass} bg-black/60 z-[9999] flex items-center justify-center p-4`}>
+    <div className={`${overlayClass} bg-black/65 z-[9999] flex items-center justify-center p-4`}>
       <div className={`${theme.cardBackground} rounded-2xl shadow-xl max-w-2xl w-full ${maxHClass} overflow-hidden flex flex-col`}>
         {/* Header */}
         <div ref={headerRef} className={`${theme.cardBackground} border-b border-stone-200 px-8 py-6 flex justify-between items-center flex-shrink-0`}>

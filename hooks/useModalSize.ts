@@ -5,7 +5,7 @@ import { useRef, useState, useEffect, useLayoutEffect, useCallback } from 'react
 /**
  * Determines whether a modal is "large" (taller than the viewport minus the nav).
  *
- * Both short and large modals use a full-page overlay (fixed inset-0, bg-black/60, no blur).
+ * Both short and large modals use a full-page overlay (fixed inset-0, bg-black/60, backdrop-blur-sm).
  * The nav always stays crisp and visible. isLargeModal is available for any future distinction.
  *
  * Usage:

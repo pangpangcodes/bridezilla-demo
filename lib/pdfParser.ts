@@ -41,8 +41,9 @@ export async function extractTextFromPDF(
       }
     }
 
-    // Import pdf-parse (Node.js compatible library)
-    const pdfParse = (await import('pdf-parse')).default
+    // Import pdf-parse via internal path to avoid the test-file ENOENT bug
+    // (the main entry point tries to open './test/data/05-versions-space.pdf')
+    const pdfParse = (await import('pdf-parse/lib/pdf-parse.js')).default
 
     // Parse the PDF
     const data = await pdfParse(fileBuffer, {

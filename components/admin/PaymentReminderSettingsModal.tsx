@@ -168,7 +168,7 @@ export default function PaymentReminderSettingsModal({ isOpen, onClose, onSave }
   if (typeof window === 'undefined') return null
 
   return createPortal(
-    <div className={`${overlayClass} bg-black/60 z-[9999] flex items-center justify-center p-4`} onClick={onClose}>
+    <div className={`${overlayClass} bg-black/65 z-[9999] flex items-center justify-center p-4`} onClick={onClose}>
       <div
         className={`bg-white rounded-2xl shadow-xl max-w-lg w-full ${maxHClass} border border-stone-200 overflow-hidden flex flex-col`}
         onClick={(e) => e.stopPropagation()}

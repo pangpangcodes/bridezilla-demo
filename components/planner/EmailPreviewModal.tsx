@@ -57,7 +57,7 @@ export default function EmailPreviewModal({
   }
 
   const modalContent = (
-    <div className={`${overlayClass} bg-black/60 z-[9999] flex items-center justify-center p-4`}>
+    <div className={`${overlayClass} bg-black/65 z-[9999] flex items-center justify-center p-4`}>
       <div className={`${theme.cardBackground} rounded-2xl shadow-2xl max-w-4xl w-full ${maxHClass} flex flex-col overflow-hidden border border-stone-200`}>
         {/* Modal Header */}
         <div ref={headerRef} className={`${theme.cardBackground} border-b border-stone-200 px-8 py-6 flex justify-between items-center flex-shrink-0`}>

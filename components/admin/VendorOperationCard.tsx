@@ -1,6 +1,8 @@
+'use client'
+
 import { useState } from 'react'
 import { ParsedVendorOperation } from '@/types/vendor'
-import ConfidenceBadge from './ConfidenceBadge'
+import { useThemeStyles } from '@/hooks/useThemeStyles'
 
 interface VendorOperationCardProps {
   operation: ParsedVendorOperation
@@ -9,15 +11,13 @@ interface VendorOperationCardProps {
 }
 
 export default function VendorOperationCard({ operation, onEdit, onRemove }: VendorOperationCardProps) {
+  const theme = useThemeStyles()
   const [isEditing, setIsEditing] = useState(false)
   const [editedData, setEditedData] = useState(operation.vendor_data)
   const isUpdate = operation.action === 'update'
 
   const handleSave = () => {
-    onEdit({
-      ...operation,
-      vendor_data: editedData
-    })
+    onEdit({ ...operation, vendor_data: editedData })
     setIsEditing(false)
   }
 
@@ -26,43 +26,40 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
     setIsEditing(false)
   }
 
+  const inputClass = `flex-1 px-2 py-1 text-xs border ${theme.border} ${theme.cardBackground} ${theme.textPrimary} rounded-lg focus:outline-none focus:ring-1`
+
   return (
-    <div className="bg-white p-3 rounded border border-gray-200">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          {isUpdate ? (
-            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-semibold">
-              UPDATE
-            </span>
-          ) : (
-            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-semibold">
-              CREATE
-            </span>
-          )}
-          <span className="font-bold text-gray-900">
-            {operation.matched_vendor_name || operation.vendor_data.vendor_name || operation.vendor_data.vendor_type || '(Unknown vendor)'}
-          </span>
-        </div>
+    <div className={`${theme.cardBackground} p-4 rounded-xl border ${theme.border}`}>
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-3">
+        <span className={`text-xs px-2 py-0.5 rounded font-semibold ${
+          isUpdate
+            ? `${theme.warning.bg} ${theme.warning.text}`
+            : `${theme.success.bg} ${theme.success.text}`
+        }`}>
+          {isUpdate ? 'UPDATE' : 'CREATE'}
+        </span>
+        <span className={`font-bold ${theme.textPrimary}`}>
+          {operation.matched_vendor_name || operation.vendor_data.vendor_name || operation.vendor_data.vendor_type || '(Unknown vendor)'}
+        </span>
       </div>
 
       {isUpdate && (
-        <div className="text-sm font-medium text-blue-700 mb-2 bg-blue-50 px-2 py-1 rounded">
+        <div className={`text-xs font-medium ${theme.warning.text} ${theme.warning.bg} border ${theme.border} px-3 py-1.5 rounded-lg mb-3`}>
           {operation.matched_vendor_name
             ? `Updating existing ${operation.matched_vendor_name}`
-            : `⚠ Updating vendor - please verify this is the correct vendor (ID: ${operation.vendor_id?.substring(0, 8)}...)`
+            : `Updating vendor - please verify this is the correct vendor (ID: ${operation.vendor_id?.substring(0, 8)}...)`
           }
         </div>
       )}
 
+      {/* View mode */}
       {!isEditing ? (
-        <div className="text-sm text-gray-700 space-y-1">
+        <div className={`text-sm ${theme.textSecondary} space-y-1`}>
           {Object.entries(operation.vendor_data).map(([key, value]) => {
-            // Skip payments array - we'll display it separately
             if (key === 'payments') return null
-
             if (value === undefined || value === '' || value === null) return null
 
-            // Format cost fields with currency
             let displayValue = String(value)
             if (key === 'vendor_cost_original' && operation.vendor_data.vendor_currency) {
               displayValue = `${value} ${operation.vendor_data.vendor_currency}`
@@ -72,38 +69,46 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
 
             return (
               <div key={key} className="flex gap-2">
-                <span className="font-medium text-gray-600">{key.replace(/_/g, ' ')}:</span>
-                <span>{displayValue}</span>
+                <span className={`font-medium ${theme.textSecondary}`}>{key.replace(/_/g, ' ')}:</span>
+                <span className={theme.textPrimary}>{displayValue}</span>
               </div>
             )
           })}
 
-          {/* Display payments array separately */}
           {operation.vendor_data.payments && Array.isArray(operation.vendor_data.payments) && operation.vendor_data.payments.length > 0 && (
-            <div className="mt-2 pt-2 border-t border-gray-200">
-              <span className="font-medium text-gray-600 text-xs block mb-1">Payments:</span>
+            <div className={`mt-2 pt-2 border-t ${theme.border}`}>
+              <span className={`font-medium ${theme.textSecondary} text-xs block mb-1`}>Payments:</span>
               <div className="space-y-1 pl-2">
                 {[...operation.vendor_data.payments].sort((a: any, b: any) => {
-                  // Sort by due_date chronologically (earliest first)
+                  const seqOrder = (desc: string) => {
+                    const d = (desc || '').toLowerCase()
+                    if (d.includes('final') || d.includes('balance')) return 90
+                    if (d.match(/\b3rd\b|\bthird\b/)) return 30
+                    if (d.match(/\b2nd\b|\bsecond\b/)) return 20
+                    if (d.match(/\b1st\b|\bdeposit\b|\bfirst\b/)) return 10
+                    return 50
+                  }
+                  const seqDiff = seqOrder(a.description) - seqOrder(b.description)
+                  if (seqDiff !== 0) return seqDiff
                   if (!a.due_date && !b.due_date) return 0
-                  if (!a.due_date) return 1
-                  if (!b.due_date) return -1
+                  if (!a.due_date) return -1
+                  if (!b.due_date) return 1
                   return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
                 }).map((payment: any, idx: number) => (
-                  <div key={idx} className="text-xs text-gray-600 space-y-0.5">
+                  <div key={idx} className={`text-xs ${theme.textSecondary} space-y-0.5`}>
                     <div>
-                      • {payment.description || `Payment ${idx + 1}`}: {payment.amount} {operation.vendor_data.vendor_currency || 'EUR'}
+                      - {payment.description || `Payment ${idx + 1}`}: {payment.amount} {operation.vendor_data.vendor_currency || 'EUR'}
                       {payment.amount_converted && payment.amount_converted_currency && ` (${payment.amount_converted} ${payment.amount_converted_currency})`}
                       {payment.payment_type && (
-                        <span className="ml-2 px-1.5 py-0.5 bg-gray-200 text-gray-700 rounded text-xs">
-                          {payment.payment_type === 'cash' ? '💵 Cash' : '🏦 Bank Transfer'}
+                        <span className={`ml-2 px-1.5 py-0.5 ${theme.pageBackground} ${theme.textSecondary} rounded text-xs border ${theme.border}`}>
+                          {payment.payment_type === 'cash' ? 'Cash' : 'Bank Transfer'}
                         </span>
                       )}
                     </div>
-                    {payment.due_date && <div className="pl-3 text-gray-500">Due: {payment.due_date}</div>}
+                    {payment.due_date && <div className={`pl-3 ${theme.textMuted}`}>Due: {payment.due_date}</div>}
                     {payment.paid && (
-                      <div className="pl-3 text-green-600">
-                        ✓ Paid{payment.paid_date && ` on ${payment.paid_date}`}
+                      <div className={`pl-3 ${theme.success.text}`}>
+                        Paid{payment.paid_date && ` on ${payment.paid_date}`}
                       </div>
                     )}
                   </div>
@@ -113,18 +118,15 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
           )}
         </div>
       ) : (
+        /* Edit mode */
         <div className="text-sm space-y-2">
-          {/* Editable fields */}
           {Object.entries(editedData).map(([key, value]) => {
-            // Skip payments array for now - too complex for inline editing
             if (key === 'payments') return null
-
-            // Skip if value is null/undefined
             if (value === undefined || value === null) return null
 
             return (
               <div key={key} className="flex gap-2 items-center">
-                <span className="font-medium text-gray-600 w-40 text-xs">{key.replace(/_/g, ' ')}:</span>
+                <span className={`font-medium ${theme.textSecondary} w-40 text-xs`}>{key.replace(/_/g, ' ')}:</span>
                 {typeof value === 'boolean' ? (
                   <input
                     type="checkbox"
@@ -137,14 +139,14 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                     type="number"
                     value={value}
                     onChange={(e) => setEditedData({ ...editedData, [key]: parseFloat(e.target.value) || 0 })}
-                    className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded"
+                    className={inputClass}
                   />
                 ) : (
                   <input
                     type="text"
                     value={String(value)}
                     onChange={(e) => setEditedData({ ...editedData, [key]: e.target.value })}
-                    className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded"
+                    className={inputClass}
                   />
                 )}
               </div>
@@ -152,9 +154,9 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
           })}
 
           {/* Editable payments */}
-          <div className="mt-2 pt-2 border-t border-gray-200">
+          <div className={`mt-2 pt-2 border-t ${theme.border}`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-gray-600 text-xs">Payments:</span>
+              <span className={`font-medium ${theme.textSecondary} text-xs`}>Payments:</span>
               <button
                 type="button"
                 onClick={() => {
@@ -162,17 +164,14 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                     id: crypto.randomUUID(),
                     description: 'New payment',
                     amount: 0,
-                    amount_currency: editedData.vendor_currency || 'USD',
+                    amount_currency: editedData.vendor_currency || 'EUR',
                     payment_type: 'bank_transfer' as 'cash' | 'bank_transfer',
                     refundable: false,
                     paid: false
                   }
-                  setEditedData({
-                    ...editedData,
-                    payments: [...(editedData.payments || []), newPayment]
-                  })
+                  setEditedData({ ...editedData, payments: [...(editedData.payments || []), newPayment] })
                 }}
-                className="px-3 py-1.5 text-xs bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                className={`px-3 py-1 text-xs ${theme.secondaryButton} ${theme.secondaryButtonHover} ${theme.textPrimary} rounded-lg transition-colors font-medium border ${theme.border}`}
               >
                 + Add Payment
               </button>
@@ -181,16 +180,15 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
             {editedData.payments && Array.isArray(editedData.payments) && editedData.payments.length > 0 ? (
               <div className="space-y-3">
                 {[...editedData.payments].sort((a: any, b: any) => {
-                  // Sort by due_date chronologically (earliest first)
                   if (!a.due_date && !b.due_date) return 0
                   if (!a.due_date) return 1
                   if (!b.due_date) return -1
                   return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
                 }).map((payment: any, idx: number) => (
-                  <div key={payment.id || idx} className="bg-gray-50 p-2 rounded border border-gray-200">
+                  <div key={payment.id || idx} className={`${theme.pageBackground} p-3 rounded-xl border ${theme.border}`}>
                     <div className="space-y-2">
                       <div className="flex gap-2 items-center">
-                        <span className="text-xs text-gray-600 w-20">Description:</span>
+                        <span className={`text-xs ${theme.textSecondary} w-20`}>Description:</span>
                         <input
                           type="text"
                           value={payment.description || ''}
@@ -199,13 +197,13 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                             newPayments[idx] = { ...newPayments[idx], description: e.target.value }
                             setEditedData({ ...editedData, payments: newPayments })
                           }}
-                          className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded"
+                          className={inputClass}
                           placeholder="e.g., Deposit, 2nd payment"
                         />
                       </div>
 
                       <div className="flex gap-2 items-center">
-                        <span className="text-xs text-gray-600 w-20">Amount:</span>
+                        <span className={`text-xs ${theme.textSecondary} w-20`}>Amount:</span>
                         <input
                           type="number"
                           value={payment.amount || 0}
@@ -214,12 +212,12 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                             newPayments[idx] = { ...newPayments[idx], amount: parseFloat(e.target.value) || 0 }
                             setEditedData({ ...editedData, payments: newPayments })
                           }}
-                          className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded"
+                          className={inputClass}
                         />
                       </div>
 
                       <div className="flex gap-2 items-center">
-                        <span className="text-xs text-gray-600 w-20">Converted Amount:</span>
+                        <span className={`text-xs ${theme.textSecondary} w-20`}>Converted Amount:</span>
                         <input
                           type="number"
                           value={payment.amount_converted || ''}
@@ -228,13 +226,13 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                             newPayments[idx] = { ...newPayments[idx], amount_converted: parseFloat(e.target.value) || undefined }
                             setEditedData({ ...editedData, payments: newPayments })
                           }}
-                          className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded"
+                          className={inputClass}
                           placeholder="Optional converted amount"
                         />
                       </div>
 
                       <div className="flex gap-2 items-center">
-                        <span className="text-xs text-gray-600 w-20">Payment Type:</span>
+                        <span className={`text-xs ${theme.textSecondary} w-20`}>Payment Type:</span>
                         <select
                           value={payment.payment_type || 'bank_transfer'}
                           onChange={(e) => {
@@ -242,15 +240,15 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                             newPayments[idx] = { ...newPayments[idx], payment_type: e.target.value as 'cash' | 'bank_transfer' }
                             setEditedData({ ...editedData, payments: newPayments })
                           }}
-                          className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded"
+                          className={`flex-1 px-2 py-1 text-xs border ${theme.border} ${theme.cardBackground} ${theme.textPrimary} rounded-lg`}
                         >
-                          <option value="bank_transfer">🏦 Bank Transfer</option>
-                          <option value="cash">💵 Cash</option>
+                          <option value="bank_transfer">Bank Transfer</option>
+                          <option value="cash">Cash</option>
                         </select>
                       </div>
 
                       <div className="flex gap-2 items-center">
-                        <span className="text-xs text-gray-600 w-20">Due Date:</span>
+                        <span className={`text-xs ${theme.textSecondary} w-20`}>Due Date:</span>
                         <input
                           type="date"
                           value={payment.due_date || ''}
@@ -259,12 +257,12 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                             newPayments[idx] = { ...newPayments[idx], due_date: e.target.value }
                             setEditedData({ ...editedData, payments: newPayments })
                           }}
-                          className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded"
+                          className={inputClass}
                         />
                       </div>
 
                       <div className="flex gap-4 items-center">
-                        <label className="flex items-center gap-1 text-xs text-gray-600">
+                        <label className={`flex items-center gap-1 text-xs ${theme.textSecondary}`}>
                           <input
                             type="checkbox"
                             checked={payment.paid || false}
@@ -284,7 +282,7 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
 
                         {payment.paid && (
                           <div className="flex gap-2 items-center flex-1">
-                            <span className="text-xs text-gray-600">Paid Date:</span>
+                            <span className={`text-xs ${theme.textSecondary}`}>Paid Date:</span>
                             <input
                               type="date"
                               value={payment.paid_date || ''}
@@ -293,7 +291,7 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                                 newPayments[idx] = { ...newPayments[idx], paid_date: e.target.value }
                                 setEditedData({ ...editedData, payments: newPayments })
                               }}
-                              className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded"
+                              className={inputClass}
                             />
                           </div>
                         )}
@@ -305,7 +303,7 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                           const newPayments = (editedData.payments || []).filter((_: any, i: number) => i !== idx)
                           setEditedData({ ...editedData, payments: newPayments })
                         }}
-                        className="text-xs text-red-600 hover:text-red-800 font-medium"
+                        className={`text-xs ${theme.error.text} font-medium`}
                       >
                         Remove Payment
                       </button>
@@ -314,38 +312,41 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
                 ))}
               </div>
             ) : (
-              <div className="text-xs text-gray-500 italic">No payments yet. Click "+ Add Payment" to create one.</div>
+              <div className={`text-xs ${theme.textMuted} italic`}>No payments yet. Click &quot;+ Add Payment&quot; to create one.</div>
             )}
           </div>
         </div>
       )}
 
+      {/* Ambiguous fields */}
       {operation.ambiguous_fields && operation.ambiguous_fields.length > 0 && (
-        <div className="text-yellow-600 text-xs mt-2 flex items-start gap-1">
-          <span>⚠</span>
+        <div className={`${theme.warning.text} text-xs mt-3 flex items-start gap-1`}>
+          <span>!</span>
           <span>Review: {operation.ambiguous_fields.join(', ')}</span>
         </div>
       )}
 
+      {/* Warnings */}
       {operation.warnings && operation.warnings.length > 0 && (
-        <div className="text-orange-600 text-xs mt-2 flex items-start gap-1">
-          <span>⚠</span>
+        <div className={`${theme.warning.text} text-xs mt-3 flex items-start gap-1`}>
+          <span>!</span>
           <span>{operation.warnings.join(', ')}</span>
         </div>
       )}
 
-      <div className="flex gap-2 mt-3">
+      {/* Actions */}
+      <div className="flex gap-3 mt-3">
         {!isEditing ? (
           <>
             <button
               onClick={() => setIsEditing(true)}
-              className="text-xs text-green-600 hover:text-blue-800 font-medium"
+              className={`text-xs ${theme.textSecondary} hover:${theme.textPrimary} font-medium transition-colors`}
             >
               Edit
             </button>
             <button
               onClick={onRemove}
-              className="text-xs text-red-600 hover:text-red-800 font-medium"
+              className={`text-xs ${theme.error.text} font-medium`}
             >
               Remove
             </button>
@@ -354,13 +355,13 @@ export default function VendorOperationCard({ operation, onEdit, onRemove }: Ven
           <>
             <button
               onClick={handleSave}
-              className="px-3 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 font-medium"
+              className={`px-3 py-1 text-xs ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-lg font-medium transition-colors`}
             >
               Save
             </button>
             <button
               onClick={handleCancel}
-              className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 font-medium"
+              className={`px-3 py-1 text-xs ${theme.secondaryButton} ${theme.secondaryButtonHover} ${theme.textSecondary} rounded-lg font-medium transition-colors border ${theme.border}`}
             >
               Cancel
             </button>

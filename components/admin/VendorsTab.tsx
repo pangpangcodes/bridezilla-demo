@@ -240,6 +240,13 @@ export default function VendorsTab() {
         await supabase.from('vendors').insert(vendor)
       }
 
+      // Scroll to and expand the first imported vendor
+      const firstId = vendors[0]?.id
+      if (firstId) {
+        setScrollToVendorId(firstId)
+        setExpandedVendor(firstId)
+      }
+
       // Refresh vendor list
       fetchVendors()
       fetchPaymentReminders()
@@ -733,21 +740,21 @@ export default function VendorsTab() {
 
       {/* Missing Details Banner */}
       {vendorsNeedingDetails.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start justify-between">
+        <div className={`${theme.warning.bg} border ${theme.border} rounded-2xl p-4 mb-4 md:mb-6 flex items-start justify-between gap-4`}>
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className={`w-5 h-5 ${theme.warning.text} flex-shrink-0 mt-0.5`} />
             <div>
-              <p className="text-sm font-medium text-blue-900">
-                {vendorsNeedingDetails.length} {vendorsNeedingDetails.length === 1 ? 'vendor needs' : 'vendors need'} more details
+              <p className={`text-sm font-medium ${theme.textPrimary}`}>
+                {vendorsNeedingDetails.length} {vendorsNeedingDetails.length === 1 ? 'vendor needs' : 'vendors need'} more details: {vendorsNeedingDetails.map(v => v.vendor_name || v.vendor_type).join(', ')}
               </p>
-              <p className="text-xs text-blue-700 mt-1">
+              <p className={`text-xs ${theme.textSecondary} mt-1`}>
                 Complete missing information like vendor names, contact details, and phone numbers.
               </p>
             </div>
           </div>
           <button
             onClick={() => setShowCompleteDetails(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+            className={`px-4 py-2 ${theme.primaryButton} ${theme.primaryButtonHover} ${theme.textOnPrimary} rounded-lg text-sm font-semibold transition-colors flex-shrink-0`}
           >
             Complete Details
           </button>
