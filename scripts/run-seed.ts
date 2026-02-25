@@ -158,40 +158,17 @@ async function runSeedManual() {
   console.log('🌱 Running database seed (manual insertion)...')
 
   try {
-    // 1. Clean up existing demo data
+    // 1. Clean up existing demo data (by fixed UUID to handle any prior email)
     console.log('🧹 Cleaning up existing demo data...')
-
-    const { data: existingCouple } = await supabase
-      .from('planner_couples')
-      .select('id')
-      .eq('couple_email', 'bella@example.com')
-      .single()
-
-    if (existingCouple) {
-      await supabase.from('vendor_activity').delete().eq('planner_couple_id', existingCouple.id)
-      await supabase.from('shared_vendors').delete().eq('planner_couple_id', existingCouple.id)
-      await supabase.from('planner_couples').delete().eq('id', existingCouple.id)
-      console.log('✅ Cleaned up existing couple')
-    }
-
-    // Clean up vendor library
-    const vendorNames = [
-      'Aurora Photography',
-      'Flor de Sevilla',
-      'Hacienda de los Naranjos',
-      'Sabores Andaluces Catering',
-      'Los Gitanos Flamenco Band'
-    ]
-
-    for (const name of vendorNames) {
-      await supabase.from('planner_vendor_library').delete().eq('vendor_name', name)
-    }
+    const DEMO_COUPLE_UUID = '11111111-1111-1111-1111-111111111111'
+    await supabase.from('vendor_activity').delete().eq('planner_couple_id', DEMO_COUPLE_UUID)
+    await supabase.from('shared_vendors').delete().eq('planner_couple_id', DEMO_COUPLE_UUID)
     console.log('✅ Cleaned up existing vendors')
 
-    // 2. Insert demo couple
-    console.log('\n👰 Inserting demo couple...')
-    const { error: coupleError } = await supabase.from('planner_couples').insert({
-      id: '11111111-1111-1111-1111-111111111111',
+    // 2. Upsert demo couple
+    console.log('\n👰 Upserting demo couple...')
+    const { error: coupleError } = await supabase.from('planner_couples').upsert({
+      id: DEMO_COUPLE_UUID,
       couple_names: 'Edward & Bella',
       couple_email: 'bella@example.com',
       wedding_date: '2026-09-20',
@@ -199,13 +176,13 @@ async function runSeedManual() {
       venue_name: 'Hacienda de los Naranjos',
       share_link_id: 'edward-bella-demo',
       is_active: true,
-      notes: 'Destination wedding in Seville. Couple wants romantic, traditional Spanish vibes with modern touches. Budget: €50k. Guest count: ~80.',
+      notes: 'Destination wedding in Seville. Couple wants romantic, traditional Spanish vibes with modern touches. Budget: 50k EUR. Guest count: ~80.',
       created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
       last_activity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-    })
+    }, { onConflict: 'id' })
 
     if (coupleError) throw coupleError
-    console.log('✅ Inserted Edward & Bella')
+    console.log('✅ Upserted Edward & Bella')
 
     // 3. Insert vendors to library
     console.log('\n🏪 Inserting vendors to library...')
@@ -222,9 +199,8 @@ async function runSeedManual() {
         instagram: '@auroraphoto.seville',
         location: 'Seville',
         tags: ['romantic', 'editorial', 'destination', 'luxury'],
-        vendor_currency: 'EUR',
-        estimated_cost: 3500.00,
-        default_note: 'Maria specializes in romantic destination weddings. Her editorial style captures emotion beautifully. Includes engagement shoot and full-day coverage.',
+        pricing: 'Full day coverage - EUR 3500\nIncludes engagement shoot',
+        description: 'Maria specializes in romantic destination weddings. Her editorial style captures emotion beautifully.',
         is_active: true,
         created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
       },
@@ -239,9 +215,8 @@ async function runSeedManual() {
         instagram: '@flordesevilla',
         location: 'Seville',
         tags: ['bohemian', 'spanish', 'romantic', 'garden'],
-        vendor_currency: 'EUR',
-        estimated_cost: 4200.00,
-        default_note: 'Carmen creates stunning floral designs using local Spanish blooms. Perfect for hacienda weddings with romantic, garden-inspired arrangements.',
+        pricing: 'Full florals package - EUR 4200',
+        description: 'Carmen creates stunning floral designs using local Spanish blooms. Perfect for hacienda weddings with romantic, garden-inspired arrangements.',
         is_active: true,
         created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
       },
@@ -256,9 +231,8 @@ async function runSeedManual() {
         instagram: '@haciendanaranjos',
         location: 'Seville',
         tags: ['hacienda', 'historic', 'luxury', 'destination', 'garden'],
-        vendor_currency: 'EUR',
-        estimated_cost: 8000.00,
-        default_note: 'Stunning 18th century hacienda with orange groves and Andalusian architecture. Accommodates up to 120 guests. Includes ceremony and reception spaces.',
+        pricing: 'Venue hire - EUR 8000\nIncludes ceremony and reception spaces',
+        description: 'Stunning 18th century hacienda with orange groves and Andalusian architecture. Accommodates up to 120 guests.',
         is_active: true,
         created_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString()
       },
@@ -266,16 +240,15 @@ async function runSeedManual() {
         id: '55555555-5555-5555-5555-555555555555',
         vendor_type: 'Caterer',
         vendor_name: 'Sabores Andaluces Catering',
-        contact_name: 'Antonio García',
+        contact_name: 'Antonio Garcia',
         email: 'antonio@saboresandaluces.es',
         phone: '+34 645 678 901',
         website: 'https://saboresandaluces.es',
         instagram: '@saboresandaluces',
         location: 'Seville',
         tags: ['spanish', 'tapas', 'mediterranean', 'luxury'],
-        vendor_currency: 'EUR',
-        estimated_cost: 6500.00,
-        default_note: 'Authentic Andalusian cuisine with modern presentation. Specializes in tapas-style receptions and traditional Spanish feasts. Wine pairing included.',
+        pricing: 'Per person (tapas-style) - EUR 6500 total for 80 guests\nWine pairing included',
+        description: 'Authentic Andalusian cuisine with modern presentation. Specializes in tapas-style receptions and traditional Spanish feasts.',
         is_active: true,
         created_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString()
       },
@@ -290,17 +263,16 @@ async function runSeedManual() {
         instagram: '@losgitanos_flamenco',
         location: 'Seville',
         tags: ['flamenco', 'spanish', 'traditional', 'live-music'],
-        vendor_currency: 'EUR',
-        estimated_cost: 2800.00,
-        default_note: 'Authentic flamenco band with 5-piece ensemble. Perfect for cocktail hour and late-night entertainment. Creates unforgettable Spanish atmosphere.',
+        pricing: '5-piece ensemble - EUR 2800\nUp to 4 hours performance',
+        description: 'Authentic flamenco band with 5-piece ensemble. Perfect for cocktail hour and late-night entertainment.',
         is_active: true,
         created_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
       }
     ]
 
-    const { error: vendorsError } = await supabase.from('planner_vendor_library').insert(vendors)
+    const { error: vendorsError } = await supabase.from('planner_vendor_library').upsert(vendors, { onConflict: 'id', ignoreDuplicates: true })
     if (vendorsError) throw vendorsError
-    console.log('✅ Inserted 5 vendors to library')
+    console.log('✅ Upserted 5 vendors to library')
 
     // 4. Share vendors with couple
     console.log('\n🔗 Sharing vendors with Edward & Bella...')

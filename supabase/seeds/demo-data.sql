@@ -4,22 +4,7 @@
 -- Demo Planner: Jane from "La Bella Novia Wedding Planning"
 
 -- =============================================================================
--- Clean up existing demo data (if any)
--- =============================================================================
-DELETE FROM vendor_activity WHERE planner_couple_id IN (
-  SELECT id FROM planner_couples WHERE couple_email = 'bella@example.com'
-);
-DELETE FROM shared_vendors WHERE planner_couple_id IN (
-  SELECT id FROM planner_couples WHERE couple_email = 'bella@example.com'
-);
-DELETE FROM planner_couples WHERE couple_email = 'bella@example.com';
-DELETE FROM planner_vendor_library WHERE vendor_name IN (
-  'Aurora Photography', 'Flor de Sevilla', 'Hacienda de los Naranjos',
-  'Sabores Andaluces Catering', 'Los Gitanos Flamenco Band'
-);
-
--- =============================================================================
--- Insert Demo Couple: Edward & Bella
+-- Upsert Demo Couple: Edward & Bella
 -- =============================================================================
 INSERT INTO planner_couples (
   id,
@@ -42,10 +27,18 @@ INSERT INTO planner_couples (
   'Hacienda de los Naranjos',
   'edward-bella-demo', -- Easy-to-remember share link
   true,
-  'Destination wedding in Seville. Couple wants romantic, traditional Spanish vibes with modern touches. Budget: €50k. Guest count: ~80.',
+  'Destination wedding in Seville. Couple wants romantic, traditional Spanish vibes with modern touches. Budget: 50k EUR. Guest count: ~80.',
   NOW() - INTERVAL '7 days', -- Created 7 days ago
   NOW() - INTERVAL '2 hours' -- Last activity 2 hours ago
-);
+) ON CONFLICT (id) DO UPDATE SET
+  couple_names = EXCLUDED.couple_names,
+  share_link_id = 'edward-bella-demo',
+  couple_email = EXCLUDED.couple_email,
+  wedding_date = EXCLUDED.wedding_date,
+  wedding_location = EXCLUDED.wedding_location,
+  venue_name = EXCLUDED.venue_name,
+  is_active = EXCLUDED.is_active,
+  notes = EXCLUDED.notes;
 
 -- =============================================================================
 -- Insert Demo Vendors to Vendor Library
@@ -53,178 +46,68 @@ INSERT INTO planner_couples (
 
 -- Vendor 1: Photographer
 INSERT INTO planner_vendor_library (
-  id,
-  vendor_type,
-  vendor_name,
-  contact_name,
-  email,
-  phone,
-  website,
-  instagram,
-  location,
-  tags,
-  vendor_currency,
-  estimated_cost,
-  default_note,
-  is_active,
-  created_at
+  id, vendor_type, vendor_name, contact_name, email, phone, website, instagram,
+  location, tags, pricing, description, is_active, created_at
 ) VALUES (
-  '22222222-2222-2222-2222-222222222222',
-  'Photographer',
-  'Aurora Photography',
-  'Maria Aurora',
-  'maria@auroraphoto.es',
-  '+34 612 345 678',
-  'https://auroraphotography.es',
-  '@auroraphoto.seville',
-  'Seville',
-  ARRAY['romantic', 'editorial', 'destination', 'luxury'],
-  'EUR',
-  3500.00,
-  'Maria specializes in romantic destination weddings. Her editorial style captures emotion beautifully. Includes engagement shoot and full-day coverage.',
-  true,
-  NOW() - INTERVAL '14 days'
-);
+  '22222222-2222-2222-2222-222222222222', 'Photographer', 'Aurora Photography', 'Maria Aurora',
+  'maria@auroraphoto.es', '+34 612 345 678', 'https://auroraphotography.es', '@auroraphoto.seville',
+  'Seville', ARRAY['romantic', 'editorial', 'destination', 'luxury'],
+  'Full day coverage - EUR 3500' || chr(10) || 'Includes engagement shoot',
+  'Maria specializes in romantic destination weddings. Her editorial style captures emotion beautifully.',
+  true, NOW() - INTERVAL '14 days'
+) ON CONFLICT (id) DO NOTHING;
 
 -- Vendor 2: Florist
 INSERT INTO planner_vendor_library (
-  id,
-  vendor_type,
-  vendor_name,
-  contact_name,
-  email,
-  phone,
-  website,
-  instagram,
-  location,
-  tags,
-  vendor_currency,
-  estimated_cost,
-  default_note,
-  is_active,
-  created_at
+  id, vendor_type, vendor_name, contact_name, email, phone, website, instagram,
+  location, tags, pricing, description, is_active, created_at
 ) VALUES (
-  '33333333-3333-3333-3333-333333333333',
-  'Florist',
-  'Flor de Sevilla',
-  'Carmen Flores',
-  'carmen@flordesevilla.es',
-  '+34 623 456 789',
-  'https://flordesevilla.es',
-  '@flordesevilla',
-  'Seville',
-  ARRAY['bohemian', 'spanish', 'romantic', 'garden'],
-  'EUR',
-  4200.00,
-  'Carmen creates stunning floral designs using local Spanish blooms. Perfect for hacienda weddings with romantic, garden-inspired arrangements.',
-  true,
-  NOW() - INTERVAL '10 days'
-);
+  '33333333-3333-3333-3333-333333333333', 'Florist', 'Flor de Sevilla', 'Carmen Flores',
+  'carmen@flordesevilla.es', '+34 623 456 789', 'https://flordesevilla.es', '@flordesevilla',
+  'Seville', ARRAY['bohemian', 'spanish', 'romantic', 'garden'],
+  'Full florals package - EUR 4200',
+  'Carmen creates stunning floral designs using local Spanish blooms. Perfect for hacienda weddings.',
+  true, NOW() - INTERVAL '10 days'
+) ON CONFLICT (id) DO NOTHING;
 
 -- Vendor 3: Venue
 INSERT INTO planner_vendor_library (
-  id,
-  vendor_type,
-  vendor_name,
-  contact_name,
-  email,
-  phone,
-  website,
-  instagram,
-  location,
-  tags,
-  vendor_currency,
-  estimated_cost,
-  default_note,
-  is_active,
-  created_at
+  id, vendor_type, vendor_name, contact_name, email, phone, website, instagram,
+  location, tags, pricing, description, is_active, created_at
 ) VALUES (
-  '44444444-4444-4444-4444-444444444444',
-  'Venue',
-  'Hacienda de los Naranjos',
-  'Rafael Mendoza',
-  'events@haciendanaranjos.es',
-  '+34 634 567 890',
-  'https://haciendanaranjos.es',
-  '@haciendanaranjos',
-  'Seville',
-  ARRAY['hacienda', 'historic', 'luxury', 'destination', 'garden'],
-  'EUR',
-  8000.00,
-  'Stunning 18th century hacienda with orange groves and Andalusian architecture. Accommodates up to 120 guests. Includes ceremony and reception spaces.',
-  true,
-  NOW() - INTERVAL '20 days'
-);
+  '44444444-4444-4444-4444-444444444444', 'Venue', 'Hacienda de los Naranjos', 'Rafael Mendoza',
+  'events@haciendanaranjos.es', '+34 634 567 890', 'https://haciendanaranjos.es', '@haciendanaranjos',
+  'Seville', ARRAY['hacienda', 'historic', 'luxury', 'destination', 'garden'],
+  'Venue hire - EUR 8000' || chr(10) || 'Includes ceremony and reception spaces',
+  'Stunning 18th century hacienda with orange groves and Andalusian architecture. Up to 120 guests.',
+  true, NOW() - INTERVAL '20 days'
+) ON CONFLICT (id) DO NOTHING;
 
 -- Vendor 4: Caterer
 INSERT INTO planner_vendor_library (
-  id,
-  vendor_type,
-  vendor_name,
-  contact_name,
-  email,
-  phone,
-  website,
-  instagram,
-  location,
-  tags,
-  vendor_currency,
-  estimated_cost,
-  default_note,
-  is_active,
-  created_at
+  id, vendor_type, vendor_name, contact_name, email, phone, website, instagram,
+  location, tags, pricing, description, is_active, created_at
 ) VALUES (
-  '55555555-5555-5555-5555-555555555555',
-  'Caterer',
-  'Sabores Andaluces Catering',
-  'Antonio García',
-  'antonio@saboresandaluces.es',
-  '+34 645 678 901',
-  'https://saboresandaluces.es',
-  '@saboresandaluces',
-  'Seville',
-  ARRAY['spanish', 'tapas', 'mediterranean', 'luxury'],
-  'EUR',
-  6500.00,
-  'Authentic Andalusian cuisine with modern presentation. Specializes in tapas-style receptions and traditional Spanish feasts. Wine pairing included.',
-  true,
-  NOW() - INTERVAL '12 days'
-);
+  '55555555-5555-5555-5555-555555555555', 'Caterer', 'Sabores Andaluces Catering', 'Antonio Garcia',
+  'antonio@saboresandaluces.es', '+34 645 678 901', 'https://saboresandaluces.es', '@saboresandaluces',
+  'Seville', ARRAY['spanish', 'tapas', 'mediterranean', 'luxury'],
+  'Tapas-style reception - EUR 6500 total (80 guests)' || chr(10) || 'Wine pairing included',
+  'Authentic Andalusian cuisine with modern presentation. Specializes in tapas-style receptions.',
+  true, NOW() - INTERVAL '12 days'
+) ON CONFLICT (id) DO NOTHING;
 
 -- Vendor 5: Band
 INSERT INTO planner_vendor_library (
-  id,
-  vendor_type,
-  vendor_name,
-  contact_name,
-  email,
-  phone,
-  website,
-  instagram,
-  location,
-  tags,
-  vendor_currency,
-  estimated_cost,
-  default_note,
-  is_active,
-  created_at
+  id, vendor_type, vendor_name, contact_name, email, phone, website, instagram,
+  location, tags, pricing, description, is_active, created_at
 ) VALUES (
-  '66666666-6666-6666-6666-666666666666',
-  'Band',
-  'Los Gitanos Flamenco Band',
-  'Pablo Romero',
-  'pablo@losgitanos.es',
-  '+34 656 789 012',
-  'https://losgitanos.es',
-  '@losgitanos_flamenco',
-  'Seville',
-  ARRAY['flamenco', 'spanish', 'traditional', 'live-music'],
-  'EUR',
-  2800.00,
-  'Authentic flamenco band with 5-piece ensemble. Perfect for cocktail hour and late-night entertainment. Creates unforgettable Spanish atmosphere.',
-  true,
-  NOW() - INTERVAL '8 days'
-);
+  '66666666-6666-6666-6666-666666666666', 'Band', 'Los Gitanos Flamenco Band', 'Pablo Romero',
+  'pablo@losgitanos.es', '+34 656 789 012', 'https://losgitanos.es', '@losgitanos_flamenco',
+  'Seville', ARRAY['flamenco', 'spanish', 'traditional', 'live-music'],
+  '5-piece ensemble - EUR 2800' || chr(10) || 'Up to 4 hours performance',
+  'Authentic flamenco band. Perfect for cocktail hour and late-night entertainment.',
+  true, NOW() - INTERVAL '8 days'
+) ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
 -- Share 3 Vendors with Edward & Bella
@@ -265,7 +148,7 @@ INSERT INTO shared_vendors (
   'Love the romantic style! Would like to see more sunset photos.',
   NOW() - INTERVAL '5 days',
   NOW() - INTERVAL '2 hours' -- Recently updated by couple
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- Share Florist
 INSERT INTO shared_vendors (
@@ -302,7 +185,7 @@ INSERT INTO shared_vendors (
   'Contacted Carmen - waiting for detailed quote. Love her use of local flowers!',
   NOW() - INTERVAL '4 days',
   NOW() - INTERVAL '1 day'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- Share Venue
 INSERT INTO shared_vendors (
@@ -339,7 +222,7 @@ INSERT INTO shared_vendors (
   NULL,
   NOW() - INTERVAL '3 days',
   NOW() - INTERVAL '3 days'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
 -- Insert Sample Activity Log Entries

@@ -1,17 +1,46 @@
-import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase-client'
+import { NextRequest, NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 
 // GET - Get vendors shared with a couple
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const token = request.headers.get('authorization')?.replace('Bearer ', '')
+    if (!token || token !== process.env.PLANNER_PASSWORD) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { id } = await params
-    const { data, error } = await supabase
+
+    // Resolve id OR share_link_id -> couple UUID (Claude Haiku may pass either)
+    // UUID-safe: only use .or() with id column when value is a valid UUID
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+
+    let coupleUUID = id
+    if (isUUID) {
+      // Safe to query against UUID column - could be couple UUID or UUID share_link_id
+      const { data: coupleRow } = await supabaseAdmin
+        .from('planner_couples')
+        .select('id')
+        .or(`id.eq.${id},share_link_id.eq.${id}`)
+        .single()
+      if (coupleRow) coupleUUID = coupleRow.id
+    } else {
+      // Slug like 'edward-bella-demo' - only match share_link_id, never id column
+      const { data: coupleRow } = await supabaseAdmin
+        .from('planner_couples')
+        .select('id')
+        .eq('share_link_id', id)
+        .single()
+      if (coupleRow) coupleUUID = coupleRow.id
+    }
+
+    const { data, error } = await supabaseAdmin
       .from('shared_vendors')
       .select('*')
-      .eq('planner_couple_id', id)
+      .eq('planner_couple_id', coupleUUID)
       .order('vendor_type', { ascending: true })
       .order('vendor_name', { ascending: true })
 
@@ -45,7 +74,7 @@ export async function POST(
     const { id } = await params
     const vendorData = await request.json()
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('shared_vendors')
       .insert({
         ...vendorData,
@@ -63,7 +92,7 @@ export async function POST(
     }
 
     // Log activity
-    await supabase.from('vendor_activity').insert({
+    await supabaseAdmin.from('vendor_activity').insert({
       planner_couple_id: id,
       shared_vendor_id: data.id,
       action: 'vendor_shared',
