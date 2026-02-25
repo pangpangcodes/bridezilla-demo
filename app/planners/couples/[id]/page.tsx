@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import CoupleDetail from '@/components/planner/CoupleDetail'
 import PlannerNavigation from '@/components/planner/PlannerNavigation'
 import AnimatedHearts from '@/components/AnimatedHearts'
-import { ThemeProvider } from '@/contexts/ThemeContext'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 import { useDemoTour } from '@/hooks/useDemoTour'
 import { PLANNER_TOUR_STEPS } from '@/lib/demo-tour-steps'
@@ -39,7 +38,7 @@ function CoupleDetailContent({ id }: { id: string }) {
     return () => clearTimeout(timer)
   }, [id])
 
-  const handleViewChange = (view: 'couples' | 'vendors' | 'settings') => {
+  const handleViewChange = (view: 'dashboard' | 'couples' | 'vendors' | 'settings') => {
     router.push(`/planners?view=${view}`)
   }
 
@@ -63,9 +62,5 @@ function CoupleDetailContent({ id }: { id: string }) {
 export default function CoupleDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
 
-  return (
-    <ThemeProvider>
-      <CoupleDetailContent id={id} />
-    </ThemeProvider>
-  )
+  return <CoupleDetailContent id={id} />
 }

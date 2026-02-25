@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import AnimatedHearts from '@/components/AnimatedHearts'
 import PlannerNavigation from './PlannerNavigation'
+import PlannerDashboardPage from './PlannerDashboardPage'
 import CouplesCalendarView from './CouplesCalendarView'
 import VendorLibraryPage from './VendorLibraryPage'
 import SettingsPage from './SettingsPage'
@@ -15,7 +16,7 @@ import { useThemeStyles } from '@/hooks/useThemeStyles'
 export default function PlannerDashboard() {
   const theme = useThemeStyles()
   const router = useRouter()
-  const [currentView, setCurrentView] = useState<'couples' | 'vendors' | 'settings'>('couples')
+  const [currentView, setCurrentView] = useState<'dashboard' | 'couples' | 'vendors' | 'settings'>('dashboard')
   const [firstCoupleId, setFirstCoupleId] = useState<string | null>(null)
   const setDisplayModeRef = useRef<((mode: 'calendar' | 'list') => void) | null>(null)
 
@@ -29,29 +30,22 @@ export default function PlannerDashboard() {
     startTour,
   } = useDemoTour('ksmt_demo_tour_planner', PLANNER_TOUR_STEPS.length)
 
+  const resolveView = (view: string | null): 'dashboard' | 'couples' | 'vendors' | 'settings' => {
+    if (view === 'couples') return 'couples'
+    if (view === 'vendors') return 'vendors'
+    if (view === 'settings') return 'settings'
+    return 'dashboard'
+  }
+
   // Listen for view changes from URL
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
-      const view = params.get('view')
-      if (view === 'vendors') {
-        setCurrentView('vendors')
-      } else if (view === 'settings') {
-        setCurrentView('settings')
-      } else {
-        setCurrentView('couples')
-      }
+      setCurrentView(resolveView(params.get('view')))
 
       const handleUrlChange = () => {
         const params = new URLSearchParams(window.location.search)
-        const view = params.get('view')
-        if (view === 'vendors') {
-          setCurrentView('vendors')
-        } else if (view === 'settings') {
-          setCurrentView('settings')
-        } else {
-          setCurrentView('couples')
-        }
+        setCurrentView(resolveView(params.get('view')))
       }
 
       window.addEventListener('popstate', handleUrlChange)
@@ -113,14 +107,32 @@ export default function PlannerDashboard() {
     ensureStepView(targetStep)
   }, [tourStep, goBack, ensureStepView])
 
-  const handleViewChange = (view: 'couples' | 'vendors' | 'settings') => {
+  const handleViewChange = useCallback((view: 'dashboard' | 'couples' | 'vendors' | 'settings') => {
     setCurrentView(view)
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href)
       url.searchParams.set('view', view)
       window.history.pushState({}, '', url)
     }
-  }
+  }, [])
+
+  // Listen for chat navigation actions
+  useEffect(() => {
+    const handleChatAction = (e: Event) => {
+      const { type, data } = (e as CustomEvent).detail
+      if (type === 'navigate') {
+        if (data.url.startsWith('/planners/couples/')) {
+          router.push(data.url)
+          return
+        }
+        const parsed = new URL(data.url, window.location.origin)
+        const view = parsed.searchParams.get('view')
+        handleViewChange(resolveView(view))
+      }
+    }
+    window.addEventListener('ksmt:chat-action', handleChatAction)
+    return () => window.removeEventListener('ksmt:chat-action', handleChatAction)
+  }, [handleViewChange, router])
 
   const handlePlannerStepActivate = useCallback((stepIndex: number) => {
     switch (stepIndex) {
@@ -158,10 +170,12 @@ export default function PlannerDashboard() {
               <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                   <h2 className={`text-3xl md:text-4xl font-display mb-2 ${theme.textOnPagePrimary}`}>
+                    {currentView === 'dashboard' && 'Dashboard'}
                     {currentView === 'couples' && 'Couples'}
                     {currentView === 'vendors' && 'Vendors'}
                   </h2>
                   <p className={`${theme.textOnPageSecondary} font-body`}>
+                    {currentView === 'dashboard' && 'Overview of your couples, upcoming weddings, and who needs your attention.'}
                     {currentView === 'couples' && 'Manage your wedding couples and their celebration details.'}
                     {currentView === 'vendors' && 'Your curated collection of trusted wedding vendors.'}
                   </p>
@@ -169,6 +183,7 @@ export default function PlannerDashboard() {
               </div>
 
               {/* Content Views */}
+              {currentView === 'dashboard' && <PlannerDashboardPage onNavigate={handleViewChange} />}
               {currentView === 'couples' && <CouplesCalendarView setDisplayModeRef={setDisplayModeRef} />}
               {currentView === 'vendors' && <VendorLibraryPage />}
               {currentView === 'settings' && <SettingsPage />}

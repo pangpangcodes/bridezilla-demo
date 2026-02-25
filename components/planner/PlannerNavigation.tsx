@@ -7,8 +7,8 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 
 interface PlannerNavigationProps {
-  currentView: 'couples' | 'vendors' | 'settings'
-  onViewChange: (view: 'couples' | 'vendors' | 'settings') => void
+  currentView: 'dashboard' | 'couples' | 'vendors' | 'settings'
+  onViewChange: (view: 'dashboard' | 'couples' | 'vendors' | 'settings') => void
   onStartTour?: () => void
 }
 
@@ -17,7 +17,7 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
   const theme = useThemeStyles()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const handleViewChange = (view: 'couples' | 'vendors' | 'settings') => {
+  const handleViewChange = (view: 'dashboard' | 'couples' | 'vendors' | 'settings') => {
     onViewChange(view)
     setMobileMenuOpen(false)
   }
@@ -58,6 +58,20 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
                 Tour
               </button>
             )}
+            <a
+              href="/planners?view=dashboard"
+              onClick={(e) => {
+                e.preventDefault()
+                onViewChange('dashboard')
+              }}
+              className={`transition-colors ${
+                currentView === 'dashboard'
+                  ? theme.navActive
+                  : `${theme.textSecondary} hover:${theme.textPrimary}`
+              }`}
+            >
+              Dashboard
+            </a>
             <a
               href="/planners?view=couples"
               onClick={(e) => {
@@ -117,6 +131,20 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
                 Tour
               </button>
             )}
+            <a
+              href="/planners?view=dashboard"
+              onClick={(e) => {
+                e.preventDefault()
+                handleViewChange('dashboard')
+              }}
+              className={`block w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                currentView === 'dashboard'
+                  ? `bg-stone-100 ${theme.navActive}`
+                  : `${theme.textSecondary} hover:bg-stone-50 hover:${theme.textPrimary}`
+              }`}
+            >
+              Dashboard
+            </a>
             <a
               href="/planners?view=couples"
               onClick={(e) => {
