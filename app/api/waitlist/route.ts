@@ -1,14 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-
-console.log('Supabase URL configured:', !!supabaseUrl)
-console.log('Supabase Key configured:', !!supabaseKey)
-
-const supabase = createClient(supabaseUrl, supabaseKey)
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
 
 export async function POST(request: NextRequest) {
   try {
@@ -74,9 +65,6 @@ export async function POST(request: NextRequest) {
       }
 
       console.error('Supabase error:', error)
-      console.error('Supabase error details:', JSON.stringify(error, null, 2))
-      console.error('Error code:', error.code)
-      console.error('Error message:', error.message)
       return NextResponse.json(
         { error: 'Failed to join waitlist', details: error.message || 'Unknown error' },
         { status: 500 }

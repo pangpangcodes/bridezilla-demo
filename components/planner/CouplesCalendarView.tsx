@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useMemo, MutableRefObject } from 'react'
+import { useState, useEffect, useCallback, useMemo, MutableRefObject } from 'react'
 import { Calendar as BigCalendar, dateFnsLocalizer, View } from 'react-big-calendar'
 import { format, parse, startOfWeek, getDay, addMonths, subMonths } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, Plus, Search, Calendar as CalendarIcon, Users, Clock, Package, List, Grid, AlertCircle } from 'lucide-react'
 import Image from 'next/image'
-import { PlannerCouple } from '@/types/planner'
+import { PlannerCouple, ParsedCoupleOperation } from '@/types/planner'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
@@ -71,6 +71,20 @@ export default function CouplesCalendarView({ setDisplayModeRef }: CouplesCalend
       }
     }
   }, [setDisplayModeRef])
+
+  // Listen for chat actions (open_couple_modal only - navigation handled by PlannerDashboard)
+  const handleChatAction = useCallback((e: Event) => {
+    const { type, data } = (e as CustomEvent).detail
+    if (type === 'open_couple_modal') {
+      setChatInitialOperation(data as ParsedCoupleOperation)
+      setShowAddModal(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    window.addEventListener('ksmt:chat-action', handleChatAction)
+    return () => window.removeEventListener('ksmt:chat-action', handleChatAction)
+  }, [handleChatAction])
 
   // Load saved view preference from localStorage after mount to avoid hydration mismatch
   useEffect(() => {
@@ -143,6 +157,7 @@ export default function CouplesCalendarView({ setDisplayModeRef }: CouplesCalend
   }
 
   const [showAddModal, setShowAddModal] = useState(false)
+  const [chatInitialOperation, setChatInitialOperation] = useState<ParsedCoupleOperation | undefined>(undefined)
   const [showManualInvite, setShowManualInvite] = useState(false)
   const [vendorCounts, setVendorCounts] = useState<Record<string, {total: number, bookedCategories: number, totalCategories: number}>>({})
   const [editingCouple, setEditingCouple] = useState<PlannerCouple | null>(null)
@@ -226,7 +241,7 @@ export default function CouplesCalendarView({ setDisplayModeRef }: CouplesCalend
         const categoriesMap = new Map<string, boolean>()
         vendors.forEach((vendor: any) => {
           const category = vendor.vendor_type
-          const isBooked = vendor.couple_status === 'interested'
+          const isBooked = vendor.couple_status === 'booked'
           if (!categoriesMap.has(category)) {
             categoriesMap.set(category, isBooked)
           } else if (isBooked) {
@@ -354,7 +369,9 @@ export default function CouplesCalendarView({ setDisplayModeRef }: CouplesCalend
     return filteredCouples
       .filter(c => c.wedding_date) // Only couples with wedding dates
       .map(couple => {
-        const weddingDate = new Date(couple.wedding_date!)
+        // Parse date parts directly to avoid UTC-to-local timezone shift
+        const [year, month, day] = couple.wedding_date!.split('-').map(Number)
+        const weddingDate = new Date(year, month - 1, day)
         return {
           id: couple.share_link_id,
           title: couple.couple_names,
@@ -772,7 +789,7 @@ export default function CouplesCalendarView({ setDisplayModeRef }: CouplesCalend
                       )}
                       {couple.wedding_date ? (
                         <div className={`text-xs ${theme.textPrimary} mt-1`}>
-                          {format(new Date(couple.wedding_date), 'MMMM d, yyyy')} - Click to view
+                          {(([y,m,d]) => format(new Date(y, m-1, d), 'MMMM d, yyyy'))(couple.wedding_date.split('-').map(Number))} - Click to view
                         </div>
                       ) : (
                         <div className={`text-xs ${theme.textPrimary} mt-1`}>Click to add wedding date</div>
@@ -854,7 +871,7 @@ export default function CouplesCalendarView({ setDisplayModeRef }: CouplesCalend
             .rbc-month-view {
               border: 1px solid #e5e7eb;
               border-radius: 12px;
-              overflow: hidden;
+              overflow: visible;
             }
             .rbc-day-bg {
               border-left: 1px solid #e5e7eb;
@@ -885,6 +902,25 @@ export default function CouplesCalendarView({ setDisplayModeRef }: CouplesCalend
             /* Adjust week/day header */
             .rbc-time-header-content {
               border-left: none;
+            }
+            /* Ensure overflow popup renders above calendar */
+            .rbc-overlay {
+              z-index: 10;
+              position: absolute;
+              background: white;
+              border: 1px solid #e5e7eb;
+              border-radius: 8px;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+              padding: 8px;
+            }
+            .rbc-overlay-header {
+              font-size: 0.75rem;
+              font-weight: 600;
+              color: #6b7280;
+              margin-bottom: 6px;
+            }
+            .rbc-event {
+              cursor: pointer;
             }
           `}</style>
 
@@ -950,11 +986,9 @@ export default function CouplesCalendarView({ setDisplayModeRef }: CouplesCalend
       {showAddModal && (
         <PlannerAskAICoupleModal
           existingCouples={couples}
-          onClose={() => setShowAddModal(false)}
-          onSuccess={() => {
-            setShowAddModal(false)
-            fetchCouples()
-          }}
+          onClose={() => { setShowAddModal(false); setChatInitialOperation(undefined) }}
+          onSuccess={() => { setShowAddModal(false); setChatInitialOperation(undefined); fetchCouples() }}
+          initialOperation={chatInitialOperation}
         />
       )}
     </div>

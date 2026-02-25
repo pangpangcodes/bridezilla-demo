@@ -6,7 +6,6 @@ import Image from 'next/image'
 import { format } from 'date-fns'
 import SharedVendorList from './SharedVendorList'
 import AnimatedHearts from '@/components/AnimatedHearts'
-import { supabase } from '@/lib/supabase-client'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 import type { PlannerCouple, SharedVendor } from '@/types/planner'
 
@@ -64,23 +63,19 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
     try {
       setLoading(true)
 
-      // Fetch couple by share link ID
-      const { data: coupleData, error: coupleError } = await supabase
-        .from('planner_couples')
-        .select('*')
-        .eq('share_link_id', shareLinkId)
-        .eq('is_active', true)
-        .single()
+      const res = await fetch(`/api/shared/${shareLinkId}`)
 
-      if (coupleError) {
-        // PGRST116 = "not found" from .single() — means the link truly doesn't exist
-        if (coupleError.code === 'PGRST116') {
-          setError('This link is invalid or has expired.')
-        } else {
-          setError('Could not load this page. Please try refreshing.')
-        }
+      if (res.status === 404) {
+        setError('This link is invalid or has expired.')
         return
       }
+      if (!res.ok) {
+        setError('Could not load this page. Please try refreshing.')
+        return
+      }
+
+      const { couple: coupleData, vendors: vendorsData } = await res.json()
+
       if (!coupleData) {
         setError('This link is invalid or has expired.')
         return
@@ -89,19 +84,9 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
       setCouple(coupleData)
       document.title = `${coupleData.couple_names} | ksmt Shared Workspace`
 
-      // Fetch vendors for this couple with library vendor details
-      const { data: vendorsData, error: vendorsError } = await supabase
-        .from('shared_vendors')
-        .select('*, vendor_library:planner_vendor_library!vendor_library_id(*)')
-        .eq('planner_couple_id', coupleData.id)
-        .order('vendor_type', { ascending: true })
-        .order('vendor_name', { ascending: true })
-
-      if (!vendorsError) {
-        const vList = vendorsData || []
-        setVendors(vList)
-        fetchInsight(shareLinkId, vList)
-      }
+      const vList = vendorsData || []
+      setVendors(vList)
+      fetchInsight(shareLinkId, vList)
     } catch (err) {
       console.error('Failed to fetch workspace:', err)
       setError('Could not load this page. Please try refreshing.')
@@ -205,7 +190,7 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
           <div className={`mb-3 text-xs ${theme.textMuted} font-medium uppercase tracking-widest flex items-center justify-center gap-2 flex-wrap`}>
             {couple.wedding_date && (
               <>
-                <Calendar size={12} /> {format(new Date(couple.wedding_date), 'MMM d, yyyy')}
+                <Calendar size={12} /> {(([y,m,d]) => format(new Date(y, m-1, d), 'MMM d, yyyy'))(couple.wedding_date.split('-').map(Number))}
               </>
             )}
             {couple.wedding_location && couple.wedding_date && (
@@ -346,6 +331,7 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
               <SharedVendorList
                 vendors={filteredVendors}
                 coupleId={couple.id}
+                shareLinkId={shareLinkId}
                 onUpdate={fetchWorkspaceData}
                 activeCategory={activeCategory}
               />

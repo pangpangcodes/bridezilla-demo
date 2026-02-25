@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase-client'
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
 import { VendorLibrary, CreateVendorLibraryInput } from '@/types/planner'
 
 /**
@@ -9,13 +9,6 @@ import { VendorLibrary, CreateVendorLibraryInput } from '@/types/planner'
 export async function GET(request: NextRequest) {
   try {
     // Auth check
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const { searchParams } = new URL(request.url)
 
@@ -80,13 +73,6 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Auth check
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const body: CreateVendorLibraryInput = await request.json()
 

@@ -53,8 +53,8 @@ export default function PlannerVendorCard({ vendor, theme }: PlannerVendorCardPr
 
   const plannerNote = vendor.custom_note || vendor.planner_note
   const displayImage = CATEGORY_IMAGES[vendor.vendor_type] || CATEGORY_IMAGES['default']
-  const isBooked = vendor.couple_status === 'interested'
-  const isDeclined = vendor.couple_status === 'pass'
+  const isBooked = vendor.couple_status === 'booked'
+  const isDeclined = vendor.couple_status === 'declined'
 
   return (
     <div

@@ -1,17 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-// Create server-side Supabase client with service role (bypasses RLS)
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
+import { supabaseAdmin } from '@/lib/supabase-admin'
 
 // GET - Get couple details by ID
 export async function GET(
@@ -20,13 +8,6 @@ export async function GET(
 ) {
   try {
     // Auth check
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const { id } = await params
     console.log('Fetching couple with ID:', id)
@@ -86,13 +67,6 @@ export async function PATCH(
 ) {
   try {
     // Auth check
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const { id } = await params
     const updates = await request.json()
@@ -152,13 +126,6 @@ export async function DELETE(
 ) {
   try {
     // Auth check
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const { id } = await params
 

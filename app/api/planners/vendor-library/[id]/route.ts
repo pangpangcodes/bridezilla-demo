@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase-client'
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
 import { VendorLibrary, UpdateVendorLibraryInput } from '@/types/planner'
 
 /**
@@ -12,13 +12,6 @@ export async function GET(
 ) {
   try {
     // Auth check
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     // supabase is already imported
     const { id } = await params
@@ -59,13 +52,6 @@ export async function PATCH(
 ) {
   try {
     // Auth check
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const { id } = await params
     const body: UpdateVendorLibraryInput = await request.json()
@@ -146,13 +132,6 @@ export async function DELETE(
 ) {
   try {
     // Auth check
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     // supabase is already imported
     const { id } = await params

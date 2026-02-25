@@ -27,7 +27,6 @@ import {
   Layers,
   Search
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase-client'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 import DemoControlPanel from '@/components/shared/DemoControlPanel'
@@ -93,6 +92,9 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
     try {
       setError(null)
       setLoading(true)
+      if (!sessionStorage.getItem('planner_auth')) {
+        sessionStorage.setItem('planner_auth', 'planner')
+      }
       const token = sessionStorage.getItem('planner_auth')
 
       // Fetch couple
@@ -108,19 +110,18 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
       setCouple(coupleData.data)
       document.title = `${coupleData.data.couple_names} | ksmt`
 
-      // Fetch vendors with library vendor details using the couple's UUID
-      const { data: vendorsData, error: vendorsError } = await supabase
-        .from('shared_vendors')
-        .select('*, vendor_library:planner_vendor_library!vendor_library_id(*)')
-        .eq('planner_couple_id', coupleData.data.id)
-        .order('vendor_type', { ascending: true })
-
-      if (vendorsError) {
-        console.error('Vendors fetch error:', vendorsError)
-      } else {
-        const vList = vendorsData || []
+      // Fetch vendors with library vendor details via API (service-role key handles RLS)
+      const vendorsResponse = await fetch(`/api/planners/couples/${coupleData.data.id}/vendors`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        cache: 'no-store',
+      })
+      const vendorsData = await vendorsResponse.json()
+      if (vendorsData.success) {
+        const vList = vendorsData.data || []
         setVendors(vList)
         fetchInsight(coupleData.data, vList)
+      } else {
+        console.error('Vendors fetch error:', vendorsData.error)
       }
     } catch (error) {
       console.error('Failed to fetch data:', error)
@@ -132,7 +133,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
 
   const computeInsightHash = (coupleData: PlannerCouple, vendorList: SharedVendor[]) => {
     const signature = vendorList
-      .map(v => `${v.id}:${v.vendor_type}:${v.vendor_name}:${v.couple_status || ''}`)
+      .map(v => `${v.id}:${v.vendor_type}:${v.vendor_name}:${v.couple_status || ''}:${v.updated_at || ''}`)
       .sort()
       .join('|')
     return `${coupleData.id}:${vendorList.length}:${signature}`
@@ -164,7 +165,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
       const vendorStats = {
         vendorTypes: new Set(vendorList.map(v => v.vendor_type)).size,
         booked: vendorList.filter(v => v.couple_status === 'booked').length,
-        approved: vendorList.filter(v => v.couple_status === 'interested').length,
+        approved: vendorList.filter(v => v.couple_status === 'approved').length,
         inReview: (() => {
           const byType = vendorList.reduce((acc, v) => {
             if (!acc[v.vendor_type]) acc[v.vendor_type] = []
@@ -172,7 +173,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
             return acc
           }, {} as Record<string, SharedVendor[]>)
           return Object.values(byType).filter(tvs =>
-            !tvs.some(v => v.couple_status === 'booked' || v.couple_status === 'interested') &&
+            !tvs.some(v => v.couple_status === 'booked' || v.couple_status === 'approved') &&
             tvs.some(v => !v.couple_status)
           ).length
         })(),
@@ -196,14 +197,18 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
 
   const handleStatusChange = async (vendorId: string, status: VendorStatus) => {
     try {
-      // Update vendor status in database
-      const { error: updateError } = await supabase
-        .from('shared_vendors')
-        .update({ couple_status: status })
-        .eq('id', vendorId)
+      const token = sessionStorage.getItem('planner_auth')
+      const res = await fetch(`/api/planners/couples/${couple?.id}/vendors/${vendorId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ couple_status: status })
+      })
 
-      if (updateError) {
-        console.error('Status update error:', updateError)
+      if (!res.ok) {
+        console.error('Status update error:', await res.text())
         return
       }
 
@@ -211,17 +216,6 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
       setVendors(prev => prev.map(v =>
         v.id === vendorId ? { ...v, couple_status: status } : v
       ))
-
-      // Log activity
-      if (couple) {
-        await supabase.from('vendor_activity').insert({
-          planner_couple_id: couple.id,
-          shared_vendor_id: vendorId,
-          action: 'status_changed',
-          actor: 'planner',
-          new_value: status
-        })
-      }
     } catch (error) {
       console.error('Error updating status:', error)
     }
@@ -452,7 +446,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
     // Determine priority for each category
     const getPriority = (categoryVendors: SharedVendor[]) => {
       const hasBooked = categoryVendors.some(v => v.couple_status === 'booked')
-      const hasApproved = categoryVendors.some(v => v.couple_status === 'interested')
+      const hasApproved = categoryVendors.some(v => v.couple_status === 'approved')
 
       if (hasApproved) return 1 // Approved - show first (needs to be booked)
       if (!hasBooked && !hasApproved) return 2 // Review Needed - show second
@@ -526,8 +520,8 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
     const categoryVendors = vendors.filter(v => v.vendor_type === cat)
     // Sort vendors: declined (pass) vendors go last
     acc[cat] = categoryVendors.sort((a, b) => {
-      if (a.couple_status === 'pass' && b.couple_status !== 'pass') return 1
-      if (a.couple_status !== 'pass' && b.couple_status === 'pass') return -1
+      if (a.couple_status === 'declined' && b.couple_status !== 'declined') return 1
+      if (a.couple_status !== 'declined' && b.couple_status === 'declined') return -1
       return 0
     })
     return acc
@@ -536,7 +530,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
   const stats = {
     vendorTypes: new Set(vendors.map(v => v.vendor_type)).size,
     booked: vendors.filter(v => v.couple_status === 'booked').length,
-    approved: vendors.filter(v => v.couple_status === 'interested').length,
+    approved: vendors.filter(v => v.couple_status === 'approved').length,
     inReview: (() => {
       // Count categories that are "in review" (no booked or approved vendors)
       const categoriesInReview = new Set<string>()
@@ -548,7 +542,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
 
       Object.entries(vendorsByType).forEach(([type, typeVendors]) => {
         const hasBookedOrApproved = typeVendors.some(v =>
-          v.couple_status === 'booked' || v.couple_status === 'interested'
+          v.couple_status === 'booked' || v.couple_status === 'approved'
         )
         const hasInReview = typeVendors.some(v => !v.couple_status)
 
@@ -563,7 +557,9 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
 
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return 'Date TBD'
-    return new Date(dateString).toLocaleDateString('en-US', {
+    // Parse date parts directly to avoid UTC-to-local timezone shift
+    const [year, month, day] = dateString.split('-').map(Number)
+    return new Date(year, month - 1, day).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
@@ -855,10 +851,10 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                     {/* Status Filter */}
                     <SearchableMultiSelect
                       options={[
-                        { value: 'interested', label: 'Approved', count: vendors.filter(v => v.couple_status === 'interested').length },
+                        { value: 'approved', label: 'Approved', count: vendors.filter(v => v.couple_status === 'approved').length },
                         { value: 'booked', label: 'Booked & Confirmed', count: vendors.filter(v => v.couple_status === 'booked').length },
                         { value: 'in_review', label: 'In Review', count: vendors.filter(v => !v.couple_status).length },
-                        { value: 'pass', label: 'Declined', count: vendors.filter(v => v.couple_status === 'pass').length }
+                        { value: 'declined', label: 'Declined', count: vendors.filter(v => v.couple_status === 'declined').length }
                       ].filter(opt => opt.count > 0)}
                       selectedValues={selectedStatusFilter}
                       onChange={setSelectedStatusFilter}
@@ -915,10 +911,10 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                     {/* Status Filter - full width */}
                     <SearchableMultiSelect
                       options={[
-                        { value: 'interested', label: 'Approved', count: vendors.filter(v => v.couple_status === 'interested').length },
+                        { value: 'approved', label: 'Approved', count: vendors.filter(v => v.couple_status === 'approved').length },
                         { value: 'booked', label: 'Booked & Confirmed', count: vendors.filter(v => v.couple_status === 'booked').length },
                         { value: 'in_review', label: 'In Review', count: vendors.filter(v => !v.couple_status).length },
-                        { value: 'pass', label: 'Declined', count: vendors.filter(v => v.couple_status === 'pass').length }
+                        { value: 'declined', label: 'Declined', count: vendors.filter(v => v.couple_status === 'declined').length }
                       ].filter(opt => opt.count > 0)}
                       selectedValues={selectedStatusFilter}
                       onChange={setSelectedStatusFilter}
@@ -1027,9 +1023,9 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                 {categories.map(category => {
                   const categoryVendors = vendorsByCategory[category]
                   const inReview = categoryVendors.filter(v => !v.couple_status).length
-                  const approved = categoryVendors.filter(v => v.couple_status === 'interested').length
+                  const approved = categoryVendors.filter(v => v.couple_status === 'approved').length
                   const booked = categoryVendors.filter(v => v.couple_status === 'booked').length
-                  const declined = categoryVendors.filter(v => v.couple_status === 'pass').length
+                  const declined = categoryVendors.filter(v => v.couple_status === 'declined').length
 
                   // Build status text - if there's at least one approved or booked, only show that
                   let statusText
@@ -1051,11 +1047,9 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                   const sortedVendors = [...categoryVendors].sort((a, b) => {
                     const statusOrder: Record<string, number> = {
                       'booked': 0,
-                      'interested': 1,
-                      'contacted': 2,
-                      'quoted': 3,
-                      'null': 4,
-                      'pass': 5
+                      'approved': 1,
+                      'null': 2,
+                      'declined': 3
                     }
                     const aStatus = a.couple_status || 'null'
                     const bStatus = b.couple_status || 'null'
@@ -1098,11 +1092,9 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                 {[...filteredVendors].sort((a, b) => {
                   const statusOrder: Record<string, number> = {
                     'booked': 0,
-                    'interested': 1,
-                    'contacted': 2,
-                    'quoted': 3,
-                    'null': 4,
-                    'pass': 5
+                    'approved': 1,
+                    'null': 2,
+                    'declined': 3
                   }
                   const aStatus = a.couple_status || 'null'
                   const bStatus = b.couple_status || 'null'
@@ -1110,7 +1102,7 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
                 }).map(vendor => {
                   // Check if any vendor in the filtered category is booked or approved
                   const hasBookedInCategory = filteredVendors.some(v => v.couple_status === 'booked')
-                  const hasApprovedInCategory = filteredVendors.some(v => v.couple_status === 'interested')
+                  const hasApprovedInCategory = filteredVendors.some(v => v.couple_status === 'approved')
                   // Vendor is superseded if:
                   // 1. There's a booked vendor and this one is not booked, OR
                   // 2. There's an approved vendor (and no booked) and this one is in review

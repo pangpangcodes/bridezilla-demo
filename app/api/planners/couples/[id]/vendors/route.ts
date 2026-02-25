@@ -7,10 +7,6 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
 
     const { id } = await params
 
@@ -39,7 +35,7 @@ export async function GET(
 
     const { data, error } = await supabaseAdmin
       .from('shared_vendors')
-      .select('*')
+      .select('*, vendor_library:planner_vendor_library!vendor_library_id(*)')
       .eq('planner_couple_id', coupleUUID)
       .order('vendor_type', { ascending: true })
       .order('vendor_name', { ascending: true })

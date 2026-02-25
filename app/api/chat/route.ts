@@ -1,0 +1,313 @@
+import { NextRequest, NextResponse } from 'next/server'
+import Anthropic from '@anthropic-ai/sdk'
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+const TOOLS: Anthropic.Tool[] = [
+  {
+    name: 'get_couples_list',
+    description: 'Get the list of all couples managed by this planner, including their wedding dates and venue info.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: 'get_couple_vendor_summary',
+    description: 'Get the vendor summary for a specific couple, grouped by couple_status, to understand what is still pending vs confirmed.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        couple_id: {
+          type: 'string',
+          description: 'The couple_id field from get_couples_list (NOT share_link_id)',
+        },
+      },
+      required: ['couple_id'],
+    },
+  },
+  {
+    name: 'parse_couple',
+    description: 'Parse a natural language description of a new couple and extract their details.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        description: {
+          type: 'string',
+          description: 'Natural language description of the couple and their wedding details',
+        },
+      },
+      required: ['description'],
+    },
+  },
+  {
+    name: 'open_couple_modal',
+    description: 'Instruct the frontend to open the Add Couple modal pre-filled with the given couple data for review before saving.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        coupleData: {
+          type: 'object',
+          description: 'The ParsedCoupleOperation object to pre-fill the modal with',
+          properties: {
+            action: { type: 'string', enum: ['create', 'update'] },
+            couple_data: {
+              type: 'object',
+              properties: {
+                couple_names: { type: 'string' },
+                couple_email: { type: 'string' },
+                wedding_date: { type: 'string' },
+                wedding_location: { type: 'string' },
+                venue_name: { type: 'string' },
+                notes: { type: 'string' },
+              },
+            },
+            confidence: { type: 'number' },
+            warnings: { type: 'array', items: { type: 'string' } },
+          },
+          required: ['action', 'couple_data'],
+        },
+      },
+      required: ['coupleData'],
+    },
+  },
+  {
+    name: 'navigate_to',
+    description: 'Instruct the frontend to navigate to a specific page. Use share_link_id from get_couples_list to build couple detail URLs.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        url: {
+          type: 'string',
+          description: 'URL to navigate to. Options: /planners, /planners?view=couples, /planners?view=vendors, /planners?view=settings, or /planners/couples/{share_link_id} to go to a specific couple\'s page.',
+        },
+      },
+      required: ['url'],
+    },
+  },
+]
+
+function isAllowedUrl(url: string): boolean {
+  if (['/planners', '/planners?view=couples', '/planners?view=vendors', '/planners?view=settings'].includes(url)) {
+    return true
+  }
+  // Allow /planners/couples/{id} where id is a UUID or a slug
+  if (/^\/planners\/couples\/[a-zA-Z0-9_-]+$/.test(url)) {
+    return true
+  }
+  return false
+}
+
+const SYSTEM_PROMPT = `You are a helpful AI assistant for ksmt, a wedding planning platform. The user is a professional wedding planner.
+
+Your job is to help planners query their couple and vendor data, and take actions like adding new couples.
+
+UNDERSTANDING KSMT STATUSES (critical - read this first):
+- Vendor statuses reflect the COUPLE's feedback, not planner action items
+- "Not Reviewed" = the couple has not yet given their feedback on this vendor; it does NOT mean the planner needs to follow up
+- "Approved" = couple likes this vendor
+- "Booked" = vendor is confirmed and booked
+- "Declined" = couple has passed on this vendor
+- NEVER interpret "Not Reviewed" as a planner task or suggest follow-up unless explicitly asked
+
+FORMATTING RULES (strictly follow these):
+- Format couple names as markdown links using their share_link_id: [Couple Names](/planners/couples/{share_link_id})
+- Use **bold** for vendor names and key status info
+- Use numbered lists when presenting multiple couples; for each couple show date and location as brief sub-lines
+- For status/vendor queries: use exactly this format for the intro line: "[Couple Name link] - [Month D, YYYY], [City, Country]." then add one warm, conversational sentence summarising where things stand (e.g. what's confirmed, what's still in progress); never include venue descriptions, guest counts, budgets, or vibe notes in the intro
+- When listing vendors, ALWAYS name each vendor explicitly - never say "these vendors" or "a photographer" without naming them
+- Vendor list: list ALL vendors regardless of status; format each as "**Vendor Name** (Type) - Status"; only append a note if planner_note or couple_note is present
+- After the vendor list, add one short, friendly closing sentence with the most useful next step or observation (e.g. "Worth nudging them to review the florist before the tasting.")
+- Tone: warm and collegial - you are a knowledgeable colleague, not a database printout
+BEHAVIOUR GUIDELINES:
+- For queries about upcoming weddings or planning status, call get_couples_list first, then call get_couple_vendor_summary for each relevant couple
+- You can make multiple tool calls in sequence to gather all needed information
+- When the planner wants to add a couple, call parse_couple first, then open_couple_modal with the result
+- For navigation requests ("go to vendors", "show settings", "vendors tab", "vendors table"), call navigate_to with the appropriate URL
+- When asked to go to a specific couple ("go to Alice and Jasper", "open Bella and Edward"), first call get_couples_list to find their share_link_id, then call navigate_to with /planners/couples/{share_link_id}
+- Always call open_couple_modal after parse_couple when adding a couple - don't just describe what you found`
+
+async function callInternalAPI(url: string, options: RequestInit, baseUrl: string): Promise<any> {
+  const fullUrl = `${baseUrl}${url}`
+  const res = await fetch(fullUrl, options)
+  const data = await res.json()
+  return data
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const authHeader = request.headers.get('authorization')
+    const token = authHeader?.replace('Bearer ', '')
+    if (!token || token !== process.env.PLANNER_PASSWORD) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { messages, context } = body as {
+      messages: Array<{ role: 'user' | 'assistant'; content: string }>
+      context?: { view?: string }
+    }
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json({ success: false, error: 'Messages are required' }, { status: 400 })
+    }
+
+    const baseUrl = request.nextUrl.origin
+    const internalHeaders = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+
+    const systemPrompt = context?.view
+      ? `${SYSTEM_PROMPT}\n\nCurrent view: ${context.view}`
+      : SYSTEM_PROMPT
+
+    // Agentic loop - keep calling Claude until it stops using tools
+    let currentMessages: Anthropic.MessageParam[] = messages.map(m => ({
+      role: m.role,
+      content: m.content,
+    }))
+
+    let finalText = ''
+    let finalAction: { type: string; payload: any } | null = null
+    let iterations = 0
+    const MAX_ITERATIONS = 10
+
+    while (iterations < MAX_ITERATIONS) {
+      iterations++
+
+      const response = await anthropic.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2048,
+        system: systemPrompt,
+        tools: TOOLS,
+        messages: currentMessages,
+      })
+
+      // Collect all text content from this response
+      const textBlocks = response.content.filter(b => b.type === 'text')
+      if (textBlocks.length > 0) {
+        finalText = textBlocks.map(b => (b as Anthropic.TextBlock).text).join('\n')
+      }
+
+      // If Claude is done (no more tool calls), exit loop
+      if (response.stop_reason === 'end_turn') {
+        break
+      }
+
+      // Process tool calls
+      const toolUseBlocks = response.content.filter(b => b.type === 'tool_use') as Anthropic.ToolUseBlock[]
+      if (toolUseBlocks.length === 0) {
+        break
+      }
+
+      // Add Claude's response to message history
+      currentMessages.push({ role: 'assistant', content: response.content })
+
+      // Execute all tool calls and collect results
+      const toolResults: Anthropic.ToolResultBlockParam[] = []
+
+      for (const toolUse of toolUseBlocks) {
+        let result: any = null
+
+        try {
+          if (toolUse.name === 'get_couples_list') {
+            const data = await callInternalAPI('/api/planners/couples', { headers: internalHeaders }, baseUrl)
+            // Rename 'id' -> 'couple_id' so Claude never confuses it with share_link_id
+            result = data.success
+              ? data.data.map((c: any) => ({
+                  couple_id: c.id,
+                  share_link_id: c.share_link_id,
+                  couple_names: c.couple_names,
+                  couple_email: c.couple_email,
+                  wedding_date: c.wedding_date,
+                  wedding_location: c.wedding_location,
+                  venue_name: c.venue_name,
+                  notes: c.notes,
+                }))
+              : { error: data.error }
+
+          } else if (toolUse.name === 'get_couple_vendor_summary') {
+            const { couple_id: coupleId } = toolUse.input as { couple_id: string }
+            const data = await callInternalAPI(
+              `/api/planners/couples/${coupleId}/vendors`,
+              { headers: internalHeaders },
+              baseUrl
+            )
+            if (data.success) {
+              const vendors = data.data as Array<{ vendor_name: string; vendor_type: string; couple_status: string | null; planner_note?: string; couple_note?: string }>
+              const list = vendors.map(v => ({
+                name: v.vendor_name,
+                type: v.vendor_type,
+                status: v.couple_status === 'approved' ? 'Approved'
+                      : v.couple_status === 'booked'   ? 'Booked'
+                      : v.couple_status === 'declined' ? 'Declined'
+                      : 'Not Reviewed',
+                ...(v.planner_note && { planner_note: v.planner_note }),
+                ...(v.couple_note  && { couple_note:  v.couple_note  }),
+              }))
+              result = { total: list.length, vendors: list }
+            } else {
+              result = { error: data.error }
+            }
+
+          } else if (toolUse.name === 'parse_couple') {
+            const { description } = toolUse.input as { description: string }
+            const data = await callInternalAPI(
+              '/api/planners/couples/parse',
+              {
+                method: 'POST',
+                headers: internalHeaders,
+                body: JSON.stringify({ text: description }),
+              },
+              baseUrl
+            )
+            if (data.success && data.data?.operations?.length > 0) {
+              result = data.data.operations[0]
+            } else {
+              result = { error: data.error || 'Could not parse couple details' }
+            }
+
+          } else if (toolUse.name === 'open_couple_modal') {
+            const { coupleData } = toolUse.input as { coupleData: any }
+            finalAction = { type: 'open_couple_modal', payload: coupleData }
+            result = { success: true, message: 'Modal will be opened on the frontend' }
+
+          } else if (toolUse.name === 'navigate_to') {
+            const { url } = toolUse.input as { url: string }
+            if (isAllowedUrl(url)) {
+              finalAction = { type: 'navigate', payload: { url } }
+              result = { success: true, message: `Will navigate to ${url}` }
+            } else {
+              result = { error: `Navigation to ${url} is not allowed` }
+            }
+
+          } else {
+            result = { error: `Unknown tool: ${toolUse.name}` }
+          }
+        } catch (err: any) {
+          result = { error: err.message || 'Tool execution failed' }
+        }
+
+        toolResults.push({
+          type: 'tool_result',
+          tool_use_id: toolUse.id,
+          content: JSON.stringify(result),
+        })
+      }
+
+      // Add tool results to message history
+      currentMessages.push({ role: 'user', content: toolResults })
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: finalText,
+      action: finalAction,
+    })
+  } catch (error: any) {
+    console.error('Chat API error:', error)
+    return NextResponse.json(
+      { success: false, error: error.message || 'Failed to process chat message' },
+      { status: 500 }
+    )
+  }
+}

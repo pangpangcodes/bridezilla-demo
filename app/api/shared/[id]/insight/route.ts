@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { supabase } from '@/lib/supabase-client'
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
 
 export async function POST(
   request: NextRequest,
@@ -31,11 +31,14 @@ export async function POST(
     const vendorSummary = vendorList.map(v => ({
       name: v.vendor_name,
       type: v.vendor_type,
-      status: v.couple_status || 'no status',
+      status: v.couple_status === 'approved' ? 'Approved'
+            : v.couple_status === 'booked'   ? 'Booked'
+            : v.couple_status === 'declined' ? 'Declined'
+            : 'Not Reviewed',
     }))
 
     const bookedCount = vendorList.filter(v => v.couple_status === 'booked').length
-    const approvedCount = vendorList.filter(v => v.couple_status === 'interested').length
+    const approvedCount = vendorList.filter(v => v.couple_status === 'approved').length
     const pendingCount = vendorList.filter(v => !v.couple_status).length
 
     const prompt = `You are ksmt, a cheerful and supportive AI wedding planning assistant. You are speaking directly to the COUPLE (the bride/groom), not a planner. Keep it warm, excited, and brief.

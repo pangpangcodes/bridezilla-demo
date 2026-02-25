@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Users, DollarSign, AlertCircle, Calendar, BarChart3, CheckCircle, Clock } from 'lucide-react'
 import { formatCurrency, calculateVendorStats } from '@/lib/vendorUtils'
-import { supabase } from '@/lib/supabase'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 import { StatCard } from '@/components/ui/StatCard'
 
@@ -81,16 +80,16 @@ export default function DashboardPage() {
     setError(null)
 
     try {
-      // Fetch data directly from demo supabase
-      const [
-        { data: rsvps },
-        { data: vendors },
-        { data: weddingSettings },
-      ] = await Promise.all([
-        supabase.from('rsvps').select('*'),
-        supabase.from('vendors').select('*'),
-        supabase.from('wedding_settings').select('wedding_date').single(),
+      const token = sessionStorage.getItem('couples_auth')
+      const headers = { 'Authorization': `Bearer ${token}` }
+      const [rsvpsRes, vendorsRes, settingsRes] = await Promise.all([
+        fetch('/api/couples/rsvps', { headers }).then(r => r.json()),
+        fetch('/api/couples/vendors', { headers }).then(r => r.json()),
+        fetch('/api/couples/wedding-settings', { headers }).then(r => r.json()),
       ])
+      const rsvps = rsvpsRes.success ? rsvpsRes.data : null
+      const vendors = vendorsRes.success ? vendorsRes.data : null
+      const weddingSettings = settingsRes.success ? settingsRes.data : null
 
       setWeddingDateStr(weddingSettings?.wedding_date ?? '2026-09-20')
 

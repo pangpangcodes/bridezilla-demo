@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase-client'
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
 
 /**
  * POST /api/planner/couples/[id]/vendors/bulk-share
@@ -11,13 +11,6 @@ export async function POST(
 ) {
   try {
     // Auth check
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const { id } = await params
     const body: {

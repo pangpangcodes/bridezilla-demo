@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase-client'
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
 
 // GET - Fetch couple and vendors for shared workspace
 export async function GET(
@@ -41,9 +41,8 @@ export async function GET(
           instagram,
           location,
           tags,
-          vendor_currency,
-          estimated_cost,
-          default_note
+          pricing,
+          description
         )
       `)
       .eq('planner_couple_id', couple.id)
@@ -74,11 +73,10 @@ export async function GET(
           instagram: vendor.library_vendor.instagram,
           location: vendor.library_vendor.location,
           tags: vendor.library_vendor.tags,
-          // Use custom_note if provided, otherwise library default_note
-          planner_note: vendor.custom_note || vendor.library_vendor.default_note,
-          // Convert library estimated_cost to legacy cost fields
-          estimated_cost_eur: vendor.library_vendor.vendor_currency === 'EUR' ? vendor.library_vendor.estimated_cost : null,
-          estimated_cost_usd: vendor.library_vendor.vendor_currency === 'USD' ? vendor.library_vendor.estimated_cost : null,
+          // Use custom_note if provided, otherwise library description
+          planner_note: vendor.custom_note || vendor.library_vendor.description,
+          // Expose library vendor for pricing display in VendorCard
+          vendor_library: vendor.library_vendor,
         }
       }
       // Manually added vendor (legacy) - use shared_vendors data as-is

@@ -15,19 +15,19 @@ interface VendorCardProps {
 
 const STATUS_OPTIONS_COUPLE: { value: VendorStatus; label: string }[] = [
   { value: null, label: 'Review Needed' },
-  { value: 'interested' as const, label: 'Approved' },
-  { value: 'pass' as const, label: 'Declined' },
+  { value: 'approved' as const, label: 'Approved' },
+  { value: 'declined' as const, label: 'Declined' },
 ]
 
 const STATUS_OPTIONS_PLANNER: { value: VendorStatus; label: string }[] = [
   { value: null, label: 'Review Needed' },
-  { value: 'interested' as const, label: 'Approved' },
+  { value: 'approved' as const, label: 'Approved' },
   { value: 'booked' as const, label: 'Booked & Confirmed' },
-  { value: 'pass' as const, label: 'Declined' },
+  { value: 'declined' as const, label: 'Declined' },
 ]
 
 // Type guard to help TypeScript understand vendor status
-const isPassStatus = (status: VendorStatus | undefined): status is 'pass' => status === 'pass'
+const isDeclinedStatus = (status: VendorStatus | undefined): status is 'declined' => status === 'declined'
 
 export default function VendorCard({ vendor, mode, onStatusChange, onNoteChange, isSuperseded = false }: VendorCardProps) {
   const theme = useThemeStyles()
@@ -82,11 +82,11 @@ export default function VendorCard({ vendor, mode, onStatusChange, onNoteChange,
       return 'Alternative'
     }
     switch (status) {
-      case 'interested':
+      case 'approved':
         return 'Approved'
       case 'booked':
         return 'Booked & Confirmed'
-      case 'pass':
+      case 'declined':
         return 'Declined'
       default:
         return 'Review Needed'
@@ -101,11 +101,11 @@ export default function VendorCard({ vendor, mode, onStatusChange, onNoteChange,
       case null:
       case undefined:
         return 'bg-slate-100 text-slate-600 border-slate-200'
-      case 'interested':
+      case 'approved':
         return 'bg-emerald-50 text-emerald-700 border-emerald-200'
       case 'booked':
         return 'bg-emerald-100 text-emerald-800 border-emerald-300 font-semibold'
-      case 'pass':
+      case 'declined':
         return 'bg-gray-100 text-gray-400 border-gray-200 line-through opacity-70'
       default:
         return 'bg-slate-100 text-slate-600 border-slate-200'
@@ -117,7 +117,7 @@ export default function VendorCard({ vendor, mode, onStatusChange, onNoteChange,
   return (
     <div
       className={`group ${theme.cardBackground} rounded-2xl shadow-sm ${theme.border} ${theme.borderWidth} overflow-hidden transition-all duration-300 hover:shadow-lg flex flex-col ${
-        vendor.couple_status === 'pass' || isSuperseded ? 'opacity-60 grayscale-[0.5]' : ''
+        vendor.couple_status === 'declined' || isSuperseded ? 'opacity-60 grayscale-[0.5]' : ''
       }`}
     >
       {/* Card Content */}
@@ -233,7 +233,7 @@ export default function VendorCard({ vendor, mode, onStatusChange, onNoteChange,
           </div>
 
           {/* Expandable Pricing Details - Hide for Alternative and Declined statuses */}
-          {!(vendor.couple_status === 'pass' || (isSuperseded && !vendor.couple_status)) && (
+          {!(vendor.couple_status === 'declined' || (isSuperseded && !vendor.couple_status)) && (
             <div>
               <button
                 onClick={() => setShowDetails(!showDetails)}
@@ -308,7 +308,7 @@ export default function VendorCard({ vendor, mode, onStatusChange, onNoteChange,
                 Your Decision
               </label>
 
-              {vendor.couple_status === 'pass' ? (
+              {vendor.couple_status === 'declined' ? (
                 /* Declined State - Show Restore Button */
                 <div className="space-y-2">
                   <div className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gray-50 text-gray-500 border-2 border-gray-200 rounded-lg font-medium text-sm">
@@ -332,16 +332,16 @@ export default function VendorCard({ vendor, mode, onStatusChange, onNoteChange,
                 <div className="space-y-2">
                   <div className="grid grid-cols-2 gap-3">
                     <button
-                      onClick={() => vendor.couple_status !== 'booked' && handleStatusChange('interested')}
+                      onClick={() => vendor.couple_status !== 'booked' && handleStatusChange('approved')}
                       disabled={vendor.couple_status === 'booked'}
                       className={`flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-sm transition-colors ${
                         vendor.couple_status === 'booked'
                           ? `${theme.primaryButton} ${theme.textOnPrimary} opacity-50 cursor-not-allowed`
-                          : vendor.couple_status === 'interested'
+                          : vendor.couple_status === 'approved'
                             ? `${theme.primaryButton} ${theme.textOnPrimary} ${theme.primaryButtonHover}`
                             : `${theme.secondaryButton} ${theme.textSecondary} ${theme.secondaryButtonHover}`
                       }`}
-                      title={vendor.couple_status === 'booked' ? 'Booked & Confirmed' : vendor.couple_status === 'interested' ? 'Click again to unapprove' : 'Mark as interested'}
+                      title={vendor.couple_status === 'booked' ? 'Booked & Confirmed' : vendor.couple_status === 'approved' ? 'Click again to unapprove' : 'Mark as interested'}
                     >
                       {vendor.couple_status === 'booked' ? (
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -352,16 +352,16 @@ export default function VendorCard({ vendor, mode, onStatusChange, onNoteChange,
                           <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                         </svg>
                       )}
-                      {vendor.couple_status === 'booked' || vendor.couple_status === 'interested' ? 'Approved ✓' : 'Approve'}
+                      {vendor.couple_status === 'booked' || vendor.couple_status === 'approved' ? 'Approved ✓' : 'Approve'}
                     </button>
 
                     <button
-                      onClick={() => vendor.couple_status !== 'booked' && handleStatusChange('pass' as VendorStatus)}
+                      onClick={() => vendor.couple_status !== 'booked' && handleStatusChange('declined')}
                       disabled={vendor.couple_status === 'booked'}
                       className={`flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-sm transition-colors ${
                         vendor.couple_status === 'booked'
                           ? `${theme.secondaryButton} ${theme.textMuted} opacity-50 cursor-not-allowed`
-                          : isPassStatus(vendor.couple_status)
+                          : isDeclinedStatus(vendor.couple_status)
                             ? `bg-gray-100 text-gray-600 border border-gray-300`
                             : `${theme.secondaryButton} ${theme.textSecondary} ${theme.secondaryButtonHover}`
                       }`}
@@ -385,7 +385,7 @@ export default function VendorCard({ vendor, mode, onStatusChange, onNoteChange,
           )}
 
           {/* Status Actions (Planner View Only) */}
-          {mode === 'planner' && vendor.couple_status === 'interested' && (
+          {mode === 'planner' && vendor.couple_status === 'approved' && (
             <div className="relative">
               <label className={`text-xs font-semibold ${theme.textMuted} uppercase tracking-wider mb-3 block`}>
                 Planner Actions

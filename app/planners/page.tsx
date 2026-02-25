@@ -1,5 +1,4 @@
 import PlannerDashboard from '@/components/planner/PlannerDashboard'
-import { ThemeProvider } from '@/contexts/ThemeContext'
 
 export const metadata = {
   title: 'ksmt for Planners | The AI Powered Workspace for Modern Wedding Planning',
@@ -7,9 +6,5 @@ export const metadata = {
 }
 
 export default function PlannerPage() {
-  return (
-    <ThemeProvider>
-      <PlannerDashboard />
-    </ThemeProvider>
-  )
+  return <PlannerDashboard />
 }

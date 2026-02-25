@@ -291,7 +291,7 @@ async function runSeedManual() {
         website: 'https://auroraphotography.es',
         estimated_cost_eur: 3500.00,
         planner_note: 'Maria specializes in romantic destination weddings. Her editorial style captures emotion beautifully. Includes engagement shoot and full-day coverage.',
-        couple_status: 'interested',
+        couple_status: 'approved',
         couple_note: 'Love the romantic style! Would like to see more sunset photos.',
         created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
         updated_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
@@ -309,7 +309,7 @@ async function runSeedManual() {
         website: 'https://flordesevilla.es',
         estimated_cost_eur: 4200.00,
         planner_note: 'Carmen creates stunning floral designs using local Spanish blooms. Perfect for hacienda weddings with romantic, garden-inspired arrangements.',
-        couple_status: 'contacted',
+        couple_status: null,
         couple_note: 'Contacted Carmen - waiting for detailed quote. Love her use of local flowers!',
         created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
         updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
@@ -357,7 +357,7 @@ async function runSeedManual() {
         action: 'status_changed',
         actor: 'couple',
         old_value: null,
-        new_value: 'interested',
+        new_value: 'approved',
         created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
       },
       {
@@ -383,8 +383,8 @@ async function runSeedManual() {
         shared_vendor_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
         action: 'status_changed',
         actor: 'couple',
-        old_value: 'interested',
-        new_value: 'contacted',
+        old_value: 'approved',
+        new_value: null,
         created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
       },
       {

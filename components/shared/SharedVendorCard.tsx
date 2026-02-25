@@ -14,8 +14,8 @@ interface SharedVendorCardProps {
 
 const STATUS_OPTIONS: { value: VendorStatus; label: string }[] = [
   { value: null, label: 'Review Needed' },
-  { value: 'interested', label: 'Approved' },
-  { value: 'pass', label: 'Declined' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'declined', label: 'Declined' },
 ]
 
 export default function SharedVendorCard({ vendor, coupleId, onStatusChange, onNoteChange }: SharedVendorCardProps) {
@@ -49,9 +49,9 @@ export default function SharedVendorCard({ vendor, coupleId, onStatusChange, onN
       case null:
       case undefined:
         return 'bg-slate-100 text-slate-600 border-slate-200'
-      case 'interested':
+      case 'approved':
         return 'bg-emerald-50 text-emerald-700 border-emerald-200'
-      case 'pass':
+      case 'declined':
         return 'bg-gray-100 text-gray-400 border-gray-200 line-through opacity-70'
       default:
         return 'bg-slate-100 text-slate-600 border-slate-200'
@@ -63,8 +63,8 @@ export default function SharedVendorCard({ vendor, coupleId, onStatusChange, onN
   return (
     <div
       className={`group ${theme.cardBackground} rounded-xl shadow-sm ${theme.border} ${theme.borderWidth} overflow-hidden transition-all duration-300 hover:shadow-lg ${
-        vendor.couple_status === 'interested' ? 'ring-2 ring-emerald-500/20' : ''
-      } ${vendor.couple_status === 'pass' ? 'opacity-60 grayscale-[0.5]' : ''}`}
+        vendor.couple_status === 'approved' ? 'ring-2 ring-emerald-500/20' : ''
+      } ${vendor.couple_status === 'declined' ? 'opacity-60 grayscale-[0.5]' : ''}`}
     >
       {/* Card Content */}
       <div className="p-6">

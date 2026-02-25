@@ -144,11 +144,11 @@ INSERT INTO shared_vendors (
   'https://auroraphotography.es',
   3500.00,
   'Maria specializes in romantic destination weddings. Her editorial style captures emotion beautifully. Includes engagement shoot and full-day coverage.',
-  'interested', -- Couple marked as interested
+  'approved', -- Couple marked as approved
   'Love the romantic style! Would like to see more sunset photos.',
   NOW() - INTERVAL '5 days',
   NOW() - INTERVAL '2 hours' -- Recently updated by couple
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO UPDATE SET couple_status = EXCLUDED.couple_status;
 
 -- Share Florist
 INSERT INTO shared_vendors (
@@ -181,11 +181,11 @@ INSERT INTO shared_vendors (
   'https://flordesevilla.es',
   4200.00,
   'Carmen creates stunning floral designs using local Spanish blooms. Perfect for hacienda weddings with romantic, garden-inspired arrangements.',
-  'contacted', -- Couple has contacted this vendor
+  NULL, -- Not reviewed
   'Contacted Carmen - waiting for detailed quote. Love her use of local flowers!',
   NOW() - INTERVAL '4 days',
   NOW() - INTERVAL '1 day'
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO UPDATE SET couple_status = EXCLUDED.couple_status;
 
 -- Share Venue
 INSERT INTO shared_vendors (
@@ -222,7 +222,7 @@ INSERT INTO shared_vendors (
   NULL,
   NOW() - INTERVAL '3 days',
   NOW() - INTERVAL '3 days'
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO UPDATE SET couple_status = EXCLUDED.couple_status;
 
 -- =============================================================================
 -- Insert Sample Activity Log Entries
@@ -262,7 +262,7 @@ INSERT INTO vendor_activity (
   'status_changed',
   'couple',
   NULL,
-  'interested',
+  'approved',
   NOW() - INTERVAL '3 days'
 );
 
@@ -304,7 +304,7 @@ INSERT INTO vendor_activity (
   NOW() - INTERVAL '4 days'
 );
 
--- Activity 5: Couple marked florist as contacted
+-- Activity 5: Couple status on florist
 INSERT INTO vendor_activity (
   planner_couple_id,
   shared_vendor_id,
@@ -318,8 +318,8 @@ INSERT INTO vendor_activity (
   'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
   'status_changed',
   'couple',
-  'interested',
-  'contacted',
+  'approved',
+  NULL,
   NOW() - INTERVAL '1 day'
 );
 

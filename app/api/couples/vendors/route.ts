@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
 
 // Valid columns in the vendors table
 const VALID_VENDOR_COLUMNS = new Set([
@@ -25,13 +25,29 @@ function sanitizeBody(body: Record<string, any>) {
   return sanitized
 }
 
+// GET - List all vendors
+export async function GET(request: NextRequest) {
+  try {
+
+    const { data, error } = await supabase
+      .from('vendors')
+      .select('*')
+
+    if (error) {
+      console.error('Failed to fetch vendors:', error)
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, data: data || [] })
+  } catch (error: any) {
+    console.error('List vendors error:', error)
+    return NextResponse.json({ success: false, error: error.message || 'Failed to fetch vendors' }, { status: 500 })
+  }
+}
+
 // POST - Create a new vendor
 export async function POST(request: NextRequest) {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.ADMIN_PASSWORD) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
 
     const body = await request.json()
     const sanitized = sanitizeBody(body)

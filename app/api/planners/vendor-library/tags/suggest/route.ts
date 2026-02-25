@@ -4,13 +4,6 @@ import Anthropic from '@anthropic-ai/sdk'
 export async function POST(request: NextRequest) {
   try {
     // Auth check
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const { tag, vendor_type, existing_tags } = await request.json()
 

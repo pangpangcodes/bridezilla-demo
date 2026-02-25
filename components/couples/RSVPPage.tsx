@@ -3,7 +3,6 @@
 import { useState, useEffect, Fragment } from 'react'
 import { Users, CheckCircle, XCircle, Download, Eye, EyeOff, Copy, Check, ChevronDown, ChevronRight, AlertCircle, Search } from 'lucide-react'
 import { formatDate, maskEmail, maskPhone, exportToCSV } from '@/lib/format'
-import { supabase } from '@/lib/supabase'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
 import { StatCard, StatCardSkeleton } from '@/components/ui/StatCard'
 
@@ -49,9 +48,14 @@ export default function RSVPPage() {
     setError(null)
     setLoading(true)
     try {
-      const { data: allRsvps, error: supabaseError } = await supabase.from('rsvps').select('*')
+      const token = sessionStorage.getItem('couples_auth')
+      const res = await fetch('/api/couples/rsvps', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const result = await res.json()
+      const allRsvps = result.success ? result.data : null
 
-      if (supabaseError || !allRsvps) {
+      if (!allRsvps) {
         setError('Could not load RSVPs. Please try refreshing the page.')
         return
       }

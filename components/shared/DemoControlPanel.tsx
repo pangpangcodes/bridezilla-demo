@@ -305,7 +305,7 @@ export default function DemoControlPanel({
       )}
 
       {/* Control panel */}
-      <div className="fixed bottom-0 left-0 right-0 md:bottom-6 md:right-6 md:left-auto w-full md:w-96 z-[100] animate-slide-in-from-bottom">
+      <div className="fixed bottom-0 left-0 right-0 md:bottom-6 md:left-6 md:right-auto w-full md:w-96 z-[100] animate-slide-in-from-bottom">
         <div
           className={`${theme.cardBackground} md:rounded-2xl rounded-t-2xl shadow-2xl ${theme.border} ${theme.borderWidth} p-6`}
         >

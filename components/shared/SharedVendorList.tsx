@@ -5,16 +5,15 @@ import { useThemeStyles } from '@/hooks/useThemeStyles'
 import { ChevronDown } from 'lucide-react'
 import VendorCard from '../VendorCard'
 import type { SharedVendor, VendorStatus } from '@/types/planner'
-import { supabase } from '@/lib/supabase-client'
-
 interface SharedVendorListProps {
   vendors: SharedVendor[]
   coupleId: string
+  shareLinkId: string
   onUpdate: () => void
   activeCategory: string
 }
 
-export default function SharedVendorList({ vendors, coupleId, onUpdate, activeCategory }: SharedVendorListProps) {
+export default function SharedVendorList({ vendors, coupleId, shareLinkId, onUpdate, activeCategory }: SharedVendorListProps) {
   const theme = useThemeStyles()
   const [localVendors, setLocalVendors] = useState(vendors)
   const [showDeclined, setShowDeclined] = useState(false)
@@ -39,7 +38,7 @@ export default function SharedVendorList({ vendors, coupleId, onUpdate, activeCa
       // Determine priority for each category based on highest status
       const getPriority = (vendors: SharedVendor[]) => {
         const hasBooked = vendors.some(v => v.couple_status === 'booked')
-        const hasApproved = vendors.some(v => v.couple_status === 'interested')
+        const hasApproved = vendors.some(v => v.couple_status === 'approved')
 
         if (hasBooked) return 3 // Booked & Confirmed - show last
         if (hasApproved) return 2 // Approved - show middle
@@ -59,22 +58,12 @@ export default function SharedVendorList({ vendors, coupleId, onUpdate, activeCa
 
   const handleStatusChange = async (vendorId: string, status: VendorStatus | null) => {
     try {
-      // Update vendor status in database
-      const { error: updateError } = await supabase
-        .from('shared_vendors')
-        .update({ couple_status: status })
-        .eq('id', vendorId)
-
-      if (updateError) throw updateError
-
-      // Log activity
-      await supabase.from('vendor_activity').insert({
-        planner_couple_id: coupleId,
-        shared_vendor_id: vendorId,
-        action: 'status_changed',
-        actor: 'couple',
-        new_value: status
+      const res = await fetch(`/api/shared/${shareLinkId}/vendors/${vendorId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ couple_status: status })
       })
+      if (!res.ok) throw new Error('Failed to update status')
 
       // Update local state only - no page refresh
       setLocalVendors(prev => prev.map(v =>
@@ -87,21 +76,12 @@ export default function SharedVendorList({ vendors, coupleId, onUpdate, activeCa
 
   const handleNoteChange = async (vendorId: string, note: string) => {
     try {
-      // Update vendor note in database
-      const { error: updateError } = await supabase
-        .from('shared_vendors')
-        .update({ couple_note: note.trim() || null })
-        .eq('id', vendorId)
-
-      if (updateError) throw updateError
-
-      // Log activity
-      await supabase.from('vendor_activity').insert({
-        planner_couple_id: coupleId,
-        shared_vendor_id: vendorId,
-        action: 'note_added',
-        actor: 'couple'
+      const res = await fetch(`/api/shared/${shareLinkId}/vendors/${vendorId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ couple_note: note.trim() || null })
       })
+      if (!res.ok) throw new Error('Failed to update note')
 
       // Update local state only - no page refresh
       setLocalVendors(prev => prev.map(v =>
@@ -123,20 +103,20 @@ export default function SharedVendorList({ vendors, coupleId, onUpdate, activeCa
 
   // Get all declined vendors across all categories
   const allDeclinedVendors = useMemo(() => {
-    return localVendors.filter(v => v.couple_status === 'pass')
+    return localVendors.filter(v => v.couple_status === 'declined')
   }, [localVendors])
 
   return (
     <div className="space-y-20">
       {groupedVendors.map(([type, typeVendors]) => {
         // Filter out declined vendors from active display
-        const activeVendors = typeVendors.filter(v => v.couple_status !== 'pass')
+        const activeVendors = typeVendors.filter(v => v.couple_status !== 'declined')
 
         if (activeVendors.length === 0) return null
 
         // Calculate status counts (excluding declined)
         const inReview = activeVendors.filter(v => !v.couple_status).length
-        const approved = activeVendors.filter(v => v.couple_status === 'interested').length
+        const approved = activeVendors.filter(v => v.couple_status === 'approved').length
         const booked = activeVendors.filter(v => v.couple_status === 'booked').length
 
         // Build status text - if there's at least one approved or booked, only show that

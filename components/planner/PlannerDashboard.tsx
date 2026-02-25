@@ -175,7 +175,7 @@ export default function PlannerDashboard() {
                     {currentView === 'vendors' && 'Vendors'}
                   </h2>
                   <p className={`${theme.textOnPageSecondary} font-body`}>
-                    {currentView === 'dashboard' && 'Overview of your couples, upcoming weddings, and who needs your attention.'}
+                    {currentView === 'dashboard' && 'Overview of your couples and upcoming weddings.'}
                     {currentView === 'couples' && 'Manage your wedding couples and their celebration details.'}
                     {currentView === 'vendors' && 'Your curated collection of trusted wedding vendors.'}
                   </p>

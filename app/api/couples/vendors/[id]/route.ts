@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
 
 // Valid columns in the vendors table
 const VALID_VENDOR_COLUMNS = new Set([
@@ -31,10 +31,6 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.ADMIN_PASSWORD) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
 
     const { id } = await params
     const { mergePayments, ...rest } = await request.json()
@@ -70,5 +66,31 @@ export async function PATCH(
   } catch (error: any) {
     console.error('Update vendor error:', error)
     return NextResponse.json({ success: false, error: error.message || 'Failed to update vendor' }, { status: 500 })
+  }
+}
+
+// DELETE - Delete a vendor
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+
+    const { id } = await params
+
+    const { error } = await supabase
+      .from('vendors')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      console.error('Failed to delete vendor:', error)
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error('Delete vendor error:', error)
+    return NextResponse.json({ success: false, error: error.message || 'Failed to delete vendor' }, { status: 500 })
   }
 }

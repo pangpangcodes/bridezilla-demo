@@ -5,7 +5,6 @@ import Image from 'next/image'
 import { Users, DollarSign, AlertCircle, CheckCircle, Download, Plus, Edit2, Trash2, Upload, Copy, Check, Settings, Calendar, ChevronDown, ChevronRight } from 'lucide-react'
 import { Vendor, VendorStats, VENDOR_TYPES } from '@/types/vendor'
 import { formatCurrency, getCurrencySymbol, calculateVendorStats, exportVendorsToCSV } from '@/lib/vendorUtils'
-import { supabase } from '@/lib/supabase'
 import VendorForm from './VendorForm'
 import CoupleAskAIVendorModal from './CoupleAskAIVendorModal'
 import CompleteDetailsModal from './CompleteDetailsModal'
@@ -79,9 +78,14 @@ export default function VendorsPage() {
     setError(null)
     setLoading(true)
     try {
-      const { data: rawVendors, error: supabaseError } = await supabase.from('vendors').select('*')
+      const token = sessionStorage.getItem('couples_auth')
+      const res = await fetch('/api/couples/vendors', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const result = await res.json()
+      const rawVendors = result.success ? result.data : null
 
-      if (supabaseError || !rawVendors) {
+      if (!rawVendors) {
         setError('Could not load vendors. Please try refreshing the page.')
         return
       }
@@ -123,15 +127,20 @@ export default function VendorsPage() {
 
   const fetchPaymentReminders = async () => {
     try {
-      const { data: vendors } = await supabase.from('vendors').select('*')
+      const token = sessionStorage.getItem('couples_auth')
+      const res = await fetch('/api/couples/vendors', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const result = await res.json()
+      const vendors = result.success ? result.data : null
 
       // Calculate payment reminders
       const reminders: any[] = []
       vendors?.forEach((vendor: Vendor) => {
         vendor.payments?.forEach((payment: any) => {
           if (!payment.paid && payment.due_date) {
-            const dueDate = new Date(payment.due_date)
-            dueDate.setHours(0, 0, 0, 0) // Normalize to midnight
+            const [dy, dm, dd] = payment.due_date.split('-').map(Number)
+            const dueDate = new Date(dy, dm - 1, dd)
             const today = new Date()
             today.setHours(0, 0, 0, 0) // Normalize to midnight
             const daysUntilDue = Math.round((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
@@ -166,7 +175,12 @@ export default function VendorsPage() {
 
   const fetchWeddingSettings = async () => {
     try {
-      const { data } = await supabase.from('wedding_settings').select('*').single()
+      const token = sessionStorage.getItem('couples_auth')
+      const res = await fetch('/api/couples/wedding-settings', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const result = await res.json()
+      const data = result.success ? result.data : null
       if (data) {
         setWeddingSettings({
           wedding_budget: data.wedding_budget ?? 50000,
@@ -210,7 +224,11 @@ export default function VendorsPage() {
 
   const handleDeleteVendor = async (id: string) => {
     try {
-      await supabase.from('vendors').delete().eq('id', id)
+      const token = sessionStorage.getItem('couples_auth')
+      await fetch(`/api/couples/vendors/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
       fetchVendors()
       fetchPaymentReminders()
       setDeleteConfirm(null)
@@ -236,8 +254,16 @@ export default function VendorsPage() {
   const handleBulkImport = async (vendors: any[]) => {
     try {
       // Import each vendor
+      const token = sessionStorage.getItem('couples_auth')
       for (const vendor of vendors) {
-        await supabase.from('vendors').insert(vendor)
+        await fetch('/api/couples/vendors', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(vendor)
+        })
       }
 
       // Scroll to and expand the first imported vendor
@@ -1096,7 +1122,10 @@ export default function VendorsPage() {
                                       })() : '-'}
                                     </td>
                                     <td className="px-3 py-2 text-gray-600 text-xs">
-                                      {payment.paid && payment.paid_date ? new Date(payment.paid_date).toLocaleDateString() : '-'}
+                                      {payment.paid && payment.paid_date ? (() => {
+                                        const [py, pm, pd] = payment.paid_date.split('-').map(Number)
+                                        return new Date(py, pm - 1, pd).toLocaleDateString()
+                                      })() : '-'}
                                     </td>
                                     <td className="px-3 py-2 text-gray-600 text-xs">
                                       {payment.payment_type === 'cash' ? 'Cash' : 'Bank Transfer'}

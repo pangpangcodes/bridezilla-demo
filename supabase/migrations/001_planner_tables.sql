@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS shared_vendors (
 
   -- Notes and collaboration
   planner_note TEXT, -- Visible to couple: "Perfect for your boho style"
-  couple_status VARCHAR(50), -- null, interested, contacted, quoted, booked, pass
+  couple_status VARCHAR(50), -- null (not reviewed), approved, booked, declined
   couple_note TEXT, -- Couple's notes, visible to planner
 
   -- Timestamps

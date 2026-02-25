@@ -6,10 +6,6 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
 
     const { couple, vendors, stats } = await request.json()
     const { id } = await params
@@ -21,7 +17,10 @@ export async function POST(
     const vendorSummary = vendors.map((v: any) => ({
       name: v.vendor_name,
       type: v.vendor_type,
-      status: v.couple_status || 'no status',
+      status: v.couple_status === 'approved' ? 'Approved'
+            : v.couple_status === 'booked'   ? 'Booked'
+            : v.couple_status === 'declined' ? 'Declined'
+            : 'Not Reviewed',
     }))
 
     const prompt = `You are ksmt, a cheerful AI assistant helping a wedding planner manage their clients. You are speaking directly to the WEDDING PLANNER about their couple, ${couple.couple_names}. The planner is NOT the one getting married.

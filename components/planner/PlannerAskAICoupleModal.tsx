@@ -13,12 +13,14 @@ interface AskAICoupleModalProps {
   existingCouples: PlannerCouple[]
   onClose: () => void
   onSuccess: () => void
+  initialOperation?: ParsedCoupleOperation
 }
 
 export default function PlannerAskAICoupleModal({
   existingCouples,
   onClose,
-  onSuccess
+  onSuccess,
+  initialOperation,
 }: AskAICoupleModalProps) {
   const theme = useThemeStyles()
   const [textInput, setTextInput] = useState('')
@@ -42,6 +44,13 @@ export default function PlannerAskAICoupleModal({
       document.body.style.overflow = 'unset'
     }
   }, [])
+
+  // If pre-filled from chat action, skip text-input step and go straight to review
+  useEffect(() => {
+    if (initialOperation) {
+      setOperations([initialOperation])
+    }
+  }, [initialOperation])
 
   const handleParse = async () => {
     if (!textInput.trim()) {

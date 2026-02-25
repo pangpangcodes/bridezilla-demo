@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase-client'
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
 import { AnthropicClient } from '@/lib/anthropicClient'
 import { extractTextFromPDF, isPDFParseError } from '@/lib/pdfParser'
 import { VendorParseResult } from '@/types/planner'
@@ -15,20 +15,6 @@ export async function POST(request: NextRequest) {
 
   try {
     // Auth check
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    console.log('Auth check:', {
-      receivedToken: token,
-      expectedToken: process.env.PLANNER_PASSWORD,
-      match: token === process.env.PLANNER_PASSWORD
-    })
-
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      console.error('Auth failed - token mismatch')
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const contentType = request.headers.get('content-type') || ''
     let textToParse = ''

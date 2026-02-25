@@ -121,7 +121,7 @@ Vendors shared with specific couples.
 - `vendor_type` (text, required) - Vendor type (denormalized)
 - `estimated_cost_eur` (numeric) - Estimated cost in EUR
 - `estimated_cost_cad` (numeric) - Estimated cost in CAD/USD
-- `couple_status` (text) - Couple's response: 'interested', 'pass', null (in review)
+- `couple_status` (text) - Couple's response: 'approved', 'booked', 'declined', null (not reviewed)
 - `couple_note` (text) - Couple's private notes
 - `planner_note` (text) - Planner's notes about this recommendation
 - `shared_at` (timestamp, default: now()) - When vendor was shared

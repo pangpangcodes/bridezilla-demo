@@ -1,30 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 import type { CreatePlannerCoupleInput, PlannerCouple } from '@/types/planner'
-
-// Create server-side Supabase client with service role (bypasses RLS)
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
 
 // GET - List all couples
 export async function GET(request: NextRequest) {
   try {
     // Auth check
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const { data, error } = await supabaseAdmin
       .from('planner_couples')
@@ -57,13 +38,6 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Auth check
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token || token !== process.env.PLANNER_PASSWORD) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const input: CreatePlannerCoupleInput = await request.json()
 
@@ -75,8 +49,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate unique share link ID
-    const shareLinkId = crypto.randomUUID()
+    // Generate a readable slug from couple names, e.g. "Alice & Bob" → "alice-bob-a1b2"
+    const baseSlug = input.couple_names
+      .trim()
+      .toLowerCase()
+      .replace(/&/g, 'and')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+    const suffix = crypto.randomUUID().slice(0, 4)
+    const shareLinkId = `${baseSlug}-${suffix}`
 
     // Prepare couple data
     const coupleData = {
