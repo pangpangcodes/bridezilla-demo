@@ -19,7 +19,7 @@ const LandingNavbar: React.FC = () => {
         <Link href="/" className="flex-shrink-0">
           <div className="relative w-8 h-8 sm:w-12 sm:h-12">
             <Image
-              src="/ksmt-logo.svg"
+              src="/ksmt-heart.svg"
               alt="ksmt"
               fill
               className="object-contain"

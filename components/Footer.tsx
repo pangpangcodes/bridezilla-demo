@@ -31,7 +31,7 @@ export default function Footer() {
             <div className="flex items-center justify-center gap-2">
               <p className="text-xs text-gray-500">Made with love by ksmt</p>
               <Image
-                src="/ksmt-logo.svg"
+                src="/ksmt-heart.svg"
                 alt="ksmt"
                 width={20}
                 height={20}

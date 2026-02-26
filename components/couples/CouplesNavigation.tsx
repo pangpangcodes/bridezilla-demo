@@ -24,7 +24,7 @@ export default function CouplesNavigation({ currentView, onViewChange, onLogout,
     setMobileMenuOpen(false)
   }
 
-  const logoSrc = '/ksmt-logo.svg'
+  const logoSrc = '/ksmt-heart.svg'
 
   return (
     <nav className="bg-white sticky top-0 z-40 border-b border-stone-200">

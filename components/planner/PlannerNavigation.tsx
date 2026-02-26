@@ -22,7 +22,7 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
     setMobileMenuOpen(false)
   }
 
-  const logoSrc = '/ksmt-logo.svg'
+  const logoSrc = '/ksmt-heart.svg'
 
   return (
     <nav className={`${theme.cardBackground} sticky top-0 z-40 border-b ${theme.border}`}>

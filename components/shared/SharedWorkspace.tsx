@@ -212,7 +212,7 @@ export default function SharedWorkspace({ shareLinkId }: SharedWorkspaceProps) {
           <div className={`relative ${theme.cardBackground} p-6 rounded-2xl shadow-sm ${theme.border} ${theme.borderWidth} mb-8`}>
             <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-white px-2">
               <Image
-                src="/ksmt-logo.svg"
+                src="/ksmt-heart.svg"
                 alt="ksmt"
                 width={36}
                 height={36}

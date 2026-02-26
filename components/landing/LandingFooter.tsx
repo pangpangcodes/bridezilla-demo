@@ -9,7 +9,7 @@ const LandingFooter: React.FC = () => {
         <div className="hidden md:flex items-center justify-center md:justify-start gap-2.5">
           <div className="relative w-7 h-7 flex-shrink-0">
             <Image
-              src="/ksmt-logo.svg"
+              src="/ksmt-heart.svg"
               alt="ksmt"
               fill
               className="object-contain"
