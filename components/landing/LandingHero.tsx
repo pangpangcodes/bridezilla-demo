@@ -12,7 +12,7 @@ const LandingHero: React.FC = () => {
   const t = themes[theme]
 
   return (
-    <section className="relative flex-1 flex flex-col items-center justify-center pt-20 sm:pt-28 pb-8 px-4 text-ksmt-slate">
+    <section className="relative flex-1 flex flex-col items-center justify-center pt-20 sm:pt-28 md:pt-16 pb-8 px-4 text-ksmt-slate">
       {/* Subtle background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] opacity-[0.02]">
