@@ -55,10 +55,14 @@ export default function CoupleDetail({ coupleId }: CoupleDetailProps) {
   const [vendors, setVendors] = useState<SharedVendor[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'overview' | 'vendors'>(() => {
-    if (typeof window === 'undefined') return 'overview'
-    return new URLSearchParams(window.location.search).get('tab') === 'vendors' ? 'vendors' : 'overview'
-  })
+  const [activeTab, setActiveTab] = useState<'overview' | 'vendors'>('overview')
+
+  // Sync tab from URL after hydration to avoid server/client mismatch
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('tab') === 'vendors') {
+      setActiveTab('vendors')
+    }
+  }, [coupleId])
   const [selectedCategory, setSelectedCategory] = useState<string>('All')
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string[]>([])
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string[]>([])

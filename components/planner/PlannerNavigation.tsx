@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Menu, X, Compass } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeStyles } from '@/hooks/useThemeStyles'
@@ -27,7 +28,7 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
   return (
     <nav className={`${theme.cardBackground} sticky top-0 z-50 border-b ${theme.border}`}>
       <div className="px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-        <a href="/" className="flex items-center gap-2 md:gap-3">
+        <Link href="/" className="flex items-center gap-2 md:gap-3">
           <Image
             src={logoSrc}
             alt="ksmt"
@@ -44,7 +45,7 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
               Planners
             </span>
           </div>
-        </a>
+        </Link>
 
         <div className="flex items-center gap-3 md:gap-8">
           {/* Desktop Navigation */}
@@ -58,7 +59,7 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
                 Tour
               </button>
             )}
-            <a
+            <Link
               href="/planners?view=dashboard"
               onClick={(e) => {
                 e.preventDefault()
@@ -71,8 +72,8 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
               }`}
             >
               Dashboard
-            </a>
-            <a
+            </Link>
+            <Link
               href="/planners?view=couples"
               onClick={(e) => {
                 e.preventDefault()
@@ -85,8 +86,8 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
               }`}
             >
               Couples
-            </a>
-            <a
+            </Link>
+            <Link
               id="tour-nav-vendors"
               href="/planners?view=vendors"
               onClick={(e) => {
@@ -100,7 +101,7 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
               }`}
             >
               Vendors
-            </a>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -131,7 +132,7 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
                 Tour
               </button>
             )}
-            <a
+            <Link
               href="/planners?view=dashboard"
               onClick={(e) => {
                 e.preventDefault()
@@ -144,8 +145,8 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
               }`}
             >
               Dashboard
-            </a>
-            <a
+            </Link>
+            <Link
               href="/planners?view=couples"
               onClick={(e) => {
                 e.preventDefault()
@@ -158,8 +159,8 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
               }`}
             >
               Couples
-            </a>
-            <a
+            </Link>
+            <Link
               id="tour-nav-vendors-mobile"
               href="/planners?view=vendors"
               onClick={(e) => {
@@ -173,8 +174,8 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
               }`}
             >
               Vendors
-            </a>
-            <a
+            </Link>
+            <Link
               href="/planners?view=settings"
               onClick={(e) => {
                 e.preventDefault()
@@ -187,7 +188,7 @@ export default function PlannerNavigation({ currentView, onViewChange, onStartTo
               }`}
             >
               Settings
-            </a>
+            </Link>
           </div>
         </div>
       )}

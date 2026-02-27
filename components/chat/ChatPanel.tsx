@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { Send, Loader2, Mic, MicOff, Trash2 } from 'lucide-react'
 
 // ── Minimal markdown renderer ──────────────────────────────────────────────
@@ -198,6 +199,7 @@ function useVoiceInput({
 const CHAT_STORAGE_KEY = 'ksmt_chat_messages'
 
 export default function ChatPanel({ currentView }: ChatPanelProps) {
+  const router = useRouter()
   const [messages, setMessages] = useState<Message[]>(() => {
     if (typeof window === 'undefined') return []
     try {
@@ -211,15 +213,57 @@ export default function ChatPanel({ currentView }: ChatPanelProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [streamingContent, setStreamingContent] = useState('')
   const accumulatedTextRef = useRef('')
+  const displayedLenRef = useRef(0)
+  const typingRafRef = useRef<number>(0)
+  const onTypingDoneRef = useRef<(() => void) | null>(null)
   const isEmpty = messages.length === 0
 
   useEffect(() => {
     try { sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages)) } catch {}
   }, [messages])
 
+  // Scroll to bottom only when messages finalize or loading spinner appears
+  // No scroll during streaming - the chat panel is small enough to see new text appear
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, loading, streamingContent])
+  }, [messages, loading])
+
+  // Typewriter loop: reveals text word-by-word at a constant rate
+  const startTypingLoop = useCallback(() => {
+    if (typingRafRef.current) return // already running
+    const tick = () => {
+      const text = accumulatedTextRef.current
+      const target = text.length
+      const current = displayedLenRef.current
+      if (current < target) {
+        // Fixed base advance, then snap forward to next whitespace
+        // so we always reveal complete words (avoids partial-markdown flicker)
+        let next = Math.min(current + 3, target)
+        while (next < target && text[next] !== ' ' && text[next] !== '\n') {
+          next++
+        }
+        displayedLenRef.current = next
+        setStreamingContent(text.slice(0, next))
+        typingRafRef.current = requestAnimationFrame(tick)
+      } else if (onTypingDoneRef.current) {
+        // Stream finished and typing caught up - finalize
+        typingRafRef.current = 0
+        const cb = onTypingDoneRef.current
+        onTypingDoneRef.current = null
+        cb()
+      } else {
+        typingRafRef.current = 0 // pause until more text arrives
+      }
+    }
+    typingRafRef.current = requestAnimationFrame(tick)
+  }, [])
+
+  // Cleanup typing loop on unmount
+  useEffect(() => {
+    return () => {
+      if (typingRafRef.current) cancelAnimationFrame(typingRafRef.current)
+    }
+  }, [])
 
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim()
@@ -241,13 +285,17 @@ export default function ChatPanel({ currentView }: ChatPanelProps) {
         })
         if (!res.ok) throw new Error('Failed to update vendor')
         // Inject confirmation into chat storage for persistence across navigation
+        const confirmMsg = `Done! ${vendorName} is now Booked & Confirmed.`
         const saved = JSON.parse(sessionStorage.getItem(CHAT_STORAGE_KEY) || '[]')
         saved.push({ role: 'user', content: userMsg })
-        saved.push({ role: 'assistant', content: `Done! ${vendorName} is now Booked & Confirmed.` })
+        saved.push({ role: 'assistant', content: confirmMsg })
         sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(saved))
+        // Also update React state so messages appear immediately (soft nav keeps component mounted)
+        setMessages(prev => [...prev, { role: 'assistant', content: confirmMsg }])
         // Set booking context for toast + scroll on destination page
         sessionStorage.setItem('ksmt_booking_context', JSON.stringify({ vendorId, vendorName }))
-        window.location.href = `/planners/couples/${shareLinkId}?tab=vendors`
+        sessionStorage.setItem('ksmt_chat_open', 'true')
+        router.push(`/planners/couples/${shareLinkId}?tab=vendors`)
       } catch {
         setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, something went wrong confirming the booking. Please try again.' }])
       } finally {
@@ -262,6 +310,8 @@ export default function ChatPanel({ currentView }: ChatPanelProps) {
     setInput('')
     setLoading(true)
     accumulatedTextRef.current = ''
+    displayedLenRef.current = 0
+    onTypingDoneRef.current = null
     setStreamingContent('')
 
     try {
@@ -313,58 +363,73 @@ export default function ChatPanel({ currentView }: ChatPanelProps) {
 
           if (data.type === 'delta') {
             accumulatedTextRef.current += data.text
-            setStreamingContent(accumulatedTextRef.current)
+            startTypingLoop()
           } else if (data.type === 'action') {
             pendingAction = data.action
           } else if (data.type === 'done') {
-            // Capture text before clearing - React's functional updater
-            // executes later, so the ref would be empty by then
-            const finalText = accumulatedTextRef.current
-            accumulatedTextRef.current = ''
-            setStreamingContent('')
-            if (finalText) {
-              setMessages(prev => [...prev, { role: 'assistant', content: finalText }])
-            }
-
-            if (pendingAction) {
-              const { type, payload } = pendingAction
-              if (type === 'open_couple_modal') {
-                window.dispatchEvent(new CustomEvent('ksmt:chat-action', {
-                  detail: { type: 'open_couple_modal', data: payload },
-                }))
-              } else if (type === 'navigate') {
-                if (payload.bookingContext) {
-                  // Inject a confirmation reply into chat history before navigating
-                  // (the server skips streaming for booking actions so we navigate instantly)
+            // Let the typing loop finish naturally, then finalize
+            const capturedFinalText = accumulatedTextRef.current
+            const capturedAction = pendingAction
+            onTypingDoneRef.current = () => {
+              accumulatedTextRef.current = ''
+              displayedLenRef.current = 0
+              setStreamingContent('')
+              if (capturedFinalText) {
+                setMessages(prev => [...prev, { role: 'assistant', content: capturedFinalText }])
+              }
+              if (capturedAction) {
+                const { type, payload } = capturedAction
+                if (type === 'open_couple_modal') {
+                  window.dispatchEvent(new CustomEvent('ksmt:chat-action', {
+                    detail: { type: 'open_couple_modal', data: payload },
+                  }))
+                } else if (type === 'navigate') {
                   const saved = JSON.parse(sessionStorage.getItem(CHAT_STORAGE_KEY) || '[]')
-                  saved.push({
-                    role: 'assistant',
-                    content: `Done! ${payload.bookingContext.vendorName} is now Booked & Confirmed.`,
-                  })
+                  let msg: string
+                  if (payload.bookingContext) {
+                    msg = `Done! ${payload.bookingContext.vendorName} is now Booked & Confirmed.`
+                    saved.push({ role: 'assistant', content: msg })
+                    sessionStorage.setItem('ksmt_booking_context', JSON.stringify(payload.bookingContext))
+                  } else {
+                    const url = payload.url as string
+                    const coupleMatch = url.match(/\/planners\/couples\/([a-zA-Z0-9_-]+)/)
+                    msg = coupleMatch
+                      ? "Done! You're now on their couple page where you can view and manage their vendors, wedding details, and more."
+                      : 'Done! Navigating you there now.'
+                    saved.push({ role: 'assistant', content: msg })
+                  }
                   sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(saved))
-                  sessionStorage.setItem('ksmt_booking_context', JSON.stringify(payload.bookingContext))
+                  setMessages(prev => [...prev, { role: 'assistant', content: msg }])
+                  sessionStorage.setItem('ksmt_chat_open', 'true')
+                  router.push(payload.url)
                 }
-                // Navigate directly — works on all pages, not just PlannerDashboard
-                window.location.href = payload.url
               }
             }
+            // Kick the loop in case it paused (e.g. no text for navigate actions)
+            startTypingLoop()
           } else if (data.type === 'error') {
             throw new Error(data.message || 'Something went wrong')
           }
         }
       }
     } catch {
+      if (typingRafRef.current) {
+        cancelAnimationFrame(typingRafRef.current)
+        typingRafRef.current = 0
+      }
+      onTypingDoneRef.current = null
       setMessages(prev => [
         ...prev,
         { role: 'assistant', content: 'Sorry, something went wrong. Please try again.' },
       ])
+      displayedLenRef.current = 0
       accumulatedTextRef.current = ''
       setStreamingContent('')
     } finally {
       setLoading(false)
       inputRef.current?.focus()
     }
-  }, [loading, messages, currentView])
+  }, [loading, messages, currentView, startTypingLoop])
 
   const handleFinalTranscript = useCallback((text: string) => {
     setInput('')

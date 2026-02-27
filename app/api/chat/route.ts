@@ -442,10 +442,10 @@ export async function POST(request: NextRequest) {
             })
           }
 
-          // When there's a booking navigate action, skip the text stream
-          // so the client can navigate immediately (toast + scroll happen on
-          // the destination page; a canned chat message is injected client-side).
-          if (finalAction?.payload?.bookingContext) {
+          // When there's a navigate action, send it immediately and skip
+          // the text stream so the client can navigate without delay.
+          // A canned chat message is injected client-side before navigation.
+          if (finalAction?.type === 'navigate') {
             send({ type: 'action', action: finalAction })
             send({ type: 'done' })
           } else {
